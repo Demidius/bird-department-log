@@ -41,7 +41,19 @@ h1{font-size:30px}
 .gate{align-items:center;padding:32px}
 .gate-box{padding:32px;background:var(--card);border:1px solid var(--line);border-radius:24px}
 }
+@media (min-width:900px){
+#sp-body .sp-head{display:grid;grid-template-columns:minmax(300px,440px) minmax(0,1fr);gap:28px;align-items:start}
+#sp-body .sp-head>.sp-photo{position:sticky;top:110px}
+.sp-id h1{font-size:34px}
+.si-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start}
+.sp-jump{margin:22px 0 0}
+#sp-body .top-acts{margin:14px 0 0}
+.sheet#sheet-sp{width:min(720px,calc(100% - 48px))}
+.sf-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.sf-fields .fld:has(textarea),.sf-fields .fld:has(input[type=url]){grid-column:1/-1}
+}
 @media (min-width:1200px){
+.si-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 #now-body{grid-template-columns:repeat(3,minmax(0,1fr))}
 #view-add .list{grid-template-columns:repeat(4,minmax(0,1fr))}
 #view-add .row{flex-direction:column;align-items:flex-start;min-height:168px}

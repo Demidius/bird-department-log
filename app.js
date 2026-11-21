@@ -31,7 +31,17 @@ const I = {
   bird:'<path d="M16 7h.01"/><path d="M3.4 18H12a8 8 0 0 0 8-8V7a4 4 0 0 0-7.28-2.3L2 20"/><path d="m20 7 2 .5-2 .5"/><path d="M10 18v3"/><path d="M14 17.75V21"/><path d="M7 18a6 6 0 0 0 3.84-10.61"/>',
   users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
   key:'<circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/>',
-  person:'<circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/>'
+  person:'<circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/>',
+  globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
+  tree:'<path d="M12 22v-6"/><path d="M12 2 5 12h4l-3 4h12l-3-4h4z"/>',
+  leaf:'<path d="M11 20A7 7 0 0 1 4 13c0-5 4-9 16-10-1 12-5 16-10 16z"/><path d="M4 21c3-6 7-9 11-11"/>',
+  bowl:'<path d="M3 11h18a9 9 0 0 1-18 0z"/><path d="M8 7c0-1.5 1-2 1-3M12 7c0-1.5 1-2 1-3M16 7c0-1.5 1-2 1-3"/>',
+  home:'<path d="M3 10.5 12 3l9 7.5V21H3z"/><path d="M9 21v-6h6v6"/>',
+  heart:'<path d="M12 20s-7-4.4-9-9a5 5 0 0 1 9-3 5 5 0 0 1 9 3c-2 4.6-9 9-9 9z"/><path d="M7.5 12h2l1.5-3 2 5 1.5-2h2"/>',
+  sex:'<circle cx="10" cy="14" r="5"/><path d="M10 19v3M8 21h4"/><path d="M15 3h6v6M21 3l-7 7"/>',
+  ruler:'<rect x="2" y="7" width="20" height="10" rx="2"/><path d="M6 7v4M10 7v3M14 7v4M18 7v3"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  paw:'<circle cx="5.5" cy="10" r="2"/><circle cx="9.5" cy="5.5" r="2"/><circle cx="14.5" cy="5.5" r="2"/><circle cx="18.5" cy="10" r="2"/><path d="M12 12c-3 0-5.5 3.5-5.5 6 0 1.7 1.3 3 3 3 1 0 1.7-.5 2.5-.5s1.5.5 2.5.5c1.7 0 3-1.3 3-3 0-2.5-2.5-6-5.5-6z"/>'
 };
 const ic = (n, s = 24, w = 2) => `<svg aria-hidden="true" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round">${I[n] || ''}</svg>`;
 const paintIcons = root => $$('[data-ic]', root).forEach(e => { e.innerHTML = ic(e.dataset.ic, e.dataset.s || 24, e.dataset.w || 2); });
@@ -104,7 +114,7 @@ const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xx
 let sb = null, me = null, myProfile = null, channel = null;
 let recs = [], species = [], coll = [], photos = [], profiles = new Map();
 let spMap = new Map(), collMap = new Map(), collByName = new Map(), photosByOwner = new Map();
-let curSp = null, editingSp = null, spDelArmed = false, sq = '';
+let curSp = null, editingSp = null, spDelArmed = false, sq = '', sg = 'all';
 let curBird = null, editingBird = null, birdDelArmed = false, cq = '', cf = 'active', presetBird = null;
 let tab = 'add', filt = 'all', q = '', curType = null, editing = null, delArmed = false, lastFocus = null, st = null;
 let statusKey = '', statusKind = 'info', gateKey = 'loading', editingUser = null;
@@ -130,9 +140,10 @@ function fromRec(d) {
 const toRec = r => ({type: r.type, species_id: r.sp || null, bird: r.bird, event_at: new Date(r.at).toISOString(), f: r.f, note: r.note});
 function fromSp(d) {
   if (!d) return null;
-  return {id: d.id, name: d.name_ru || '', pl: d.name_pl || '', en: d.name_en || '', latin: d.latin || '', note: d.note || '', by: d.created_by || null, created: ms(d.created_at)};
+  const info = d.info && typeof d.info === 'object' && !Array.isArray(d.info) ? d.info : {};
+  return {id: d.id, name: d.name_ru || '', pl: d.name_pl || '', en: d.name_en || '', latin: d.latin || '', note: d.note || '', info, by: d.created_by || null, created: ms(d.created_at)};
 }
-const toSp = s => ({name_ru: s.name || '', name_pl: s.pl || '', name_en: s.en || '', latin: s.latin || '', note: s.note || ''});
+const toSp = s => ({name_ru: s.name || '', name_pl: s.pl || '', name_en: s.en || '', latin: s.latin || '', note: s.note || '', info: s.info || {}});
 function fromBird(d) {
   if (!d) return null;
   return {id: d.id, name: d.name, sp: d.species_id || '', sex: d.sex || '', ring: d.ring || '', chip: d.chip || '', born: d.born || '', arrived: d.arrived || '',
@@ -156,6 +167,13 @@ const nm = b => { const cb = collByName.get(key(b.name)); return cb ? `<button c
 const backBtn = k => `<button class="backlink" type="button" data-view="${backOf[k]}">${ic('back', 18, 2.2)}${esc(t(VIEW_KEY[backOf[k]] || 'back'))}</button>`;
 const matchQ = r => { if (key(r.bird).includes(q)) return true; const s = spById(r.sp); return !!s && spNames(s).some(v => key(v).includes(q)); };
 const spLink = b => { const s = spById(b.sp); return s ? `<button class="linkish" type="button" data-sp="${esc(s.id)}">${esc(spName(s))}</button>` : ''; };
+const IUCN = ['LC', 'NT', 'VU', 'EN', 'CR', 'EW', 'DD'];
+const spInfo = s => (s && s.info) || {};
+const spGroup = s => spInfo(s).group === 'mammal' ? 'mammal' : 'bird';
+const spPhoto = s => { const p = spInfo(s).photo; return p && /^https:\/\//.test(p.src || '') ? p : null; };
+const iucnBadge = (c, long) => IUCN.includes(c) ? `<span class="iucn iucn-${c}" title="${esc(t('iucn_t') + ' ' + c + ' — ' + t('iucn_' + c))}"><b>${c}</b>${long ? `<span>${esc(t('iucn_' + c))}</span>` : ''}</span>` : '';
+const SI_WILD = [['range', 'globe'], ['habitat', 'tree'], ['diet_wild', 'leaf'], ['behaviour', 'eye'], ['breeding', 'egg']];
+const SI_ZOO = [['diet_zoo', 'bowl'], ['husbandry', 'home'], ['health', 'heart'], ['sex', 'sex']];
 const sexText = s => s === 'f' ? t('sex_f') : s === 'm' ? t('sex_m') : '';
 const authorName = id => { const p = profiles.get(id); return p ? (p.display_name || p.login) : ''; };
 const roleText = r => t('role_' + r);
@@ -354,11 +372,16 @@ function fillBirds(spId) {
 function renderSpecies() {
   const n = species.length;
   $('#sp-count').textContent = n ? t('sp_count', n) : t('sp_count0');
-  const list = species.filter(s => !sq || spNames(s).some(v => key(v).includes(sq))).sort(bySp);
+  const cnt = g => species.filter(x => g === 'all' || spGroup(x) === g).length;
+  $('#sg-chips').innerHTML = ['all', 'bird', 'mammal'].filter(g => g === 'all' || cnt(g)).map(g =>
+    `<button class="chip" type="button" data-sg="${g}" aria-pressed="${sg === g}">${esc(t('sg_' + g))} <span class="chip-n">${cnt(g)}</span></button>`).join('');
+  $('#sg-chips').hidden = cnt('mammal') === 0 || cnt('bird') === 0;
+  const list = species.filter(s => (sg === 'all' || spGroup(s) === sg)
+    && (!sq || spNames(s).concat(spInfo(s).syn || []).some(v => key(v).includes(sq)))).sort(bySp);
   $('#species-body').innerHTML = list.length ? list.map(s => {
-    const nb = coll.filter(b => b.sp === s.id && b.status !== 'out').length, main = spName(s);
-    const sub = [s.latin && s.latin !== main ? s.latin : '', nb ? t('in_coll', nb) : t('not_in_coll')].filter(Boolean).join(' · ');
-    return `<button class="row" type="button" data-sp="${esc(s.id)}"><span class="tile t-grey">${ic('tag')}</span><span class="rt"><b>${esc(main)}</b><small>${esc(sub)}</small></span><span class="chev">${ic('chev', 20)}</span></button>`;
+    const nb = coll.filter(b => b.sp === s.id && b.status !== 'out').length, main = spName(s), ph = spPhoto(s);
+    const th = ph ? `<img src="${esc(ph.thumb || ph.src)}" alt="" loading="lazy">` : ic(spGroup(s) === 'mammal' ? 'paw' : 'bird', 26);
+    return `<button class="row sp-row" type="button" data-sp="${esc(s.id)}"><span class="sp-thumb">${th}</span><span class="rt"><b>${esc(main)}</b>${s.latin && s.latin !== main ? `<small class="lat" lang="la">${esc(s.latin)}</small>` : ''}<small>${esc(nb ? t('in_coll', nb) : t('not_in_coll'))}</small></span>${iucnBadge(spInfo(s).iucn)}<span class="chev">${ic('chev', 20)}</span></button>`;
   }).join('') : `<p class="empty">${esc(n ? t('none_found') : t('sp_none'))}</p>`;
 }
 
@@ -367,6 +390,7 @@ function renderSpCard() {
   if (!curSp) { box.innerHTML = ''; return; }
   const s = spById(curSp);
   if (!s) { box.innerHTML = backBtn('sp') + `<h1>${esc(t('sp_deleted'))}</h1><p class="lead">${esc(t('sp_deleted_p'))}</p>`; return; }
+  const inf = spInfo(s), ph = spPhoto(s), grp = spGroup(s);
   const birds = [...st.birds.values()].filter(b => b.sp === s.id).sort(byName);
   const nt = birds.filter(b => b.treat).length, ni = birds.filter(b => b.inc).length, nc = birds.reduce((a, b) => a + b.chicks, 0);
   const rs = recs.filter(r => r.sp === s.id).sort((a, b) => b.at - a.at);
@@ -374,13 +398,35 @@ function renderSpCard() {
   const others = birds.filter(b => !cnames.has(key(b.name)));
   const bItems = cbs.map(cb => `<div class="ncard"><div class="nl"><button class="namelink" type="button" data-bc="${esc(cb.id)}">${esc(cb.name)}</button><small>${esc([cb.status === 'out' ? t('st_out') : '', stat(st.birds.get(key(cb.name)) || {})].filter(Boolean).join(' · '))}</small></div></div>`)
     .concat(others.map(b => `<div class="ncard"><div class="nl"><b>${esc(b.name)}</b><small>${esc(stat(b) + ' · ' + t('not_in_coll_b'))}</small></div></div>`));
-  const main = spName(s), other = spOther(s);
-  box.innerHTML = backBtn('sp') + `<h1>${esc(main)}</h1>${s.latin && s.latin !== main ? `<p class="latin" lang="la">${esc(s.latin)}</p>` : ''}${other ? `<p class="sp-meta">${esc(other)}</p>` : ''}${s.note ? `<p class="sp-note">${esc(s.note)}</p>` : ''}
-${gallery(photosOf('species', s.id))}
+  const main = spName(s), txt = v => typeof v === 'string' ? v.trim() : '';
+  const secCard = (k, icn, tone) => txt(inf[k]) ? `<article class="si-card"><h3><span class="tile sm t-${tone}">${ic(icn, 18)}</span>${esc(t('si_' + k))}</h3><p>${esc(txt(inf[k]))}</p></article>` : '';
+  const wild = SI_WILD.map(([k, i]) => secCard(k, i, 'green')).join('');
+  const zoo = SI_ZOO.map(([k, i]) => secCard(k, i, k === 'health' ? 'red' : 'amber')).join('');
+  const facts = [['si_tax', [txt(inf.order), txt(inf.family)].filter(Boolean).join(' · '), 'tag'], ['si_size', txt(inf.size), 'ruler'], ['si_life', txt(inf.life), 'clock']].filter(f => f[1]);
+  const names = [['RU', s.name, 'ru'], ['PL', s.pl, 'pl'], ['EN', s.en, 'en']].filter(v => v[1]);
+  const photo = ph
+    ? `<figure class="sp-photo"><button type="button" class="ph-open" data-lbu="${esc(ph.src)}" aria-label="${esc(t('open_photo'))}"><img src="${esc(ph.src)}" alt="${esc(main)}"></button>${ph.credit || ph.page ? `<figcaption>${esc(t('si_photo_by') + (ph.credit || ''))}${ph.page ? ` · <a href="${esc(ph.page)}" target="_blank" rel="noopener">Wikimedia Commons</a>` : ''}</figcaption>` : ''}</figure>`
+    : `<figure class="sp-photo sp-photo-empty"><span>${ic(grp === 'mammal' ? 'paw' : 'bird', 44, 1.6)}</span><figcaption>${esc(t('si_no_photo'))}</figcaption></figure>`;
+  const jump = [wild && 'si-wild', zoo && 'si-zoo', 'si-dept'].filter(Boolean);
+  const dPhotos = photosOf('species', s.id);
+  box.innerHTML = backBtn('sp') + `<div class="sp-head">${photo}<div class="sp-id">
+<h1>${esc(main)}</h1>${s.latin && s.latin !== main ? `<p class="latin" lang="la">${esc(s.latin)}</p>` : ''}${txt(inf.syn) ? `<p class="sp-syn">${esc(t('si_syn'))}: <i lang="la">${esc(txt(inf.syn))}</i></p>` : ''}
+${names.length ? `<dl class="sp-names">${names.map(([c, v, l]) => `<div><dt>${c}</dt><dd lang="${l}">${esc(v)}</dd></div>`).join('')}</dl>` : ''}
+<div class="sp-badges">${iucnBadge(inf.iucn, true)}<span class="pill p-grey">${esc(t('sg_' + grp))}</span>${txt(inf.cites) ? `<span class="pill p-blue">${esc(t('si_cites') + ' ' + txt(inf.cites))}</span>` : ''}</div>
+${facts.length ? `<dl class="sp-facts">${facts.map(([l, v, i]) => `<div><dt>${ic(i, 15)}${esc(t(l))}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>` : ''}
+${lang !== 'ru' && (wild || zoo) ? `<p class="hint" style="margin-top:12px">${esc(t('si_note_lang'))}</p>` : ''}
+</div></div>
+${jump.length > 1 ? `<div class="chips sp-jump">${jump.map(j => `<button class="chip" type="button" data-jump="${j}">${esc(t(j.replace('-', '_')))}</button>`).join('')}</div>` : ''}
+${wild ? `<section class="si-group" id="si-wild"><h2 class="si-gh">${esc(t('si_wild'))}</h2><div class="si-grid">${wild}</div></section>` : ''}
+${zoo ? `<section class="si-group si-zoo" id="si-zoo"><h2 class="si-gh">${esc(t('si_zoo'))}</h2><div class="si-grid">${zoo}</div></section>` : ''}
+<section class="si-group si-dept" id="si-dept"><h2 class="si-gh">${esc(t('si_dept'))}</h2>
 <div class="stats"><div class="stat c-red"><b>${nt}</b><span class="l">${esc(t('c_treat'))}</span></div><div class="stat c-amber"><b>${ni}</b><span class="l">${esc(t('c_inc'))}</span></div><div class="stat c-blue"><b>${nc}</b><span class="l">${esc(pw(nc, 'chick'))}</span></div></div>
 <div class="top-acts w-only"><button class="btn sec" type="button" data-sp-edit>${esc(t('edit_card'))}</button><button class="btn sec" type="button" data-bird-new>${esc(t('add_bird'))}</button></div>
+${s.note ? `<article class="si-card si-notes"><h3><span class="tile sm t-blue">${ic('book', 18)}</span>${esc(t('si_notes'))}</h3><p>${esc(s.note)}</p></article>` : ''}
+${dPhotos.length ? `<div class="nsec"><h2 class="nh">${esc(t('si_photos_dept'))}<span class="nc">${dPhotos.length}</span></h2>${gallery(dPhotos)}</div>` : ''}
 <section class="nsec"><h2 class="nh">${esc(t('birds_pairs'))}<span class="nc">${bItems.length}</span></h2>${bItems.length ? bItems.join('') : `<p class="empty">${esc(t('no_birds_sp'))}</p>`}</section>
-<section class="nsec"><h2 class="nh">${esc(t('records'))}<span class="nc">${rs.length}</span></h2>${rs.length ? rs.slice(0, 50).map(r => card(r, true)).join('') : `<p class="empty">${esc(t('no_records'))}</p>`}</section>`;
+<section class="nsec"><h2 class="nh">${esc(t('records'))}<span class="nc">${rs.length}</span></h2>${rs.length ? rs.slice(0, 50).map(r => card(r, true)).join('') : `<p class="empty">${esc(t('no_records'))}</p>`}</section>
+</section>`;
 }
 
 function renderColl() {
@@ -803,6 +849,32 @@ $('#bf-del').addEventListener('click', async () => {
 });
 
 const SPF = ['name', 'latin', 'pl', 'en'];
+const SIF = [['group', 'select', 'sf_group'], ['iucn', 'select', 'sf_iucn'], ['cites', 'text', 'si_cites'], ['order', 'text', 'sf_order'], ['family', 'text', 'sf_family'],
+  ['syn', 'text', 'si_syn'], ['size', 'text', 'si_size'], ['life', 'text', 'si_life'], ['sex', 'textarea', 'si_sex'],
+  ['range', 'textarea', 'si_range'], ['habitat', 'textarea', 'si_habitat'], ['diet_wild', 'textarea', 'si_diet_wild'], ['behaviour', 'textarea', 'si_behaviour'],
+  ['breeding', 'textarea', 'si_breeding'], ['diet_zoo', 'textarea', 'si_diet_zoo'], ['husbandry', 'textarea', 'si_husbandry'], ['health', 'textarea', 'si_health'],
+  ['photo.src', 'url', 'sf_photo'], ['photo.credit', 'text', 'sf_photo_credit'], ['photo.page', 'url', 'sf_photo_page']];
+const sifId = k => 'sfi-' + k.replace('.', '-');
+function infoFields(inf) {
+  const opt = (val, cur, label) => `<option value="${val}"${val === (cur || '') ? ' selected' : ''}>${esc(label)}</option>`;
+  const ph = inf.photo || {};
+  return SIF.map(([k, tp, l]) => {
+    const id = sifId(k), v = k.startsWith('photo.') ? ph[k.slice(6)] : inf[k];
+    if (k === 'group') return `<div class="fld"><label for="${id}">${esc(t(l))}</label><select id="${id}">${opt('bird', v || 'bird', t('sg_bird'))}${opt('mammal', v, t('sg_mammal'))}</select></div>`;
+    if (k === 'iucn') return `<div class="fld"><label for="${id}">${esc(t(l))}</label><select id="${id}">${opt('', v, t('sf_iucn_none'))}${IUCN.map(c => opt(c, v, c + ' — ' + t('iucn_' + c))).join('')}</select></div>`;
+    return field({k, l, t: tp, id}, typeof v === 'string' ? v : '');
+  }).join('');
+}
+function readInfo(base) {
+  const inf = JSON.parse(JSON.stringify(base || {})), ph = Object.assign({}, inf.photo || {});
+  for (const [k] of SIF) {
+    const v = ($('#' + sifId(k)).value || '').trim();
+    if (k.startsWith('photo.')) { const pk = k.slice(6); if (pk === 'src' && v !== (ph.src || '')) delete ph.thumb; if (v) ph[pk] = v; else delete ph[pk]; }
+    else if (v) inf[k] = v; else delete inf[k];
+  }
+  if (ph.src && /^https:\/\//.test(ph.src)) inf.photo = ph; else delete inf.photo;
+  return inf;
+}
 function openSpForm(s) {
   if (!canWrite()) return;
   editingSp = s || null; spDelArmed = false;
@@ -810,6 +882,8 @@ function openSpForm(s) {
   $('#sp-f-sub').textContent = s ? t('editing') : t('spf_sub_new');
   for (const k of SPF) $('#sp-' + k).value = s ? s[k] : '';
   $('#sp-note').value = s ? s.note : '';
+  $('#sp-info-fields').innerHTML = infoFields(s ? s.info || {} : {});
+  $('#sp-more').open = !s;
   $('#sp-err').textContent = '';
   const d = $('#sp-del'); d.hidden = !s || !isAdmin(); d.textContent = t('del_sp');
   phSp = photoBox('sp-ph', 'species', s ? s.id : null, true);
@@ -824,6 +898,7 @@ $('#sp-form').addEventListener('submit', async e => {
   if (species.some(x => (!editingSp || x.id !== editingSp.id) && SPF.some(k => v[k] && key(x[k]) === key(v[k])))) return err(t('e_spdup'));
   if (phSp && phSp.busy) return;
   v.note = $('#sp-note').value.trim();
+  v.info = readInfo(editingSp ? editingSp.info : {});
   await withBusy($('#sp-save'), async () => {
     try {
       const wasEdit = !!editingSp, id = wasEdit ? editingSp.id : uuid();
@@ -902,6 +977,12 @@ $('#pass-form').addEventListener('submit', async e => {
 document.addEventListener('click', e => {
   const lb = e.target.closest('[data-lb]');
   if (lb) { e.preventDefault(); e.stopPropagation(); openLightbox(lb.dataset.lb); return; }
+  const lbu = e.target.closest('[data-lbu]');
+  if (lbu) { e.preventDefault(); const img = $('#lb-img'); delete img.dataset.path; img.src = lbu.dataset.lbu; $('#lightbox').hidden = false; setTimeout(() => $('[data-lb-close]').focus({preventScroll: true}), 30); return; }
+  const jp = e.target.closest('[data-jump]');
+  if (jp) { const x = $('#' + jp.dataset.jump); if (x) x.scrollIntoView({block: 'start', behavior: 'smooth'}); return; }
+  const sgb = e.target.closest('[data-sg]');
+  if (sgb) { sg = sgb.dataset.sg; renderSpecies(); return; }
   if (e.target.closest('[data-lb-close]') || e.target.id === 'lightbox' || e.target.id === 'lb-img') { closeLightbox(); return; }
   const el = e.target.closest('[data-new],[data-sheet],[data-tab],[data-edit],[data-close],[data-goto],[data-f],[data-view],[data-sp],[data-sp-new],[data-sp-edit],[data-bc],[data-cf],[data-bird-new],[data-bird-edit],[data-lang],[data-user],[data-user-new],[data-logout],[data-pass]');
   if (!el) return;
