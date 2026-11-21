@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Журнал отдела птиц</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: calm, practical field tool for keepers; clinical, no decoration.
+   IDEA: the keeper's paper logbook and clipboard, turned into a phone app.
+   PICTURE: the working app itself: live counters on top, big event buttons.
+   COLOUR and TYPE: cool off-white, forest-green accent; red / amber / blue status; Manrope + Inter.
+   LAYOUT: one phone column up to 480px, sticky counters, sticky bottom tabs, sheets from below. */
+:root{color-scheme:light dark;
+--bg:light-dark(#E6EBE8,#0A0F0D);--app:light-dark(#F3F5F4,#111816);--card:light-dark(#FFFFFF,#18211D);
+--line:light-dark(#DDE3E0,#2B3732);--ink:light-dark(#15211C,#E8EEEB);--muted:light-dark(#4F5D57,#A9B6B0);
+--accent:light-dark(#1E6B4E,#66CDA1);--on-accent:light-dark(#FFFFFF,#08211A);--green-soft:light-dark(#E3F0EA,#173328);
+--grey:light-dark(#2F3E37,#C9D4CF);--grey-soft:light-dark(#ECEFED,#232D29);
+--red:light-dark(#B42318,#FF9A8F);--red-soft:light-dark(#FCE9E7,#3B1D1A);--red-ink:light-dark(#6E2A22,#FFD3CD);
+--amber:light-dark(#9A4A00,#F3B866);--amber-soft:light-dark(#FCF0DF,#3A2B14);--amber-ink:light-dark(#5E3A0F,#F8DDB0);
+--blue:light-dark(#1D5FA8,#97C0F3);--blue-soft:light-dark(#E5EEF9,#172A42);--blue-ink:light-dark(#1F3F66,#D1E2F8)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-ui,sans-serif;overflow-x:clip}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.app{max-width:480px;margin:0 auto;min-height:100vh;min-height:100dvh;background:var(--app);display:flex;flex-direction:column;box-shadow:0 0 0 1px var(--line)}
+.counters{position:sticky;top:0;z-index:5;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:14px 16px 12px;background:var(--card);border-bottom:1px solid var(--line)}
+.cnt{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:10px;border:0;border-radius:14px;text-align:left}
+.cnt .top{display:flex;align-items:center;gap:8px}
+.cnt b{font:800 26px/1 Manrope,sans-serif;font-variant-numeric:tabular-nums}
+.cnt .l{font-size:13px;font-weight:500;line-height:1.2}
+.c-red{background:var(--red-soft);color:var(--red)}.c-red .l{color:var(--red-ink)}
+.c-amber{background:var(--amber-soft);color:var(--amber)}.c-amber .l{color:var(--amber-ink)}
+.c-blue{background:var(--blue-soft);color:var(--blue)}.c-blue .l{color:var(--blue-ink)}
+.status{margin:0;padding:8px 16px;font-size:13px;background:var(--amber-soft);color:var(--amber-ink)}
+.status.info{background:var(--grey-soft);color:var(--muted)}
+main{flex:1;padding:24px 16px 28px}
+h1{margin:0;font:800 26px/1.15 Manrope,sans-serif;letter-spacing:-.01em;text-wrap:balance}
+.lead{margin:4px 0 20px;color:var(--muted);font-size:14px}
+.lead::first-letter{text-transform:uppercase}
+.list,.steps{display:flex;flex-direction:column;gap:10px}
+.steps{gap:8px}
+.row,.step,.rec{display:flex;align-items:center;gap:14px;width:100%;padding:14px;background:var(--card);border:1px solid var(--line);border-radius:16px;text-align:left}
+.row{min-height:76px}.step{min-height:68px;padding:10px 14px 10px 10px}
+.row:active,.step:active,.rec:active{transform:scale(.99)}
+.tile{flex:none;width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;position:relative}
+.tile.sm{width:36px;height:36px;border-radius:11px}
+.t-green{background:var(--green-soft);color:var(--accent)}.t-grey{background:var(--grey-soft);color:var(--grey)}
+.t-red{background:var(--red-soft);color:var(--red)}.t-amber{background:var(--amber-soft);color:var(--amber)}.t-blue{background:var(--blue-soft);color:var(--blue)}
+.num{position:absolute;right:-5px;bottom:-5px;width:21px;height:21px;border-radius:11px;border:2px solid var(--card);color:var(--card);font:700 11px/1 Inter,sans-serif;display:flex;align-items:center;justify-content:center}
+.t-red .num{background:var(--red)}.t-amber .num{background:var(--amber)}
+.rt{flex:1;display:flex;flex-direction:column;gap:2px}
+.rt b{font-size:16px}.rt small{font-size:13px;color:var(--muted)}
+.step .rt b{font-weight:700}
+.chev{color:var(--muted);display:flex;flex:none}
+.tabs{position:sticky;bottom:0;z-index:5;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:8px 8px 14px;background:var(--card);border-top:1px solid var(--line)}
+.tab{display:flex;flex-direction:column;align-items:center;gap:5px;padding:4px 0;min-height:64px;background:none;border:0;color:var(--muted);font-size:13px;font-weight:500}
+.tab .ti{width:48px;height:42px;border-radius:14px;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--grey)}
+.tab.on{color:var(--accent);font-weight:700}
+.tab.on .ti{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.cal{width:22px;height:22px;border:2px solid currentColor;border-top-width:5px;border-radius:5px;display:flex;align-items:center;justify-content:center;font:800 10px/1 Inter,sans-serif}
+.overlay{position:fixed;inset:0;z-index:20;background:rgba(8,16,13,.5);opacity:0;pointer-events:none;transition:opacity .2s}
+.overlay.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:50%;bottom:0;z-index:30;width:min(480px,100%);max-height:92vh;max-height:92dvh;overflow-y:auto;display:flex;flex-direction:column;gap:16px;padding:10px 16px 24px;background:var(--card);border-radius:24px 24px 0 0;box-shadow:0 -8px 32px rgba(0,0,0,.2);transform:translate(-50%,105%);visibility:hidden;transition:transform .25s ease,visibility 0s .25s}
+.sheet.open{transform:translate(-50%,0);visibility:visible;transition:transform .25s ease}
+.sheet:focus{outline:none}
+@media (prefers-reduced-motion:reduce){.sheet,.overlay{transition:none!important}}
+.grip{align-self:center;width:40px;height:5px;border-radius:3px;background:var(--line);flex:none}
+.sh{display:flex;align-items:center;gap:12px}
+.sh .tile{width:44px;height:44px;border-radius:13px}
+.sh h2{margin:0;font:800 22px/1.2 Manrope,sans-serif}
+.sh p{margin:2px 0 0;font-size:13px;color:var(--muted)}
+.x{margin-left:auto;flex:none;width:44px;height:44px;border-radius:22px;border:0;background:var(--grey-soft);color:var(--grey);display:flex;align-items:center;justify-content:center}
+.btn{width:100%;min-height:52px;padding:0 18px;border-radius:16px;border:0;font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn.pri{background:var(--accent);color:var(--on-accent)}
+.btn.sec{background:var(--grey-soft);color:var(--ink)}
+.btn.del{background:none;color:var(--red);border:1.5px solid var(--red-soft)}
+form{display:flex;flex-direction:column;gap:14px}
+.fld{display:flex;flex-direction:column;gap:6px}
+label{font-size:14px;font-weight:600}
+.req{color:var(--red)}
+input,textarea{width:100%;min-height:48px;padding:11px 14px;border:1.5px solid var(--line);border-radius:12px;background:var(--app);font-size:16px}
+textarea{min-height:88px;resize:vertical}
+.err{margin:0;color:var(--red);font-size:14px;font-weight:600}
+.err:empty{display:none}
+.acts{display:flex;flex-direction:column;gap:8px;padding-top:4px}
+.nsec{margin-top:22px;scroll-margin-top:110px}
+#f-fields,#bf-fields{display:flex;flex-direction:column;gap:14px}
+.nh{display:flex;align-items:center;gap:10px;margin:0 0 10px;font:700 17px/1.3 Manrope,sans-serif}
+.nc{margin-left:auto;font:700 14px/1 Inter,sans-serif;color:var(--muted)}
+.ncard{display:flex;align-items:center;gap:10px 12px;flex-wrap:wrap;padding:12px 14px;margin-bottom:8px;background:var(--card);border:1px solid var(--line);border-radius:14px}
+.nl{flex:1 1 170px;display:flex;flex-direction:column;gap:1px}
+.nl small{font-size:13px;color:var(--muted)}
+.na{display:flex;gap:6px;flex-wrap:wrap}
+.mini{min-height:44px;padding:0 14px;border-radius:12px;border:0;background:var(--accent);color:var(--on-accent);font-size:14px;font-weight:600}
+.mini.ghost{background:var(--grey-soft);color:var(--ink)}
+.empty{margin:0;padding:14px;border:1.5px dashed var(--line);border-radius:14px;color:var(--muted);font-size:14px}
+.chips{display:flex;gap:8px;overflow-x:auto;margin:16px -16px 12px;padding:0 16px 4px;scrollbar-width:none}
+.chip{flex:none;min-height:44px;padding:0 15px;border-radius:22px;border:1.5px solid var(--line);background:var(--card);font-size:14px;font-weight:600}
+.chip[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:var(--app)}
+.day{margin:20px 0 8px;font-size:13px;font-weight:700;color:var(--muted)}
+.rec{align-items:flex-start;gap:12px;padding:12px 14px;margin-bottom:8px;border-radius:14px}
+.rb{flex:1;display:flex;flex-direction:column;gap:1px}
+.rh{display:flex;justify-content:space-between;gap:8px}
+.rh b{font-size:15px}
+.rh time{font-size:13px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.bird{font-weight:600}
+.det{font-size:14px;color:var(--muted)}
+.note{font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere}
+.by{font-size:13px;color:var(--muted)}.by:empty{display:none}
+.card{margin-top:14px;padding:16px;background:var(--card);border:1px solid var(--line);border-radius:16px}
+.card h2{margin:0 0 6px;font:700 17px/1.3 Manrope,sans-serif}
+.card p,.card li{margin:0 0 10px;color:var(--muted);font-size:14px}
+.card ul{margin:0;padding-left:18px}
+.card .acts{padding:0}
+#csv-box{width:100%;min-height:120px;margin-top:8px;font:13px/1.4 ui-monospace,monospace}
+.toast{position:fixed;left:50%;bottom:104px;z-index:40;transform:translateX(-50%);max-width:calc(100% - 32px);padding:10px 16px;border-radius:12px;background:var(--ink);color:var(--app);font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.on{opacity:1}
+select{width:100%;min-height:48px;padding:11px 40px 11px 14px;border:1.5px solid var(--line);border-radius:12px;background:var(--app) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%237D8A84' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center;font-size:16px;color:var(--ink);appearance:none;-webkit-appearance:none}
+.backlink{display:inline-flex;align-items:center;gap:6px;min-height:44px;margin:-10px 0 4px -8px;padding:0 8px;border:0;background:none;color:var(--accent);font-size:15px;font-weight:600}
+.spn{font-weight:500;color:var(--muted)}
+.latin{margin:4px 0 0;font-size:17px;font-style:italic;color:var(--muted)}
+.sp-meta{margin:2px 0 0;color:var(--muted);font-size:14px}
+.sp-note{margin:12px 0 0;font-size:15px;white-space:pre-wrap;overflow-wrap:anywhere}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:18px 0 0}
+.stat{display:flex;flex-direction:column;gap:5px;padding:10px;border-radius:14px}
+.stat b{font:800 24px/1 Manrope,sans-serif}
+.stat .l{font-size:13px;font-weight:500}
+.linkish{align-self:flex-start;min-height:32px;padding:4px 0;border:0;background:none;color:var(--accent);font-size:13px;font-weight:600;text-decoration:underline;text-underline-offset:2px}
+.top-acts{display:flex;gap:8px;margin-top:14px}
+.add-sp{margin-bottom:16px}
+.namelink{align-self:flex-start;min-height:32px;padding:2px 0;border:0;background:none;color:var(--ink);font-size:16px;font-weight:700;text-align:left;text-decoration:underline;text-decoration-color:var(--line);text-decoration-thickness:2px;text-underline-offset:4px}
+.pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.pill{padding:4px 10px;border-radius:999px;font-size:13px;font-weight:600}
+.p-red{background:var(--red-soft);color:var(--red-ink)}.p-amber{background:var(--amber-soft);color:var(--amber-ink)}.p-blue{background:var(--blue-soft);color:var(--blue-ink)}.p-grey{background:var(--grey-soft);color:var(--muted)}
+.facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:16px 0 0}
+.facts:empty{display:none}
+.facts div{padding:10px 12px;background:var(--card);border:1px solid var(--line);border-radius:12px}
+.facts dt{font-size:13px;color:var(--muted)}
+.facts dd{margin:2px 0 0;font-weight:600;overflow-wrap:anywhere}
+.top-acts .btn{flex:1}
+.langs{display:flex;flex-wrap:wrap;gap:8px}
+.hint{margin:0;font-size:13px;color:var(--muted)}
+.card .hint{margin:10px 0 0}
+.vh{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.gate{position:fixed;inset:0;z-index:60;display:flex;justify-content:center;align-items:flex-start;overflow-y:auto;padding:56px 16px 32px;background:var(--app)}
+.gate[hidden]{display:none}
+.gate-box{width:min(420px,100%);display:flex;flex-direction:column;gap:14px}
+.gate-logo{width:64px;height:64px;border-radius:18px;display:flex;align-items:center;justify-content:center;background:var(--green-soft);color:var(--accent)}
+.gate .lead{margin:0}
+body.ro .w-only{display:none!important}
+body:not(.ro) .ro-only{display:none!important}
+body:not(.admin) .a-only{display:none!important}
+fieldset{border:0;margin:0;padding:0;min-width:0}
+.lbl{font-size:14px;font-weight:600}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px}
+.ph{position:relative;aspect-ratio:1;border-radius:12px;overflow:hidden;background:var(--grey-soft)}
+.ph img{width:100%;height:100%;object-fit:cover;display:block}
+.ph-open{display:block;width:100%;height:100%;padding:0;border:0;background:none}
+.ph-x{position:absolute;top:4px;right:4px;width:34px;height:34px;border-radius:17px;border:0;background:rgba(8,16,13,.62);color:#fff;display:flex;align-items:center;justify-content:center}
+.ph-add{aspect-ratio:1;border:1.5px dashed var(--line);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px;text-align:center;font-size:13px;font-weight:600;line-height:1.2;color:var(--accent);cursor:pointer}
+.ph-add:focus-within{outline:3px solid var(--accent);outline-offset:2px}
+.thumbs{display:flex;gap:6px;margin-top:6px}
+.thumbs img,.thumbs .more{width:48px;height:48px;border-radius:8px;object-fit:cover;background:var(--grey-soft)}
+.thumbs .more{display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--muted)}
+.gallery{margin-top:16px}
+.lightbox{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.92)}
+.lightbox[hidden]{display:none}
+.lightbox img{max-width:100%;max-height:100%;object-fit:contain}
+.lightbox .x{position:absolute;top:12px;right:12px;margin:0;background:rgba(255,255,255,.16);color:#fff}
+.note-ro{margin:0 0 12px;padding:10px 12px;border-radius:12px;background:var(--grey-soft);color:var(--muted);font-size:14px}
+#acc-line{color:var(--ink)}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.js" integrity="sha384-uteMfOloLDGt042uDz+xHGF3ym63/WQ6rFq7murQRG8Ih7QrXGEGNtWd8688sb4O" crossorigin="anonymous"></script>
+</head>
+<body>
+<section class="gate" id="gate" aria-live="polite">
+<div class="gate-box">
+<span class="gate-logo" data-ic="bird" data-s="34"></span>
+<h1 data-t="app_title"></h1>
+<p class="lead" id="gate-msg" data-t="loading"></p>
+<form id="login-form" novalidate hidden>
+<div class="fld"><label for="lg-login" data-t="f_login"></label><input id="lg-login" type="text" autocomplete="username" autocapitalize="none" spellcheck="false"></div>
+<div class="fld"><label for="lg-pass" data-t="f_password"></label><input id="lg-pass" type="password" autocomplete="current-password"></div>
+<p class="err" id="lg-err" role="alert"></p>
+<button class="btn pri" type="submit" id="lg-btn" data-t="b_login"></button>
+</form>
+<div id="noacc" hidden>
+<p class="note-ro" data-t="noacc_p"></p>
+<div class="acts" style="margin-top:14px">
+<button class="btn pri" type="button" id="claim-btn" hidden data-t="claim_b"></button>
+<p class="hint" id="claim-hint" hidden data-t="claim_p"></p>
+<p class="err" id="claim-err" role="alert"></p>
+<button class="btn sec" type="button" data-logout data-t="logout"></button>
+</div>
+</div>
+<div class="langs" role="group" data-ta="lang_t" style="margin-top:8px">
+<button class="chip" type="button" data-lang="ru" lang="ru" aria-pressed="false">Русский</button>
+<button class="chip" type="button" data-lang="pl" lang="pl" aria-pressed="false">Polski</button>
+<button class="chip" type="button" data-lang="en" lang="en" aria-pressed="false">English</button>
+</div>
+</div>
+</section>
+
+<div class="lightbox" id="lightbox" hidden role="dialog" aria-modal="true" data-ta="photos">
+<img id="lb-img" alt="">
+<button class="x" type="button" data-lb-close data-ta="close"><span data-ic="x" data-s="22" data-w="2.2"></span></button>
+</div>
+
+<div class="app">
+<header class="counters">
+<button class="cnt c-red" type="button" data-goto="sec-treat"><span class="top"><span data-ic="cross" data-s="22"></span><b id="n-treat">0</b></span><span class="l" data-t="c_treat"></span></button>
+<button class="cnt c-amber" type="button" data-goto="sec-inc"><span class="top"><span data-ic="egg" data-s="22"></span><b id="n-inc">0</b></span><span class="l" data-t="c_inc"></span></button>
+<button class="cnt c-blue" type="button" data-goto="sec-chick"><span class="top"><span data-ic="chick" data-s="22"></span><b id="n-chick">0</b></span><span class="l" id="n-chick-l"></span></button>
+</header>
+<p class="status info" id="status"></p>
+
+<main>
+<section class="view" id="view-add">
+<h1 data-t="add_title"></h1>
+<p class="lead" data-t="add_lead"></p>
+<p class="note-ro ro-only" data-t="s_readonly"></p>
+<div class="list w-only">
+<button class="row" type="button" data-new="expo"><span class="tile t-green" data-ic="swap"></span><span class="rt"><b data-t="ev_expo"></b><small data-t="ev_expo_sub"></small></span><span class="chev" data-ic="chev" data-s="20"></span></button>
+<button class="row" type="button" data-new="obs"><span class="tile t-grey" data-ic="eye"></span><span class="rt"><b data-t="ev_obs"></b><small data-t="ev_obs_sub"></small></span><span class="chev" data-ic="chev" data-s="20"></span></button>
+<button class="row" type="button" data-sheet="vet"><span class="tile t-red" data-ic="syringe"></span><span class="rt"><b data-t="vet"></b><small data-t="vet_sub"></small></span><span class="chev" data-ic="chev" data-s="20"></span></button>
+<button class="row" type="button" data-sheet="breed"><span class="tile t-amber" data-ic="nesteggs"></span><span class="rt"><b data-t="breed"></b><small data-t="breed_sub"></small></span><span class="chev" data-ic="chev" data-s="20"></span></button>
+</div>
+</section>
+
+<section class="view" id="view-now" hidden>
+<h1 data-t="now_title"></h1>
+<p class="lead" id="now-date"></p>
+<div id="now-body"></div>
+</section>
+
+<section class="view" id="view-logs" hidden>
+<h1 data-t="logs"></h1>
+<div class="chips" role="group" data-ta="logs_aria">
+<button class="chip" type="button" data-f="all" aria-pressed="true" data-t="g_all"></button>
+<button class="chip" type="button" data-f="expo" aria-pressed="false" data-t="g_expo"></button>
+<button class="chip" type="button" data-f="obs" aria-pressed="false" data-t="g_obs"></button>
+<button class="chip" type="button" data-f="vet" aria-pressed="false" data-t="g_vet"></button>
+<button class="chip" type="button" data-f="breed" aria-pressed="false" data-t="g_breed"></button>
+</div>
+<div class="fld"><label for="q" data-t="q_label"></label><input id="q" type="search" autocomplete="off" data-tp="q_ph"></div>
+<div id="logs-body"></div>
+</section>
+
+<section class="view" id="view-menu" hidden>
+<h1 data-t="menu"></h1>
+<div class="card" style="margin-top:16px">
+<h2 data-t="lang_t"></h2>
+<div class="langs" role="group" data-ta="lang_t">
+<button class="chip" type="button" data-lang="ru" lang="ru" aria-pressed="false">Русский</button>
+<button class="chip" type="button" data-lang="pl" lang="pl" aria-pressed="false">Polski</button>
+<button class="chip" type="button" data-lang="en" lang="en" aria-pressed="false">English</button>
+</div>
+<p class="hint" data-t="lang_hint"></p>
+</div>
+<button class="row" type="button" data-view="coll" style="margin-top:14px"><span class="tile t-green" data-ic="bird"></span><span class="rt"><b data-t="coll"></b><small id="coll-count"></small></span><span class="chev" data-ic="chev" data-s="20"></span></button>
+<button class="row" type="button" data-view="species" style="margin-top:10px"><span class="tile t-grey" data-ic="tag"></span><span class="rt"><b data-t="species_t"></b><small id="sp-count"></small></span><span class="chev" data-ic="chev" data-s="20"></span></button>
+<button class="row a-only" type="button" data-view="users" style="margin-top:10px"><span class="tile t-blue" data-ic="users"></span><span class="rt"><b data-t="users_t"></b><small id="users-count"></small></span><span class="chev" data-ic="chev" data-s="20"></span></button>
+<div class="card">
+<h2 data-t="acc_t"></h2>
+<p id="acc-line"></p>
+<div class="acts">
+<button class="btn sec" type="button" data-pass data-t="chg_pass"></button>
+<button class="btn sec" type="button" data-logout data-t="logout"></button>
+</div>
+</div>
+<div class="card">
+<h2 data-t="export_t"></h2>
+<p data-t="export_p"></p>
+<div class="acts">
+<button class="btn pri" type="button" id="btn-dl" data-t="dl_csv"></button>
+<button class="btn sec" type="button" id="btn-copy" data-t="copy_csv"></button>
+</div>
+<textarea id="csv-box" readonly hidden data-ta="csv_aria"></textarea>
+</div>
+<div class="card">
+<h2 data-t="how_t"></h2>
+<ul data-th="how_html"></ul>
+<p data-t="how_p"></p>
+</div>
+<div class="card">
+<h2 data-t="about_t"></h2>
+<p data-t="about_p"></p>
+</div>
+</section>
+
+<section class="view" id="view-species" hidden>
+<button class="backlink" type="button" data-tab="menu"><span data-ic="back" data-s="18" data-w="2.2"></span><span data-t="menu"></span></button>
+<h1 data-t="species_t"></h1>
+<p class="lead" data-t="sp_lead"></p>
+<button class="btn pri add-sp w-only" type="button" data-sp-new><span data-ic="plus" data-s="20" data-w="2.4"></span><span data-t="add_sp"></span></button>
+<div class="fld"><label for="sq" data-t="sq_label"></label><input id="sq" type="search" autocomplete="off" data-tp="sq_ph"></div>
+<div class="list" id="species-body" style="margin-top:12px"></div>
+</section>
+
+<section class="view" id="view-sp" hidden>
+<div id="sp-body"></div>
+</section>
+
+<section class="view" id="view-coll" hidden>
+<button class="backlink" type="button" data-tab="menu"><span data-ic="back" data-s="18" data-w="2.2"></span><span data-t="menu"></span></button>
+<h1 data-t="coll"></h1>
+<p class="lead" data-t="coll_lead"></p>
+<button class="btn pri add-sp w-only" type="button" data-bird-new><span data-ic="plus" data-s="20" data-w="2.4"></span><span data-t="add_bird"></span></button>
+<div class="chips" role="group" data-ta="cf_aria">
+<button class="chip" type="button" data-cf="active" aria-pressed="true" data-t="cf_active"></button>
+<button class="chip" type="button" data-cf="out" aria-pressed="false" data-t="cf_out"></button>
+<button class="chip" type="button" data-cf="all" aria-pressed="false" data-t="g_all"></button>
+</div>
+<div class="fld"><label for="cq" data-t="cq_label"></label><input id="cq" type="search" autocomplete="off" data-tp="cq_ph"></div>
+<div id="coll-body"></div>
+</section>
+
+<section class="view" id="view-bird" hidden>
+<div id="bird-body"></div>
+</section>
+
+<section class="view" id="view-users" hidden>
+<button class="backlink" type="button" data-tab="menu"><span data-ic="back" data-s="18" data-w="2.2"></span><span data-t="menu"></span></button>
+<h1 data-t="users_t"></h1>
+<p class="lead" data-t="users_lead"></p>
+<button class="btn pri add-sp" type="button" data-user-new><span data-ic="plus" data-s="20" data-w="2.4"></span><span data-t="add_user"></span></button>
+<div class="list" id="users-body"></div>
+</section>
+</main>
+
+<nav class="tabs" data-ta="tabs_aria">
+<button class="tab on" type="button" data-tab="add" aria-current="page"><span class="ti" data-ic="plus" data-s="24" data-w="2.4"></span><span data-t="tab_add"></span></button>
+<button class="tab" type="button" data-tab="now"><span class="ti"><span class="cal" id="today" aria-hidden="true"></span></span><span data-t="tab_now"></span></button>
+<button class="tab" type="button" data-tab="logs"><span class="ti" data-ic="book" data-s="22"></span><span data-t="logs"></span></button>
+<button class="tab" type="button" data-tab="menu"><span class="ti" data-ic="menu" data-s="22" data-w="2.2"></span><span data-t="menu"></span></button>
+</nav>
+</div>
+
+<div class="overlay" id="overlay" data-close></div>
+
+<section class="sheet" id="sheet-breed" role="dialog" aria-modal="true" aria-labelledby="breed-h" tabindex="-1" aria-hidden="true" inert>
+<div class="grip" aria-hidden="true"></div>
+<div class="sh"><span class="tile t-amber" data-ic="nesteggs"></span><div><h2 id="breed-h" data-t="breed"></h2><p data-t="pick_event"></p></div><button class="x" type="button" data-close data-ta="close"><span data-ic="x" data-s="20" data-w="2.2"></span></button></div>
+<div class="steps">
+<button class="step" type="button" data-new="lay"><span class="tile t-amber"><span data-ic="eggplus"></span><span class="num" aria-hidden="true">1</span></span><span class="rt"><b data-t="ev_lay"></b></span><span class="chev" data-ic="chev" data-s="20"></span></button>
+<button class="step" type="button" data-new="incub"><span class="tile t-amber"><span data-ic="sit"></span><span class="num" aria-hidden="true">2</span></span><span class="rt"><b data-t="ev_incub"></b></span><span class="chev" data-ic="chev" data-s="20"></span></button>
+<button class="step" type="button" data-new="hatch"><span class="tile t-amber"><span data-ic="crack"></span><span class="num" aria-hidden="true">3</span></span><span class="rt"><b data-t="ev_hatch"></b></span><span class="chev" data-ic="chev" data-s="20"></span></button>
+<button class="step" type="button" data-new="fledge"><span class="tile t-amber"><span data-ic="out"></span><span class="num" aria-hidden="true">4</span></span><span class="rt"><b data-t="ev_fledge"></b></span><span class="chev" data-ic="chev" data-s="20"></span></button>
+</div>
+</section>
+
+<section class="sheet" id="sheet-vet" role="dialog" aria-modal="true" aria-labelledby="vet-h" tabindex="-1" aria-hidden="true" inert>
+<div class="grip" aria-hidden="true"></div>
+<div class="sh"><span class="tile t-red" data-ic="syringe"></span><div><h2 id="vet-h" data-t="vet"></h2><p data-t="pick_event"></p></div></div>
+<div class="steps">
+<button class="step" type="button" data-new="tstart"><span class="tile t-red"><span data-ic="clip"></span><span class="num" aria-hidden="true">1</span></span><span class="rt"><b data-t="ev_tstart"></b></span><span class="chev" data-ic="chev" data-s="20"></span></button>
+<button class="step" type="button" data-new="tdose"><span class="tile t-red"><span data-ic="pill"></span><span class="num" aria-hidden="true">2</span></span><span class="rt"><b data-t="ev_tdose"></b></span><span class="chev" data-ic="chev" data-s="20"></span></button>
+<button class="step" type="button" data-new="tend"><span class="tile t-red"><span data-ic="check"></span><span class="num" aria-hidden="true">3</span></span><span class="rt"><b data-t="ev_tend"></b></span><span class="chev" data-ic="chev" data-s="20"></span></button>
+</div>
+<button class="btn sec" type="button" data-close><span data-ic="back" data-s="20" data-w="2.2"></span><span data-t="back"></span></button>
+</section>
+
+<section class="sheet" id="sheet-form" role="dialog" aria-modal="true" aria-labelledby="f-title" tabindex="-1" aria-hidden="true" inert>
+<div class="grip" aria-hidden="true"></div>
+<div class="sh"><span class="tile" id="f-icon"></span><div><h2 id="f-title"></h2><p id="f-sub"></p></div><button class="x" type="button" data-close data-ta="close"><span data-ic="x" data-s="20" data-w="2.2"></span></button></div>
+<form id="form" novalidate>
+<p class="note-ro" id="f-ro" hidden data-t="ro_rec"></p>
+<fieldset id="f-fs"><div id="f-fields"></div></fieldset>
+<div class="fld" id="f-ph"></div>
+<p class="err" id="f-err" role="alert"></p>
+<div class="acts">
+<button class="btn pri" type="submit" id="f-save" data-t="save"></button>
+<button class="btn del" type="button" id="f-del" hidden></button>
+</div>
+</form>
+</section>
+
+<section class="sheet" id="sheet-sp" role="dialog" aria-modal="true" aria-labelledby="sp-f-title" tabindex="-1" aria-hidden="true" inert>
+<div class="grip" aria-hidden="true"></div>
+<div class="sh"><span class="tile t-grey" data-ic="tag"></span><div><h2 id="sp-f-title"></h2><p id="sp-f-sub"></p></div><button class="x" type="button" data-close data-ta="close"><span data-ic="x" data-s="20" data-w="2.2"></span></button></div>
+<form id="sp-form" novalidate>
+<div class="fld"><label for="sp-latin" data-t="spf_latin"></label><input id="sp-latin" type="text" autocomplete="off" lang="la" placeholder="Tyto alba"></div>
+<div class="fld"><label for="sp-name" data-t="spf_ru"></label><input id="sp-name" type="text" autocomplete="off" lang="ru" placeholder="сипуха"></div>
+<div class="fld"><label for="sp-pl" data-t="spf_pl"></label><input id="sp-pl" type="text" autocomplete="off" lang="pl" placeholder="płomykówka"></div>
+<div class="fld"><label for="sp-en" data-t="spf_en"></label><input id="sp-en" type="text" autocomplete="off" lang="en" placeholder="barn owl"></div>
+<p class="hint" data-t="spf_hint"></p>
+<div class="fld" id="sp-ph"></div>
+<div class="fld"><label for="sp-note" data-t="spf_note"></label><textarea id="sp-note" rows="3" data-tp="spf_note_ph"></textarea></div>
+<p class="err" id="sp-err" role="alert"></p>
+<div class="acts"><button class="btn pri" type="submit" id="sp-save" data-t="save"></button><button class="btn del" type="button" id="sp-del" hidden></button></div>
+</form>
+</section>
+
+<section class="sheet" id="sheet-bird" role="dialog" aria-modal="true" aria-labelledby="bf-title" tabindex="-1" aria-hidden="true" inert>
+<div class="grip" aria-hidden="true"></div>
+<div class="sh"><span class="tile t-green" data-ic="bird"></span><div><h2 id="bf-title"></h2><p id="bf-sub"></p></div><button class="x" type="button" data-close data-ta="close"><span data-ic="x" data-s="20" data-w="2.2"></span></button></div>
+<form id="bird-form" novalidate>
+<div id="bf-fields"></div>
+<div class="fld" id="bf-ph"></div>
+<p class="err" id="bf-err" role="alert"></p>
+<div class="acts"><button class="btn pri" type="submit" id="bf-save" data-t="save"></button><button class="btn del" type="button" id="bf-del" hidden></button></div>
+</form>
+</section>
+
+<section class="sheet" id="sheet-user" role="dialog" aria-modal="true" aria-labelledby="uf-title" tabindex="-1" aria-hidden="true" inert>
+<div class="grip" aria-hidden="true"></div>
+<div class="sh"><span class="tile t-blue" data-ic="users"></span><div><h2 id="uf-title"></h2><p id="uf-sub"></p></div><button class="x" type="button" data-close data-ta="close"><span data-ic="x" data-s="20" data-w="2.2"></span></button></div>
+<form id="user-form" novalidate>
+<div id="uf-fields"></div>
+<p class="err" id="uf-err" role="alert"></p>
+<div class="acts"><button class="btn pri" type="submit" id="uf-save" data-t="save"></button></div>
+</form>
+</section>
+
+<section class="sheet" id="sheet-pass" role="dialog" aria-modal="true" aria-labelledby="pf-title" tabindex="-1" aria-hidden="true" inert>
+<div class="grip" aria-hidden="true"></div>
+<div class="sh"><span class="tile t-grey" data-ic="key"></span><div><h2 id="pf-title" data-t="chg_pass"></h2></div><button class="x" type="button" data-close data-ta="close"><span data-ic="x" data-s="20" data-w="2.2"></span></button></div>
+<form id="pass-form" novalidate>
+<div class="fld"><label for="pf-new" data-t="pf_new"></label><input id="pf-new" type="password" autocomplete="new-password"></div>
+<div class="fld"><label for="pf-rep" data-t="pf_rep"></label><input id="pf-rep" type="password" autocomplete="new-password"></div>
+<p class="err" id="pf-err" role="alert"></p>
+<div class="acts"><button class="btn pri" type="submit" id="pf-save" data-t="save"></button></div>
+</form>
+</section>
+
+<datalist id="birds"></datalist>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="i18n.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
