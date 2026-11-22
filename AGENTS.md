@@ -58,7 +58,7 @@ desktop.css           дополнительные стили: шторка за
 app.js                вся логика (~160 КБ, один файл, блочная область видимости)
 i18n.js               словарь интерфейса DICT {ru, pl, en}
 i18n-species.js       тексты карточки вида (дополняет DICT)
-pwa.js, sw.js         установка PWA и офлайн-кэш (network-first, кэш 'zoo-log-v1')
+pwa.js, sw.js         установка PWA и офлайн-кэш (network-first с cache:'no-cache', кэш 'zoo-log-v2')
 manifest.webmanifest, icon.svg, icon-maskable.svg
 supabase/functions/admin-users/index.ts   Edge Function для аккаунтов
 tests/                браузерные тесты (Playwright + поддельный Supabase), см. tests/README.md
@@ -196,3 +196,4 @@ AGENTS.md             этот файл
 - Кнопка «назад» не закрывает приложение сразу, а ведёт по истории; на главном экране — подтверждение выхода.
 - Виды из таблички «Mieszkańcy hali wolnych lotów» добавлены и заполнены из интернет-источников (ноябрь 2026).
 - Дни в календаре (сетка) кликабельны: открывается список записей дня и добавление записи на эту дату (ноябрь 2026).
+- После публикации телефон мог до 10 минут показывать старый код (HTTP-кэш GitHub Pages), хотя версия в настройках уже новая (она из базы). Service worker теперь всегда сверяется с сервером (`cache: 'no-cache'`).
