@@ -152,3 +152,11 @@ h1{font-size:30px}
 #view-add .row{flex-direction:column;align-items:flex-start;min-height:168px}
 #view-add .row .chev{display:none}
 }
+
+/* calendar: a day opens with a tap */
+.cd[data-day],.cc[data-day]{cursor:pointer}
+button.cn{border:0;padding:0;background:none;color:inherit;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+button.cn:hover{background:var(--green-soft)}
+.cc.now button.cn{background:var(--accent);color:var(--on-accent)}
+button.cn:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+#sheet-day .nsec{margin:0 0 16px}#sheet-day .nsec:last-child{margin-bottom:0}

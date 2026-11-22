@@ -145,6 +145,10 @@ Object.assign(DICT.en, {lk_l: 'Protect from AI', lk_t: 'Protected: AI will not c
 Object.assign(DICT.ru, {cal_m_list: 'Список', cal_m_grid: 'Месяцы', cal_modes: 'Вид календаря', cal_earlier: 'Более ранние месяцы'});
 Object.assign(DICT.pl, {cal_m_list: 'Lista', cal_m_grid: 'Miesiące', cal_modes: 'Widok kalendarza', cal_earlier: 'Wcześniejsze miesiące'});
 Object.assign(DICT.en, {cal_m_list: 'List', cal_m_grid: 'Months', cal_modes: 'Calendar view', cal_earlier: 'Earlier months'});
+// a day of the calendar: its records and adding a record on that date
+Object.assign(DICT.ru, {cal_day_open: 'Открыть день', cal_day_recs: 'Записи', cal_day_per: 'Идёт в этот день', cal_day_none: 'В этот день записей нет.', cal_day_add: 'Добавить запись'});
+Object.assign(DICT.pl, {cal_day_open: 'Otwórz dzień', cal_day_recs: 'Wpisy', cal_day_per: 'Trwa tego dnia', cal_day_none: 'Tego dnia nie ma wpisów.', cal_day_add: 'Dodaj wpis'});
+Object.assign(DICT.en, {cal_day_open: 'Open the day', cal_day_recs: 'Records', cal_day_per: 'Ongoing on this day', cal_day_none: 'No records on this day.', cal_day_add: 'Add a record'});
 
 // change log tabs and version, three-language species texts, locks for animals and places
 Object.assign(DICT.ru, {lg_user: 'Пользователи', lg_ai: 'ИИ: данные', lg_dev: 'ИИ: разработка', lg_ai_who: 'ИИ', lg_dev_who: 'ИИ-разработка',
@@ -217,6 +221,12 @@ Object.assign(DICT.en, {cf_logout: 'Sign out?', cf_logout_p: 'You will need to s
 </section>
 `);
   document.body.insertAdjacentHTML('beforeend', `<div class="cfm" id="cfm" role="alertdialog" aria-modal="true" aria-labelledby="cfm-t" aria-describedby="cfm-p" hidden><div class="cfm-box"><h2 id="cfm-t"></h2><p id="cfm-p"></p><div class="cfm-acts"><button class="btn sec" type="button" id="cfm-no"></button><button class="btn pri" type="button" id="cfm-ok"></button></div></div></div>`);
+  add('#sheet-user', 'beforebegin', `<section class="sheet" id="sheet-day" role="dialog" aria-modal="true" aria-labelledby="dy-title" tabindex="-1" aria-hidden="true" inert>
+<div class="grip" aria-hidden="true"></div>
+<div class="sh"><span class="tile t-green" data-ic="calgrid"></span><div><h2 id="dy-title"></h2><p id="dy-sub"></p></div><button class="x" type="button" data-close data-ta="close"><span data-ic="x" data-s="20" data-w="2.2"></span></button></div>
+<div id="dy-body"></div>
+</section>
+`);
   add('#sheet-user', 'beforebegin', `<section class="sheet" id="sheet-encl" role="dialog" aria-modal="true" aria-labelledby="ef-title" tabindex="-1" aria-hidden="true" inert>
 <div class="grip" aria-hidden="true"></div>
 <div class="sh"><span class="tile t-amber" data-ic="home"></span><div><h2 id="ef-title"></h2><p id="ef-sub"></p></div><button class="x" type="button" data-close data-ta="close"><span data-ic="x" data-s="20" data-w="2.2"></span></button></div>
@@ -962,7 +972,8 @@ function weeksHTML(y, m, dots, bars, clip) {
       if (clip && out) { cells += `<div class="cd blank" style="grid-column:${i + 1};grid-row:1/span ${nl + 2}"></div>`; continue; }
       const ds = dots.filter(x => midnight(x.s) === dms).sort((p, q) => p.s - q.s);
       const shown = ds.slice(0, ds.length > 4 ? 3 : 4);
-      cells += `<div class="cd${out ? ' out' : ''}" style="grid-column:${i + 1};grid-row:1/span ${nl + 2}"></div><div class="cc${out ? ' out' : ''}${dms === today ? ' now' : ''}" style="grid-column:${i + 1};grid-row:1"><span class="cn">${dd.getDate()}</span><span class="cds">${shown.map(x => `<button type="button" class="cdot k-${x.tone}${calSel === x.k ? ' sel' : ''}" data-ci="${esc(x.k)}" aria-label="${esc(x.txt)}"></button>`).join('')}${ds.length > shown.length ? `<button type="button" class="cmore" data-ci="${esc('m:' + dms)}">${esc(t('cal_more', ds.length - shown.length))}</button>` : ''}</span></div>`;
+      const lab = esc(t('cal_day_open') + ': ' + cap(fDate.format(dms)));
+      cells += `<div class="cd${out ? ' out' : ''}" data-day="${dms}" style="grid-column:${i + 1};grid-row:1/span ${nl + 2}"></div><div class="cc${out ? ' out' : ''}${dms === today ? ' now' : ''}" data-day="${dms}" style="grid-column:${i + 1};grid-row:1"><button type="button" class="cn" data-day="${dms}" aria-label="${lab}">${dd.getDate()}</button><span class="cds">${shown.map(x => `<button type="button" class="cdot k-${x.tone}${calSel === x.k ? ' sel' : ''}" data-ci="${esc(x.k)}" aria-label="${esc(x.txt)}"></button>`).join('')}${ds.length > shown.length ? `<button type="button" class="cmore" data-day="${dms}" aria-label="${lab}">${esc(t('cal_more', ds.length - shown.length))}</button>` : ''}</span></div>`;
     }
     const barsH = segs.filter(g => g.l < 4).map(g => `<button type="button" class="cbar k-${g.b.tone}${g.b.pend ? ' pend' : ''}${g.a < lo ? ' cl' : ''}${g.z > hi ? ' cr' : ''}${calSel === g.b.k ? ' sel' : ''}" data-ci="${esc(g.b.k)}" aria-label="${esc(g.b.txt)}" style="grid-column:${Math.max(lo, g.a) + 1}/${Math.min(hi, g.z) + 2};grid-row:${g.l + 2}"></button>`).join('');
     h += `<div class="cw" style="grid-template-rows:minmax(30px,auto)${' 13px'.repeat(nl)} 6px">${cells}${barsH}</div>`;
@@ -1030,10 +1041,34 @@ function openCalItem(k) {
   if (!it) return;
   const r = it.r, cb = collByName.get(key(r.bird));
   calSel = '';
+  if ($('#sheet-day.open')) closeSheets();
   if (!cb) { openForm(r.type, null, r); return; }
   openCard('bird', cb.id);
   requestAnimationFrame(() => { const el = $(`#bird-body [data-edit="${CSS.escape(r.id)}"]`); if (el) { el.scrollIntoView({block: 'center'}); el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 2400); } });
 }
+
+// the day sheet: all records of a day, periods going on that day and, for staff, adding a record on that date
+let calDay = null;
+function renderDay() {
+  if (calDay == null) return;
+  const d0 = calDay, d1 = new Date(new Date(d0).getFullYear(), new Date(d0).getMonth(), new Date(d0).getDate() + 1).getTime();
+  const rs = recs.filter(r => r.at >= d0 && r.at < d1).sort((a, b) => a.at - b.at);
+  const per = calItems().filter(x => x.bar && midnight(x.s) <= d0 && midnight(x.e) >= d0);
+  $('#dy-title').textContent = cap(fLong.format(d0));
+  $('#dy-sub').textContent = rs.length ? t('cal_day_recs') + ': ' + rs.length : t('cal_day_none');
+  let h = '';
+  if (rs.length) h += `<section class="nsec"><h2 class="nh">${esc(t('cal_day_recs'))}<span class="nc">${rs.length}</span></h2>${rs.map(r => card(r)).join('')}</section>`;
+  if (per.length) h += `<section class="nsec"><h2 class="nh">${esc(t('cal_day_per'))}<span class="nc">${per.length}</span></h2>${per.map(x => `<button class="row cal-row" type="button" data-co="${esc(x.k)}"><span class="cl-d">${esc(fDay.format(x.s))} – ${esc(fDay.format(x.e))}</span><span class="cleg k-${x.tone}${x.pend ? ' pend' : ''}"></span><span class="rt"><b>${esc(x.txt)}</b></span><span class="chev">${ic('chev', 18)}</span></button>`).join('')}</section>`;
+  if (!rs.length && !per.length && !canWrite()) h += `<p class="empty">${esc(t('cal_day_none'))}</p>`;
+  if (canWrite()) {
+    // the new record gets this date and the current time of day
+    const n = new Date(), at = new Date(new Date(d0).getFullYear(), new Date(d0).getMonth(), new Date(d0).getDate(), n.getHours(), n.getMinutes()).getTime();
+    h += `<section class="nsec dy-add"><h2 class="nh">${esc(t('cal_day_add'))}</h2><div class="steps">${Object.keys(T).map(k => `<button class="step" type="button" data-new="${k}" data-at="${at}"><span class="tile t-${T[k].tone}">${ic(T[k].icon)}</span><span class="rt"><b>${esc(evLabel(k))}</b></span><span class="chev">${ic('chev', 20)}</span></button>`).join('')}</div></section>`;
+  }
+  $('#dy-body').innerHTML = h;
+  paintPhotos();
+}
+function openDay(ms) { calDay = midnight(ms); renderDay(); openSheet('day'); }
 
 function renderUsers() {
   const list = [...profiles.values()].sort((a, b) => (a.display_name || a.login).localeCompare(b.display_name || b.login, LOCALE[lang]));
@@ -1090,6 +1125,7 @@ function render() {
   renderEncls();
   renderEnclCard();
   renderCal();
+  if ($('#sheet-day.open')) renderDay();
   renderLog();
   renderUsers();
   renderAccount();
@@ -1861,6 +1897,8 @@ document.addEventListener('click', e => {
     return;
   }
   if (calSel && e.target.closest('#cal-tip') && !calSel.startsWith('m:')) { openCalItem(calSel); return; }
+  const dy = e.target.closest('#cal-months [data-day]');
+  if (dy) { if (calSel) { calSel = ''; renderCal(); } openDay(+dy.dataset.day); return; }
   if (calSel && e.target.closest('#view-cal')) { calSel = ''; renderCal(); }
   const ekb = e.target.closest('[data-ek]');
   if (ekb) { ek = ekb.dataset.ek; renderEncls(); return; }
@@ -1888,7 +1926,7 @@ document.addEventListener('click', e => {
   else if (d.cf) { cf = d.cf; $$('#view-coll .chip').forEach(c => c.setAttribute('aria-pressed', String(c === el))); renderColl(); paintPhotos(); }
   else if (d.sp) openCard('sp', d.sp);
   else if (d.view) setTab(d.view);
-  else if (d.new) { if (!canWrite()) return; const pre = {}; if (d.bird) pre.bird = d.bird; if (d.from) pre.from = d.from; if (d.to) pre.to = d.to; openForm(d.new, pre); }
+  else if (d.new) { if (!canWrite()) return; const pre = {}; if (d.bird) pre.bird = d.bird; if (d.from) pre.from = d.from; if (d.to) pre.to = d.to; if (d.at) pre.at = +d.at; openForm(d.new, pre); }
   else if (d.sheet) { if (!canWrite()) return; presetBird = d.preset || null; openSheet(d.sheet); }
   else if (d.tab) setTab(d.tab);
   else if (d.edit) { const r = recs.find(x => x.id === d.edit); if (r) openForm(r.type, null, r); }
