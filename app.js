@@ -197,12 +197,13 @@ Object.assign(DICT.en, {cf_logout: 'Sign out?', cf_logout_p: 'You will need to s
 <div class="list" id="log-body" style="margin-top:12px"></div>
 </section>
 `);
+  add('#sheet-breed .steps', 'beforeend', `<button class="step" type="button" data-new="birth"><span class="tile t-amber"><span data-ic="paw"></span></span><span class="rt"><b data-t="ev_birth"></b></span><span class="chev" data-ic="chev" data-s="20"></span></button>`);
   add('.tab[data-tab=now]', 'afterend', `<button class="tab" type="button" data-tab="cal"><span class="ti" data-ic="calgrid" data-s="22"></span><span data-t="tab_cal"></span></button>`);
   add('#view-users', 'beforebegin', `<section class="view" id="view-cal" hidden>
 <div class="cal-head"><h1 id="cal-title"></h1><div class="cal-nav"><button class="mini ghost" type="button" data-cal-nav="-1" data-ta="cal_prev"><span data-ic="chevl" data-s="18" data-w="2.4"></span></button><button class="mini ghost" type="button" data-cal-nav="0" data-t="cal_today"></button><button class="mini ghost" type="button" data-cal-nav="1" data-ta="cal_next"><span data-ic="chev" data-s="18" data-w="2.4"></span></button></div></div>
 <div class="chips cal-modes" id="cal-modes" role="group" data-ta="cal_modes"><button class="chip" type="button" data-cal-mode="list" data-t="cal_m_list"></button><button class="chip" type="button" data-cal-mode="grid" data-t="cal_m_grid"></button></div>
 <div class="cal-wrap"><div id="cal-months"></div><div class="cal-tip" id="cal-tip" role="status" hidden></div></div>
-<p class="cal-legend"><span><i class="cdot k-amber"></i><span data-t="leg_dot"></span></span><span><i class="cleg k-amber"></i><span data-t="leg_line"></span></span><span><i class="cleg k-amber pend"></i><span data-t="leg_dash"></span></span></p>
+<p class="cal-legend"><span><i class="cdot k-amber"></i><span data-t="leg_dot"></span></span><span><i class="cleg k-amber"></i><span data-t="leg_line"></span></span><span><i class="cleg k-amber pend"></i><span data-t="leg_dash"></span></span><span><i class="cdot k-amber guess"></i><span data-t="leg_guess"></span></span></p>
 <section class="nsec cal-listsec"><h2 class="nh"><span data-t="cal_list"></span><span class="nc" id="cal-n"></span></h2><div id="cal-list"></div></section>
 </section>
 `);
@@ -329,7 +330,8 @@ const T = {
   lay:   {g:'breed', tone:'amber', icon:'eggplus', fields:[{k:'n',l:'f_eggs',t:'number',min:1,def:1}]},
   incub: {g:'breed', tone:'amber', icon:'sit', fields:[{k:'days',l:'f_incub_days',t:'number',min:1}]},
   hatch: {g:'breed', tone:'amber', icon:'crack', fields:[{k:'n',l:'f_chicks',t:'number',min:1,def:1}]},
-  fledge:{g:'breed', tone:'amber', icon:'out', fields:[{k:'n',l:'f_chicks',t:'number',min:1,def:1}]}
+  fledge:{g:'breed', tone:'amber', icon:'out', fields:[{k:'n',l:'f_chicks',t:'number',min:1,def:1}]},
+  birth: {g:'breed', tone:'amber', icon:'paw', fields:[{k:'n',l:'f_young',t:'number',min:1,def:1}]}
 };
 const evLabel = type => t('ev_' + type);
 
@@ -515,6 +517,9 @@ function treeOrder(list) {
 // where an animal is now: the latest of its card's enclosure and its latest transfer record
 const placeOf = cb => { const b = (st && st.birds.get(key(cb.name))) || {}; return b.encl && b.enclAt >= cb.enclAt ? {name: b.encl, at: b.enclAt} : {name: cb.encl, at: cb.enclAt}; };
 const incubDays = spId => toN(spInfo(spById(spId)).incub_days);
+// species timings for the expected (calculated, not stored) dates: hatching -> leaving the nest, gestation -> fertilisation
+const fledgeDays = spId => toN(spInfo(spById(spId)).fledge_days);
+const gestDays = spId => toN(spInfo(spById(spId)).gest_days);
 const sexText = s => s === 'f' ? t('sex_f') : s === 'm' ? t('sex_m') : '';
 const authorName = id => { const p = profiles.get(id); return p ? (p.display_name || p.login) : ''; };
 const roleText = r => t('role_' + r);
@@ -553,8 +558,10 @@ function details(r) {
     case 'tdose': return f.drug || '';
     case 'tend': return f.result || '';
     case 'lay': return t('d_eggs', f.n || 1);
-    case 'incub': return f.days ? t('d_incub', f.days, fDay.format(r.at + f.days * 864e5)) : '';
-    case 'hatch': case 'fledge': return t('d_chicks', f.n || 1);
+    case 'incub': { const fd = f.days && fledgeDays(r.sp); return f.days ? t('d_incub', f.days, fDay.format(r.at + f.days * 864e5)) + (fd ? ', ' + t('d_fledge_p', fDay.format(r.at + (f.days + fd) * 864e5)) : '') : ''; }
+    case 'hatch': { const fd = fledgeDays(r.sp); return t('d_chicks', f.n || 1) + (fd ? ' · ' + t('d_fledge_p', fDay.format(r.at + fd * 864e5)) : ''); }
+    case 'fledge': return t('d_chicks', f.n || 1);
+    case 'birth': { const gd = gestDays(r.sp); return t('d_young', f.n || 1) + (gd ? ' · ' + t('d_fert_p', fDay.format(r.at - gd * 864e5)) : ''); }
     default: return '';
   }
 }
@@ -762,7 +769,7 @@ function renderSpCard() {
   const lk = spLocked(s), secCard = (k, icn, tone) => { const p = trPick(inf[k]); return p ? `<article class="si-card"><h3><span class="tile sm t-${tone}">${ic(icn, 18)}</span>${esc(t('si_' + k))}${lockMark(lk.includes(k))}</h3><p>${esc(p.txt)}</p>${trNote(p)}</article>` : ''; };
   const wild = SI_WILD.map(([k, i]) => secCard(k, i, 'green')).join('');
   const zoo = SI_ZOO.map(([k, i]) => secCard(k, i, k === 'health' ? 'red' : 'amber')).join('');
-  const facts = [['si_tax', [txt(inf.order), txt(inf.family)].filter(Boolean).join(' · '), 'tag'], ['si_size', txt(inf.size), 'ruler'], ['si_life', txt(inf.life), 'clock'], ['si_incub', toN(inf.incub_days) ? t('si_incub_v', toN(inf.incub_days)) + (txt(inf.incub_range) && txt(inf.incub_range) !== String(toN(inf.incub_days)) ? ' (' + txt(inf.incub_range) + ')' : '') : '', 'egg']].filter(f => f[1]);
+  const facts = [['si_tax', [txt(inf.order), txt(inf.family)].filter(Boolean).join(' · '), 'tag'], ['si_size', txt(inf.size), 'ruler'], ['si_life', txt(inf.life), 'clock'], ['si_incub', toN(inf.incub_days) ? t('si_incub_v', toN(inf.incub_days)) + (txt(inf.incub_range) && txt(inf.incub_range) !== String(toN(inf.incub_days)) ? ' (' + txt(inf.incub_range) + ')' : '') : '', 'egg'], ['si_fledge', toN(inf.fledge_days) ? t('si_incub_v', toN(inf.fledge_days)) : '', 'chick'], ['si_gest', toN(inf.gest_days) ? t('si_incub_v', toN(inf.gest_days)) : '', 'paw']].filter(f => f[1]);
   const names = [['PL', s.pl, 'pl'], ['EN', s.en, 'en'], ['RU', s.name, 'ru']].filter(v => v[1]);
   const mp = spMain(s), dPhotos = photosOf('species', s.id);
   const wikiCap = ph && (ph.credit || ph.page) ? `<figcaption>${esc(t('si_photo_by') + (ph.credit || ''))}${ph.page ? ` · <a href="${esc(ph.page)}" target="_blank" rel="noopener">Wikimedia Commons</a>` : ''}</figcaption>` : '';
@@ -931,13 +938,18 @@ function renderLog() {
 const DAY = 864e5;
 const midnight = ms => { const d = new Date(ms); return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); };
 const dayDiff = (a, b) => Math.round((midnight(b) - midnight(a)) / DAY);
-const CAL_DOT = ['lay', 'incub', 'hatch', 'fledge', 'tstart', 'tend', 'expo'];
+const CAL_DOT = ['lay', 'incub', 'hatch', 'fledge', 'birth', 'tstart', 'tend', 'expo'];
 // points are single events, bars are periods (incubation until hatching, a course of treatment)
 function calItems() {
   const out = [], byBird = new Map();
   for (const r of recs) { const k = key(r.bird); if (!byBird.has(k)) byBird.set(k, []); byBird.get(k).push(r); }
   const nextOf = (r, type, until) => (byBird.get(key(r.bird)) || []).filter(x => x.type === type && x.at > r.at && x.at <= until).sort((a, b) => a.at - b.at)[0];
+  // expected dates are calculated from species timings and vanish once the real event is recorded
+  const guess = (r, kind, at) => out.push({k: 'g' + kind + ':' + r.id, bar: 0, guess: 1, s: at, e: at, r, tone: 'amber', txt: bn(r.bird) + ', ' + t('cl_p_' + kind)});
+  const fledgeGuess = (r, from) => { const fd = fledgeDays(r.sp); if (!fd) return; const at = from + fd * DAY; if (!nextOf(r, 'fledge', at + 30 * DAY)) guess(r, 'fledge', at); };
   for (const r of recs) {
+    if (r.type === 'hatch') fledgeGuess(r, r.at);
+    if (r.type === 'birth') { const gd = gestDays(r.sp); if (gd) guess(r, 'fert', r.at - gd * DAY); }
     if (CAL_DOT.includes(r.type)) out.push({k: 'd:' + r.id, bar: 0, s: r.at, e: r.at, r, tone: T[r.type].tone, txt: bn(r.bird) + ', ' + t('cl_' + r.type)});
     if (r.type === 'incub') {
       const days = r.f.days || incubDays(r.sp);
@@ -945,6 +957,7 @@ function calItems() {
       const exp = r.at + days * DAY, h = nextOf(r, 'hatch', exp + 21 * DAY), inc2 = nextOf(r, 'incub', exp);
       const end = h ? h.at : inc2 ? inc2.at : exp;
       out.push({k: 'i:' + r.id, bar: 1, s: r.at, e: end, r, tone: 'amber', pend: !h && !inc2, txt: bn(r.bird) + ', ' + (h ? t('cl_incub_done') : t('cl_incub_p', fDay.format(exp)))});
+      if (!h && !inc2) { guess(r, 'hatch', exp); fledgeGuess(r, exp); }
     }
     if (r.type === 'tstart' && r.f.days) {
       const exp = r.at + (r.f.days - 1) * DAY, en = nextOf(r, 'tend', exp + 60 * DAY);
@@ -973,7 +986,7 @@ function weeksHTML(y, m, dots, bars, clip) {
       const ds = dots.filter(x => midnight(x.s) === dms).sort((p, q) => p.s - q.s);
       const shown = ds.slice(0, ds.length > 4 ? 3 : 4);
       const lab = esc(t('cal_day_open') + ': ' + cap(fDate.format(dms)));
-      cells += `<div class="cd${out ? ' out' : ''}" data-day="${dms}" style="grid-column:${i + 1};grid-row:1/span ${nl + 2}"></div><div class="cc${out ? ' out' : ''}${dms === today ? ' now' : ''}" data-day="${dms}" style="grid-column:${i + 1};grid-row:1"><button type="button" class="cn" data-day="${dms}" aria-label="${lab}">${dd.getDate()}</button><span class="cds">${shown.map(x => `<button type="button" class="cdot k-${x.tone}${calSel === x.k ? ' sel' : ''}" data-ci="${esc(x.k)}" aria-label="${esc(x.txt)}"></button>`).join('')}${ds.length > shown.length ? `<button type="button" class="cmore" data-day="${dms}" aria-label="${lab}">${esc(t('cal_more', ds.length - shown.length))}</button>` : ''}</span></div>`;
+      cells += `<div class="cd${out ? ' out' : ''}" data-day="${dms}" style="grid-column:${i + 1};grid-row:1/span ${nl + 2}"></div><div class="cc${out ? ' out' : ''}${dms === today ? ' now' : ''}" data-day="${dms}" style="grid-column:${i + 1};grid-row:1"><button type="button" class="cn" data-day="${dms}" aria-label="${lab}">${dd.getDate()}</button><span class="cds">${shown.map(x => `<button type="button" class="cdot k-${x.tone}${x.guess ? ' guess' : ''}${calSel === x.k ? ' sel' : ''}" data-ci="${esc(x.k)}" aria-label="${esc(x.txt)}"></button>`).join('')}${ds.length > shown.length ? `<button type="button" class="cmore" data-day="${dms}" aria-label="${lab}">${esc(t('cal_more', ds.length - shown.length))}</button>` : ''}</span></div>`;
     }
     const barsH = segs.filter(g => g.l < 4).map(g => `<button type="button" class="cbar k-${g.b.tone}${g.b.pend ? ' pend' : ''}${g.a < lo ? ' cl' : ''}${g.z > hi ? ' cr' : ''}${calSel === g.b.k ? ' sel' : ''}" data-ci="${esc(g.b.k)}" aria-label="${esc(g.b.txt)}" style="grid-column:${Math.max(lo, g.a) + 1}/${Math.min(hi, g.z) + 2};grid-row:${g.l + 2}"></button>`).join('');
     h += `<div class="cw" style="grid-template-rows:minmax(30px,auto)${' 13px'.repeat(nl)} 6px">${cells}${barsH}</div>`;
@@ -1017,7 +1030,7 @@ function renderCal() {
   const y = calM.getFullYear(), m = calM.getMonth(), ms0 = new Date(y, m, 1).getTime(), ms1 = new Date(y, m + 1, 1).getTime();
   const inMonth = grid ? [] : items.filter(x => x.e >= ms0 && x.s < ms1).sort((p, q) => p.s - q.s || p.bar - q.bar);
   $('#cal-n').textContent = inMonth.length;
-  $('#cal-list').innerHTML = inMonth.length ? inMonth.map(x => `<button class="row cal-row" type="button" data-co="${esc(x.k)}"><span class="cl-d">${esc(fDay.format(x.s))}${x.bar ? ' – ' + esc(fDay.format(x.e)) : ''}</span><span class="${x.bar ? 'cleg' : 'cdot'} k-${x.tone}${x.pend ? ' pend' : ''}"></span><span class="rt"><b>${esc(x.txt)}</b></span><span class="chev">${ic('chev', 18)}</span></button>`).join('') : `<p class="empty">${esc(t('cal_none'))}</p>`;
+  $('#cal-list').innerHTML = inMonth.length ? inMonth.map(x => `<button class="row cal-row" type="button" data-co="${esc(x.k)}"><span class="cl-d">${esc(fDay.format(x.s))}${x.bar ? ' – ' + esc(fDay.format(x.e)) : ''}</span><span class="${x.bar ? 'cleg' : 'cdot'} k-${x.tone}${x.pend ? ' pend' : ''}${x.guess ? ' guess' : ''}"></span><span class="rt"><b>${esc(x.txt)}</b></span><span class="chev">${ic('chev', 18)}</span></button>`).join('') : `<p class="empty">${esc(t('cal_none'))}</p>`;
   const tip = $('#cal-tip'), sel = grid && calSel && $(`#cal-months [data-ci="${CSS.escape(calSel)}"]`);
   if (!sel) { tip.hidden = true; return; }
   const it = items.find(x => x.k === calSel);
@@ -1053,13 +1066,14 @@ function renderDay() {
   if (calDay == null) return;
   const d0 = calDay, d1 = new Date(new Date(d0).getFullYear(), new Date(d0).getMonth(), new Date(d0).getDate() + 1).getTime();
   const rs = recs.filter(r => r.at >= d0 && r.at < d1).sort((a, b) => a.at - b.at);
-  const per = calItems().filter(x => x.bar && midnight(x.s) <= d0 && midnight(x.e) >= d0);
+  const ci = calItems(), per = ci.filter(x => x.bar && midnight(x.s) <= d0 && midnight(x.e) >= d0), exp = ci.filter(x => x.guess && midnight(x.s) === d0);
   $('#dy-title').textContent = cap(fLong.format(d0));
   $('#dy-sub').textContent = rs.length ? t('cal_day_recs') + ': ' + rs.length : t('cal_day_none');
   let h = '';
   if (rs.length) h += `<section class="nsec"><h2 class="nh">${esc(t('cal_day_recs'))}<span class="nc">${rs.length}</span></h2>${rs.map(r => card(r)).join('')}</section>`;
   if (per.length) h += `<section class="nsec"><h2 class="nh">${esc(t('cal_day_per'))}<span class="nc">${per.length}</span></h2>${per.map(x => `<button class="row cal-row" type="button" data-co="${esc(x.k)}"><span class="cl-d">${esc(fDay.format(x.s))} – ${esc(fDay.format(x.e))}</span><span class="cleg k-${x.tone}${x.pend ? ' pend' : ''}"></span><span class="rt"><b>${esc(x.txt)}</b></span><span class="chev">${ic('chev', 18)}</span></button>`).join('')}</section>`;
-  if (!rs.length && !per.length && !canWrite()) h += `<p class="empty">${esc(t('cal_day_none'))}</p>`;
+  if (exp.length) h += `<section class="nsec"><h2 class="nh">${esc(t('cal_day_exp'))}<span class="nc">${exp.length}</span></h2>${exp.map(x => `<button class="row cal-row" type="button" data-co="${esc(x.k)}"><span class="cl-d">≈ ${esc(fDay.format(x.s))}</span><span class="cdot k-${x.tone} guess"></span><span class="rt"><b>${esc(x.txt)}</b></span><span class="chev">${ic('chev', 18)}</span></button>`).join('')}</section>`;
+  if (!rs.length && !per.length && !exp.length && !canWrite()) h += `<p class="empty">${esc(t('cal_day_none'))}</p>`;
   if (canWrite()) {
     // the new record gets this date and the current time of day
     const n = new Date(), at = new Date(new Date(d0).getFullYear(), new Date(d0).getMonth(), new Date(d0).getDate(), n.getHours(), n.getMinutes()).getTime();
@@ -1639,7 +1653,7 @@ $('#ef-del').addEventListener('click', async () => {
 
 const SPF = ['name', 'latin', 'pl', 'en'];
 const SIF = [['group', 'select', 'sf_group'], ['iucn', 'select', 'sf_iucn'], ['cites', 'text', 'si_cites'], ['order', 'text', 'sf_order'], ['family', 'text', 'sf_family'],
-  ['syn', 'text', 'si_syn'], ['size', 'text', 'si_size'], ['life', 'text', 'si_life'], ['incub_days', 'number', 'sf_incub_days'], ['sex', 'textarea', 'si_sex'],
+  ['syn', 'text', 'si_syn'], ['size', 'text', 'si_size'], ['life', 'text', 'si_life'], ['incub_days', 'number', 'sf_incub_days'], ['fledge_days', 'number', 'sf_fledge_days'], ['gest_days', 'number', 'sf_gest_days'], ['sex', 'textarea', 'si_sex'],
   ['range', 'textarea', 'si_range'], ['habitat', 'textarea', 'si_habitat'], ['diet_wild', 'textarea', 'si_diet_wild'], ['behaviour', 'textarea', 'si_behaviour'],
   ['breeding', 'textarea', 'si_breeding'], ['diet_zoo', 'textarea', 'si_diet_zoo'], ['husbandry', 'textarea', 'si_husbandry'], ['health', 'textarea', 'si_health'],
   ['photo.src', 'url', 'sf_photo'], ['photo.credit', 'text', 'sf_photo_credit'], ['photo.page', 'url', 'sf_photo_page']];
