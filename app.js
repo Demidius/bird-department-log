@@ -1,4 +1,103 @@
 {
+// Texts for enclosures and other housing places (Russian, Polish, English)
+Object.assign(DICT.ru, {
+  fa_encl: 'Место содержания', ev_expo_sub: 'Перевод между вольерами, клетками и другими местами',
+  encls_t: 'Вольеры и помещения', encls_lead: 'Места содержания отдела: авиарии, вольеры, клетки, инкубаторы и другие',
+  add_encl: 'Добавить место', eq_label: 'Поиск по названию или расположению', eq_ph: 'Например: авиарий 2', ek_aria: 'Тип места',
+  w_place: ['место', 'места', 'мест'], w_animal: ['животное', 'животных', 'животных'],
+  encl_count: n => n + ' ' + pw(n, 'w_place') + ' содержания', encl_count0: 'Мест пока нет — добавьте первое',
+  encl_empty: 'Мест содержания пока нет. Нажмите «Добавить место».',
+  ek_aviary: 'Авиарий', ek_enclosure: 'Вольер', ek_cage: 'Клетка', ek_incubator: 'Инкубатор', ek_brooder: 'Брудер',
+  ek_room: 'Помещение', ek_quarantine: 'Карантин', ek_pond: 'Водоём', ek_other: 'Другое', ek_all: 'Все', ek_off: 'Не используются',
+  ef_name: 'Название', ef_name_ph: 'Например: Авиарий 2 или Клетка К-14', ef_kind: 'Тип', ef_area: 'Расположение', ef_area_ph: 'Корпус, зона, этаж',
+  ef_size: 'Размеры', ef_size_ph: 'Например: 4 × 3 × 2,5 м', ef_cap: 'Вместимость (животных)', ef_state: 'Состояние', ef_on: 'Используется', ef_off: 'Не используется',
+  ef_note: 'Заметки', ef_note_ph: 'Оборудование, режим, особенности', ef_new: 'Новое место содержания', ef_sub_new: 'Его можно будет выбрать в карточке животного и при переводе',
+  ef_edit: 'Место содержания',
+  en_now: 'Сейчас содержатся', en_none: 'Сейчас здесь никого нет.', en_hist: 'Перемещения', en_nohist: 'Переводов сюда и отсюда ещё не было.',
+  en_move_here: 'Перевести сюда', en_move: 'Перевести', en_since: d => 'здесь с ' + d, en_occ: (n, c) => c ? n + ' из ' + c : String(n),
+  en_full: 'переполнен', en_empty: 'пусто', en_n: n => n + ' ' + pw(n, 'w_animal'), en_off_pill: 'не используется', en_fill: 'Занято',
+  en_deleted: 'Место удалено', en_deleted_p: 'Это место содержания удалили. Вернитесь к списку.',
+  encl_none_opt: '— не указано —', encl_new_opt: '+ Новое место…', encl_new_name: 'Название нового места', encl_unreg: ' (нет в списке мест)',
+  del_encl: 'Удалить место', del_encl_n: n => 'Сейчас здесь ' + n + ' ' + pw(n, 'w_animal') + '. Удалить всё равно?',
+  e_ename: 'Укажите название места.', e_edup: 'Место с таким названием уже есть.', e_new_encl: 'Укажите название нового места.',
+  t_encl_added: 'Место добавлено', t_encl_del: 'Место удалено'
+});
+Object.assign(DICT.pl, {
+  fa_encl: 'Miejsce przetrzymywania', ev_expo_sub: 'Przeniesienie między wolierami, klatkami i innymi miejscami',
+  encls_t: 'Woliery i pomieszczenia', encls_lead: 'Miejsca przetrzymywania działu: ptaszarnie, woliery, klatki, inkubatory i inne',
+  add_encl: 'Dodaj miejsce', eq_label: 'Szukaj po nazwie lub lokalizacji', eq_ph: 'Np.: ptaszarnia 2', ek_aria: 'Rodzaj miejsca',
+  w_place: ['miejsce', 'miejsca', 'miejsc'], w_animal: ['zwierzę', 'zwierzęta', 'zwierząt'],
+  encl_count: n => n + ' ' + pw(n, 'w_place') + ' przetrzymywania', encl_count0: 'Nie ma jeszcze miejsc — dodaj pierwsze',
+  encl_empty: 'Nie ma jeszcze miejsc przetrzymywania. Naciśnij „Dodaj miejsce”.',
+  ek_aviary: 'Ptaszarnia', ek_enclosure: 'Woliera', ek_cage: 'Klatka', ek_incubator: 'Inkubator', ek_brooder: 'Odchowalnia',
+  ek_room: 'Pomieszczenie', ek_quarantine: 'Kwarantanna', ek_pond: 'Zbiornik wodny', ek_other: 'Inne', ek_all: 'Wszystkie', ek_off: 'Nieużywane',
+  ef_name: 'Nazwa', ef_name_ph: 'Np.: Ptaszarnia 2 lub Klatka K-14', ef_kind: 'Rodzaj', ef_area: 'Lokalizacja', ef_area_ph: 'Budynek, strefa, piętro',
+  ef_size: 'Wymiary', ef_size_ph: 'Np.: 4 × 3 × 2,5 m', ef_cap: 'Pojemność (zwierząt)', ef_state: 'Stan', ef_on: 'Używane', ef_off: 'Nieużywane',
+  ef_note: 'Notatki', ef_note_ph: 'Wyposażenie, tryb, szczególne cechy', ef_new: 'Nowe miejsce przetrzymywania', ef_sub_new: 'Będzie można je wybrać w karcie zwierzęcia i przy przeniesieniu',
+  ef_edit: 'Miejsce przetrzymywania',
+  en_now: 'Obecnie przebywają', en_none: 'Obecnie nikogo tu nie ma.', en_hist: 'Przeniesienia', en_nohist: 'Nie było jeszcze przeniesień tu ani stąd.',
+  en_move_here: 'Przenieś tutaj', en_move: 'Przenieś', en_since: d => 'tutaj od ' + d, en_occ: (n, c) => c ? n + ' z ' + c : String(n),
+  en_full: 'przepełnione', en_empty: 'puste', en_n: n => n + ' ' + pw(n, 'w_animal'), en_off_pill: 'nieużywane', en_fill: 'Zajęte',
+  en_deleted: 'Miejsce usunięte', en_deleted_p: 'To miejsce przetrzymywania zostało usunięte. Wróć do listy.',
+  encl_none_opt: '— nie podano —', encl_new_opt: '+ Nowe miejsce…', encl_new_name: 'Nazwa nowego miejsca', encl_unreg: ' (poza listą miejsc)',
+  del_encl: 'Usuń miejsce', del_encl_n: n => 'Obecnie przebywa tu ' + n + ' ' + pw(n, 'w_animal') + '. Usunąć mimo to?',
+  e_ename: 'Podaj nazwę miejsca.', e_edup: 'Miejsce o tej nazwie już istnieje.', e_new_encl: 'Podaj nazwę nowego miejsca.',
+  t_encl_added: 'Miejsce dodane', t_encl_del: 'Miejsce usunięte'
+});
+Object.assign(DICT.en, {
+  fa_encl: 'Housing', ev_expo_sub: 'Moving between enclosures, cages and other places',
+  encls_t: 'Enclosures and rooms', encls_lead: 'Where the department keeps its animals: aviaries, enclosures, cages, incubators and more',
+  add_encl: 'Add place', eq_label: 'Search by name or location', eq_ph: 'E.g. aviary 2', ek_aria: 'Type of place',
+  w_place: ['place', 'places'], w_animal: ['animal', 'animals'],
+  encl_count: n => n + ' housing ' + pw(n, 'w_place'), encl_count0: 'No places yet — add the first one',
+  encl_empty: 'No housing places yet. Tap “Add place”.',
+  ek_aviary: 'Aviary', ek_enclosure: 'Enclosure', ek_cage: 'Cage', ek_incubator: 'Incubator', ek_brooder: 'Brooder',
+  ek_room: 'Room', ek_quarantine: 'Quarantine', ek_pond: 'Pond', ek_other: 'Other', ek_all: 'All', ek_off: 'Not in use',
+  ef_name: 'Name', ef_name_ph: 'E.g. Aviary 2 or Cage K-14', ef_kind: 'Type', ef_area: 'Location', ef_area_ph: 'Building, zone, floor',
+  ef_size: 'Dimensions', ef_size_ph: 'E.g. 4 × 3 × 2.5 m', ef_cap: 'Capacity (animals)', ef_state: 'State', ef_on: 'In use', ef_off: 'Not in use',
+  ef_note: 'Notes', ef_note_ph: 'Equipment, routine, special features', ef_new: 'New housing place', ef_sub_new: 'You can then pick it in an animal card and when moving animals',
+  ef_edit: 'Housing place',
+  en_now: 'Kept here now', en_none: 'Nobody is kept here right now.', en_hist: 'Moves', en_nohist: 'No moves to or from here yet.',
+  en_move_here: 'Move here', en_move: 'Move', en_since: d => 'here since ' + d, en_occ: (n, c) => c ? n + ' of ' + c : String(n),
+  en_full: 'over capacity', en_empty: 'empty', en_n: n => n + ' ' + pw(n, 'w_animal'), en_off_pill: 'not in use', en_fill: 'Occupied',
+  en_deleted: 'Place deleted', en_deleted_p: 'This housing place was deleted. Go back to the list.',
+  encl_none_opt: '— not set —', encl_new_opt: '+ New place…', encl_new_name: 'Name of the new place', encl_unreg: ' (not in the list of places)',
+  del_encl: 'Delete place', del_encl_n: n => n + ' ' + pw(n, 'w_animal') + ' are kept here now. Delete anyway?',
+  e_ename: 'Enter the name of the place.', e_edup: 'A place with this name already exists.', e_new_encl: 'Enter the name of the new place.',
+  t_encl_added: 'Place added', t_encl_del: 'Place deleted'
+});
+
+/* ---------- housing places: screens added to the page ---------- */
+{
+  const add = (sel, where, html) => { const el = document.querySelector(sel); if (el) el.insertAdjacentHTML(where, html); };
+  add('#view-menu [data-view=species]', 'beforebegin', `<button class="row" type="button" data-view="encls" style="margin-top:10px"><span class="tile t-amber" data-ic="home"></span><span class="rt"><b data-t="encls_t"></b><small id="encl-count"></small></span><span class="chev" data-ic="chev" data-s="20"></span></button>
+`);
+  add('#view-users', 'beforebegin', `<section class="view" id="view-encls" hidden>
+<button class="backlink" type="button" data-tab="menu"><span data-ic="back" data-s="18" data-w="2.2"></span><span data-t="menu"></span></button>
+<h1 data-t="encls_t"></h1>
+<p class="lead" data-t="encls_lead"></p>
+<button class="btn pri add-sp w-only" type="button" data-encl-new><span data-ic="plus" data-s="20" data-w="2.4"></span><span data-t="add_encl"></span></button>
+<div class="fld"><label for="eq" data-t="eq_label"></label><input id="eq" type="search" autocomplete="off" data-tp="eq_ph"></div>
+<div class="chips" id="ek-chips" role="group" data-ta="ek_aria" hidden></div>
+<div class="list" id="encls-body" style="margin-top:12px"></div>
+</section>
+
+<section class="view" id="view-encl" hidden>
+<div id="encl-body"></div>
+</section>
+`);
+  add('#sheet-user', 'beforebegin', `<section class="sheet" id="sheet-encl" role="dialog" aria-modal="true" aria-labelledby="ef-title" tabindex="-1" aria-hidden="true" inert>
+<div class="grip" aria-hidden="true"></div>
+<div class="sh"><span class="tile t-amber" data-ic="home"></span><div><h2 id="ef-title"></h2><p id="ef-sub"></p></div><button class="x" type="button" data-close data-ta="close"><span data-ic="x" data-s="20" data-w="2.2"></span></button></div>
+<form id="encl-form" novalidate>
+<div id="ef-fields"></div>
+<div class="fld" id="ef-ph"></div>
+<p class="err" id="ef-err" role="alert"></p>
+<div class="acts"><button class="btn pri" type="submit" id="ef-save" data-t="save"></button><button class="btn del" type="button" id="ef-del" hidden></button></div>
+</form>
+</section>
+`);
+}
 /* ---------- config ---------- */
 const SB_URL = 'https://nszeqgopzonpplfznaat.supabase.co';
 const SB_KEY = 'sb_publishable_r_fN0QxiDijqW4t-Qnv9pA_SAzpKvdp';
@@ -41,6 +140,8 @@ const I = {
   sex:'<circle cx="10" cy="14" r="5"/><path d="M10 19v3M8 21h4"/><path d="M15 3h6v6M21 3l-7 7"/>',
   ruler:'<rect x="2" y="7" width="20" height="10" rx="2"/><path d="M6 7v4M10 7v3M14 7v4M18 7v3"/>',
   clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  cage:'<rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 5v16M12 5v16M16 5v16M9 2h6M12 2v3"/>',
+  drop:'<path d="M12 3s-6.5 7-6.5 11.5a6.5 6.5 0 0 0 13 0C18.5 10 12 3 12 3z"/>',
   paw:'<circle cx="5.5" cy="10" r="2"/><circle cx="9.5" cy="5.5" r="2"/><circle cx="14.5" cy="5.5" r="2"/><circle cx="18.5" cy="10" r="2"/><path d="M12 12c-3 0-5.5 3.5-5.5 6 0 1.7 1.3 3 3 3 1 0 1.7-.5 2.5-.5s1.5.5 2.5.5c1.7 0 3-1.3 3-3 0-2.5-2.5-6-5.5-6z"/>'
 };
 const ic = (n, s = 24, w = 2) => `<svg aria-hidden="true" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round">${I[n] || ''}</svg>`;
@@ -118,9 +219,10 @@ let curSp = null, editingSp = null, spDelArmed = false, sq = '', sg = 'all';
 let curBird = null, editingBird = null, birdDelArmed = false, cq = '', cf = 'active', presetBird = null;
 let tab = 'add', filt = 'all', q = '', curType = null, editing = null, delArmed = false, lastFocus = null, st = null;
 let statusKey = '', statusKind = 'info', gateKey = 'loading', editingUser = null;
-let phRec = null, phSp = null, phBird = null;
-const DEF_BACK = {sp: 'species', bird: 'coll'}, backOf = {sp: 'species', bird: 'coll'};
-const VIEW_KEY = {add: 'tab_add', now: 'tab_now', logs: 'logs', menu: 'menu', species: 'species_t', sp: 'spf_edit', coll: 'coll', bird: 'bf_edit', users: 'users_t'};
+let phRec = null, phSp = null, phBird = null, phEncl = null;
+let encls = [], enclMap = new Map(), enclByName = new Map(), curEncl = null, editingEncl = null, enclDelArmed = false, eq = '', ek = 'all';
+const DEF_BACK = {sp: 'species', bird: 'coll', encl: 'encls'}, backOf = {sp: 'species', bird: 'coll', encl: 'encls'};
+const VIEW_KEY = {add: 'tab_add', now: 'tab_now', logs: 'logs', menu: 'menu', species: 'species_t', sp: 'spf_edit', coll: 'coll', bird: 'bf_edit', users: 'users_t', encls: 'encls_t', encl: 'ef_edit'};
 
 const role = () => myProfile ? myProfile.role : null;
 const canWrite = () => role() === 'admin' || role() === 'staff';
@@ -151,6 +253,15 @@ function fromBird(d) {
 }
 const toBird = b => ({name: b.name, species_id: b.sp || null, sex: b.sex || '', ring: b.ring || '', chip: b.chip || '', born: b.born || null, arrived: b.arrived || null,
   origin: b.origin || '', encl: b.encl || '', encl_at: b.enclAt ? new Date(b.enclAt).toISOString() : null, status: b.status, note: b.note || ''});
+const EK = ['aviary', 'enclosure', 'cage', 'incubator', 'brooder', 'room', 'quarantine', 'pond', 'other'];
+const EK_IC = {aviary: ['tree', 'green'], enclosure: ['home', 'green'], cage: ['cage', 'blue'], incubator: ['egg', 'amber'], brooder: ['chick', 'amber'],
+  room: ['home', 'grey'], quarantine: ['cross', 'red'], pond: ['drop', 'blue'], other: ['tag', 'grey']};
+function fromEncl(d) {
+  if (!d) return null;
+  return {id: d.id, name: d.name, kind: EK.includes(d.kind) ? d.kind : 'other', area: d.area || '', size: d.size || '', cap: d.capacity || 0,
+    active: d.active !== false, note: d.note || '', by: d.created_by || null};
+}
+const toEncl = x => ({name: x.name, kind: x.kind, area: x.area || '', size: x.size || '', capacity: x.cap || null, active: x.active, note: x.note || ''});
 const fromPhoto = d => ({id: d.id, ownerType: d.owner_type, ownerId: d.owner_id, path: d.path, w: d.width, h: d.height, by: d.created_by || null, created: ms(d.created_at)});
 const thumbOf = p => p.replace(/\.jpg$/, '_t.jpg');
 const photosOf = (type, id) => photosByOwner.get(type + ':' + id) || [];
@@ -174,6 +285,10 @@ const spPhoto = s => { const p = spInfo(s).photo; return p && /^https:\/\//.test
 const iucnBadge = (c, long) => IUCN.includes(c) ? `<span class="iucn iucn-${c}" title="${esc(t('iucn_t') + ' ' + c + ' — ' + t('iucn_' + c))}"><b>${c}</b>${long ? `<span>${esc(t('iucn_' + c))}</span>` : ''}</span>` : '';
 const SI_WILD = [['range', 'globe'], ['habitat', 'tree'], ['diet_wild', 'leaf'], ['behaviour', 'eye'], ['breeding', 'egg']];
 const SI_ZOO = [['diet_zoo', 'bowl'], ['husbandry', 'home'], ['health', 'heart'], ['sex', 'sex']];
+const enclTile = (x, sm) => { const [i, tone] = EK_IC[x ? x.kind : 'other']; return `<span class="tile${sm ? ' sm' : ''} t-${x && !x.active ? 'grey' : tone}">${ic(i, sm ? 18 : 24)}</span>`; };
+const enclLink = n => { const x = n && enclByName.get(key(n)); return x ? `<button class="linkish" type="button" data-ec="${esc(x.id)}">${esc(x.name)}</button>` : esc(n || ''); };
+// where an animal is now: the latest of its card's enclosure and its latest transfer record
+const placeOf = cb => { const b = (st && st.birds.get(key(cb.name))) || {}; return b.encl && b.enclAt >= cb.enclAt ? {name: b.encl, at: b.enclAt} : {name: cb.encl, at: cb.enclAt}; };
 const sexText = s => s === 'f' ? t('sex_f') : s === 'm' ? t('sex_m') : '';
 const authorName = id => { const p = profiles.get(id); return p ? (p.display_name || p.login) : ''; };
 const roleText = r => t('role_' + r);
@@ -216,6 +331,13 @@ function details(r) {
     default: return '';
   }
 }
+function occupancy() {
+  const occ = new Map(), add = (n, item) => { const k = key(n); if (!k) return; if (!occ.has(k)) occ.set(k, []); occ.get(k).push(item); };
+  for (const cb of coll) if (cb.status !== 'out') { const pl = placeOf(cb); if (pl.name) add(pl.name, {name: cb.name, sp: cb.sp, cb, since: pl.at}); }
+  for (const b of st.birds.values()) if (!collByName.has(key(b.name)) && b.encl) add(b.encl, {name: b.name, sp: b.sp, cb: null, since: b.enclAt});
+  return occ;
+}
+const occOf = x => (st && st.occ && st.occ.get(key(x.name))) || [];
 const stat = b => [b.treat ? t('c_treat') : '', b.inc ? t('st_inc') : '', b.chicks ? t('in_nest', b.chicks) : ''].filter(Boolean).join(' · ') || t('st_none');
 
 /* ---------- photos: signed links, thumbnails, lightbox ---------- */
@@ -442,7 +564,7 @@ function renderColl() {
     const g = sn(b) || t('no_sp');
     if (g !== last) { h += `<h2 class="day">${esc(g)}</h2>`; last = g; }
     const sb2 = st.birds.get(key(b.name)) || {};
-    const encl = sb2.encl && sb2.enclAt >= b.enclAt ? sb2.encl : b.encl;
+    const encl = placeOf(b).name;
     const sub = [sexText(b.sex), b.ring ? t('ring_n', b.ring) : '', encl].filter(Boolean).join(' · ');
     const flags = [b.status === 'out' ? t('st_out') : '', sb2.treat ? t('c_treat') : '', sb2.inc ? t('st_inc') : '', sb2.chicks ? sb2.chicks + ' ' + pw(sb2.chicks, 'chick') : ''].filter(Boolean).join(' · ');
     const ph = photosOf('bird', b.id)[0];
@@ -459,16 +581,17 @@ function renderBirdCard() {
   if (!cb) { box.innerHTML = backBtn('bird') + `<h1>${esc(t('bird_deleted'))}</h1><p class="lead">${esc(t('bird_deleted_p'))}</p>`; return; }
   const sb2 = st.birds.get(key(cb.name)) || {}, s = spById(cb.sp);
   const rs = recs.filter(r => key(r.bird) === key(cb.name)).sort((a, b) => b.at - a.at);
-  const encl = sb2.encl && sb2.enclAt >= cb.enclAt ? sb2.encl : cb.encl;
+  const pl = placeOf(cb), encl = pl.name;
   const pill = (c, txt) => `<span class="pill ${c}">${esc(txt)}</span>`;
   const pills = [cb.status === 'out' ? pill('p-grey', t('st_out')) : '', sb2.treat ? pill('p-red', t('c_treat')) : '',
     sb2.inc ? pill('p-amber', t('st_inc')) : '', sb2.chicks ? pill('p-blue', t('in_nest', sb2.chicks)) : ''].join('');
-  const fact = (l, v) => v ? `<div><dt>${esc(t(l))}</dt><dd>${esc(v)}</dd></div>` : '';
+  const fact = (l, v, raw) => v ? `<div><dt>${esc(t(l))}</dt><dd>${raw ? v : esc(v)}</dd></div>` : '';
   const n = esc(cb.name), main = spName(s);
+  const enclDd = encl ? enclLink(encl) + (pl.at ? ` <small class="muted">· ${esc(t('en_since', fDate.format(pl.at)))}</small>` : '') : '';
   box.innerHTML = backBtn('bird') + `<h1>${n}</h1>${s ? `<button class="linkish" type="button" data-sp="${esc(s.id)}">${esc(main)}${s.latin && s.latin !== main ? ' · ' + esc(s.latin) : ''}</button>` : `<p class="sp-meta">${esc(t('no_sp'))}</p>`}
 ${pills ? `<div class="pills">${pills}</div>` : ''}
 ${gallery(photosOf('bird', cb.id))}
-<dl class="facts">${fact('fa_sex', cap(sexText(cb.sex)))}${fact('fa_ring', cb.ring)}${fact('fa_chip', cb.chip)}${fact('fa_encl', encl)}${fact('fa_born', cb.born ? fDate.format(ymd(cb.born)) + age(cb.born) : '')}${fact('fa_arrived', cb.arrived ? fDate.format(ymd(cb.arrived)) : '')}${fact('fa_origin', cb.origin)}</dl>
+<dl class="facts">${fact('fa_sex', cap(sexText(cb.sex)))}${fact('fa_ring', cb.ring)}${fact('fa_chip', cb.chip)}${fact('fa_encl', enclDd, 1)}${fact('fa_born', cb.born ? fDate.format(ymd(cb.born)) + age(cb.born) : '')}${fact('fa_arrived', cb.arrived ? fDate.format(ymd(cb.arrived)) : '')}${fact('fa_origin', cb.origin)}</dl>
 ${cb.note ? `<p class="sp-note">${esc(cb.note)}</p>` : ''}
 <div class="top-acts w-only"><button class="btn sec" type="button" data-bird-edit>${esc(t('edit_card'))}</button></div>
 <section class="nsec w-only"><h2 class="nh">${esc(t('add_title'))}</h2><div class="na">
@@ -478,6 +601,54 @@ ${cb.note ? `<p class="sp-note">${esc(cb.note)}</p>` : ''}
 <button class="mini ghost" type="button" data-sheet="breed" data-preset="${n}">${esc(t('breed'))}</button>
 </div></section>
 <section class="nsec"><h2 class="nh">${esc(t('history'))}<span class="nc">${rs.length}</span></h2>${rs.length ? rs.slice(0, 100).map(r => card(r, true)).join('') : `<p class="empty">${esc(t('no_hist'))}</p>`}</section>`;
+}
+
+function renderEncls() {
+  const act = encls.filter(x => x.active);
+  $('#encl-count').textContent = encls.length ? t('encl_count', act.length) : t('encl_count0');
+  const cnt = k => k === 'off' ? encls.filter(x => !x.active).length : act.filter(x => k === 'all' || x.kind === k).length;
+  if (ek !== 'all' && !cnt(ek)) ek = 'all';
+  const chips = ['all'].concat(EK.filter(k => cnt(k)), cnt('off') ? ['off'] : []);
+  $('#ek-chips').innerHTML = chips.map(k => `<button class="chip" type="button" data-ek="${k}" aria-pressed="${ek === k}">${esc(t('ek_' + k))} <span class="chip-n">${cnt(k)}</span></button>`).join('');
+  $('#ek-chips').hidden = chips.length < 3;
+  const list = encls.filter(x => (ek === 'off' ? !x.active : x.active && (ek === 'all' || x.kind === ek))
+      && (!eq || [x.name, x.area, t('ek_' + x.kind)].some(v => key(v).includes(eq))))
+    .sort((a, b) => EK.indexOf(a.kind) - EK.indexOf(b.kind) || a.name.localeCompare(b.name, LOCALE[lang], {numeric: true}));
+  if (!list.length) { $('#encls-body').innerHTML = `<p class="empty" style="margin-top:16px">${esc(encls.length ? t('none_found') : t('encl_empty'))}</p>`; return; }
+  let h = '', last = null;
+  for (const x of list) {
+    if (ek === 'all' && x.kind !== last) { h += `<h2 class="day">${esc(t('ek_' + x.kind))}</h2>`; last = x.kind; }
+    const n = occOf(x).length, over = x.cap && n > x.cap;
+    const sub = [ek === 'all' ? '' : t('ek_' + x.kind), x.area].filter(Boolean).join(' · ');
+    const occ = n ? t('en_n', n) + (x.cap ? ' · ' + t('en_occ', n, x.cap) : '') : t('en_empty') + (x.cap ? ' · ' + t('en_occ', 0, x.cap) : '');
+    h += `<button class="row" type="button" data-ec="${esc(x.id)}" style="margin-bottom:8px">${enclTile(x)}<span class="rt"><b>${esc(x.name)}</b>${sub ? `<small>${esc(sub)}</small>` : ''}<small${over ? ' class="warn-t"' : ''}>${esc(occ + (over ? ' · ' + t('en_full') : ''))}</small></span><span class="chev">${ic('chev', 20)}</span></button>`;
+  }
+  $('#encls-body').innerHTML = h;
+}
+
+function renderEnclCard() {
+  const box = $('#encl-body');
+  if (!curEncl) { box.innerHTML = ''; return; }
+  const x = enclMap.get(curEncl);
+  if (!x) { box.innerHTML = backBtn('encl') + `<h1>${esc(t('en_deleted'))}</h1><p class="lead">${esc(t('en_deleted_p'))}</p>`; return; }
+  const occ = occOf(x).slice().sort((a, b) => (spName(spById(a.sp)) || '￿').localeCompare(spName(spById(b.sp)) || '￿', LOCALE[lang]) || a.name.localeCompare(b.name, LOCALE[lang]));
+  const n = occ.length, over = x.cap && n > x.cap, k = key(x.name);
+  const moves = recs.filter(r => r.type === 'expo' && (key(r.f.to) === k || key(r.f.from) === k)).sort((a, b) => b.at - a.at);
+  const fact = (l, v) => v ? `<div><dt>${esc(t(l))}</dt><dd>${esc(v)}</dd></div>` : '';
+  const pills = `<span class="pill p-grey">${esc(t('ek_' + x.kind))}</span>${x.active ? '' : `<span class="pill p-grey">${esc(t('en_off_pill'))}</span>`}${over ? `<span class="pill p-red">${esc(t('en_full'))}</span>` : ''}`;
+  const items = occ.map(o => {
+    const s = spById(o.sp), cb = o.cb;
+    const nmh = cb ? `<button class="namelink" type="button" data-bc="${esc(cb.id)}">${esc(o.name)}</button>` : `<b>${esc(o.name)}</b>`;
+    const sub = [cb ? sexText(cb.sex) : t('not_in_coll_b'), cb && cb.ring ? t('ring_n', cb.ring) : '', o.since ? t('en_since', fDay.format(o.since)) : ''].filter(Boolean).join(' · ');
+    return `<div class="ncard"><div class="nl">${nmh}${s ? `<button class="linkish" type="button" data-sp="${esc(s.id)}">${esc(spName(s))}</button>` : ''}${sub ? `<small>${esc(sub)}</small>` : ''}</div><div class="na"><button class="mini ghost w-only" type="button" data-new="expo" data-bird="${esc(o.name)}" data-from="${esc(x.name)}">${esc(t('en_move'))}</button></div></div>`;
+  });
+  box.innerHTML = backBtn('encl') + `<div class="en-head">${enclTile(x)}<div><h1>${esc(x.name)}</h1><div class="pills">${pills}</div></div></div>
+${gallery(photosOf('encl', x.id))}
+<dl class="facts">${fact('ef_area', x.area)}${fact('ef_size', x.size)}${fact('en_fill', x.cap ? t('en_occ', n, x.cap) : '')}</dl>
+${x.note ? `<p class="sp-note">${esc(x.note)}</p>` : ''}
+<div class="top-acts w-only"><button class="btn sec" type="button" data-encl-edit>${esc(t('edit_card'))}</button>${x.active ? `<button class="btn sec" type="button" data-new="expo" data-to="${esc(x.name)}">${esc(t('en_move_here'))}</button>` : ''}</div>
+<section class="nsec"><h2 class="nh">${esc(t('en_now'))}<span class="nc">${n}</span></h2>${n ? items.join('') : `<p class="empty">${esc(t('en_none'))}</p>`}</section>
+<section class="nsec"><h2 class="nh">${esc(t('en_hist'))}<span class="nc">${moves.length}</span></h2>${moves.length ? moves.slice(0, 100).map(r => card(r, true)).join('') : `<p class="empty">${esc(t('en_nohist'))}</p>`}</section>`;
 }
 
 function renderUsers() {
@@ -497,7 +668,7 @@ function renderAccount() {
 
 function openCard(kind, id) {
   if (tab !== kind) { if (backOf[tab] === kind) backOf[tab] = DEF_BACK[tab]; backOf[kind] = tab; }
-  if (kind === 'sp') { curSp = id; renderSpCard(); } else { curBird = id; renderBirdCard(); }
+  if (kind === 'sp') { curSp = id; renderSpCard(); } else if (kind === 'encl') { curEncl = id; renderEnclCard(); } else { curBird = id; renderBirdCard(); }
   setTab(kind);
 }
 
@@ -505,6 +676,8 @@ function index() {
   spMap = new Map(species.map(s => [s.id, s]));
   collMap = new Map(coll.map(b => [b.id, b]));
   collByName = new Map(coll.map(b => [key(b.name), b]));
+  enclMap = new Map(encls.map(x => [x.id, x]));
+  enclByName = new Map(encls.map(x => [key(x.name), x]));
   photosByOwner = new Map();
   for (const p of [...photos].sort((a, b) => a.created - b.created)) {
     const k = p.ownerType + ':' + p.ownerId;
@@ -517,6 +690,7 @@ function render() {
   if (!myProfile) return;
   index();
   st = compute();
+  st.occ = occupancy();
   $('#n-treat').textContent = st.treat.length;
   $('#n-inc').textContent = st.inc.length;
   $('#n-chick').textContent = st.chicks;
@@ -529,6 +703,8 @@ function render() {
   renderSpCard();
   renderColl();
   renderBirdCard();
+  renderEncls();
+  renderEnclCard();
   renderUsers();
   renderAccount();
   paintPhotos();
@@ -559,7 +735,7 @@ function setLang(l) {
   mkFmt(); applyStatic(); render();
 }
 
-const TAB_OF = {species: 'menu', sp: 'menu', coll: 'menu', bird: 'menu', users: 'menu'};
+const TAB_OF = {species: 'menu', sp: 'menu', coll: 'menu', bird: 'menu', users: 'menu', encls: 'menu', encl: 'menu'};
 function setTab(v) {
   tab = v;
   const hi = TAB_OF[v] || v;
@@ -598,6 +774,43 @@ function spSelect(val, p = 'fld') {
     + `<div class="fld" id="${p}-newsp-wrap" hidden><label for="${p}-newsp">${esc(t('f_new_sp_name'))}</label><input id="${p}-newsp" name="newsp" type="text" autocomplete="off"></div>`;
 }
 
+// a list of registered housing places, grouped by type, with "+ new place" at the end
+function enclSelect(f, val) {
+  const id = f.id || 'fld-' + f.k, v = String(val || '').trim(), cur = v ? enclByName.get(key(v)) : null;
+  const byN = (a, b) => a.name.localeCompare(b.name, LOCALE[lang], {numeric: true});
+  const groups = EK.map(k => {
+    const xs = encls.filter(x => x.kind === k && (x.active || x === cur)).sort(byN);
+    return xs.length ? `<optgroup label="${esc(t('ek_' + k))}">${xs.map(x => `<option value="${esc(x.name)}"${x === cur ? ' selected' : ''}>${esc(x.name)}</option>`).join('')}</optgroup>` : '';
+  }).join('');
+  const unreg = v && !cur ? `<option value="${esc(v)}" selected>${esc(v + t('encl_unreg'))}</option>` : '';
+  return `<div class="fld"><label for="${id}">${esc(t(f.l))}${f.req ? '&nbsp;<span class="req" aria-hidden="true">*</span>' : ''}</label><select id="${id}" name="${f.k}" data-encl${f.req ? ' aria-required="true"' : ''}><option value="">${esc(t('encl_none_opt'))}</option>${unreg}${groups}<option value="__new">${esc(t('encl_new_opt'))}</option></select></div>`
+    + `<div class="fld" id="${id}-new-wrap" hidden><label for="${id}-new">${esc(t('encl_new_name'))}</label><input id="${id}-new" name="${f.k}_new" type="text" autocomplete="off"></div>`;
+}
+function wireEnclSelects(root) {
+  $$('select[data-encl]', root).forEach(sel => sel.addEventListener('change', () => {
+    const w = $('#' + sel.id + '-new-wrap'); w.hidden = sel.value !== '__new'; if (!w.hidden) $('#' + sel.id + '-new').focus();
+  }));
+}
+function setEnclSel(sel, name) {
+  if (!sel || !name) return;
+  if (![...sel.options].some(o => o.value === name)) { const o = document.createElement('option'); o.value = name; o.textContent = name + t('encl_unreg'); sel.insertBefore(o, sel.options[1] || null); }
+  sel.value = name;
+}
+// reads a place picked in a form: {name} or {err}; "new" places are created on save by ensureEncl
+function readEncl(fd, k) {
+  const v = String(fd.get(k) || '').trim();
+  if (v !== '__new') return {name: v};
+  const n = String(fd.get(k + '_new') || '').trim();
+  return n ? {name: n, fresh: true} : {err: t('e_new_encl')};
+}
+async function ensureEncl(name) {
+  const ex = encls.find(x => key(x.name) === key(name));
+  if (ex) return ex.name;
+  const id = uuid();
+  await putEncl(id, {name: name.trim(), kind: 'enclosure', area: '', size: '', cap: 0, active: true, note: ''}, true);
+  return name.trim();
+}
+
 function activeDrug(bird) { const b = st && st.birds.get(key(bird)); return b && b.treat ? b.treat.drug : ''; }
 
 function openForm(type, pre, rec) {
@@ -616,12 +829,14 @@ function openForm(type, pre, rec) {
     for (const f of tp.fields) if (v[f.k] == null && f.def != null) v[f.k] = f.def;
     if (type === 'tdose' && v.bird && !v.drug) v.drug = activeDrug(v.bird);
     if (v.bird && !v.sp) v.sp = spOfBird(v.bird);
+    if (type === 'expo' && v.bird && !v.from) { const cb = collByName.get(key(v.bird)); v.from = cb ? placeOf(cb).name : ((st && st.birds.get(key(v.bird))) || {}).encl || ''; }
   }
   let h = spSelect(v.sp) + field({k:'bird', l:'f_bird', t:'text', req:1, list:'birds'}, v.bird);
-  for (const f of tp.fields) h += field(f, v[f.k]);
+  for (const f of tp.fields) h += type === 'expo' ? enclSelect(f, v[f.k]) : field(f, v[f.k]);
   h += field({k:'at', l:'f_at', t:'datetime-local', req:1}, toInput(v.at));
   h += field({k:'note', l:tp.noteLabel || 'f_note', t:'textarea', req:tp.noteReq}, v.note);
   $('#f-fields').innerHTML = h;
+  wireEnclSelects($('#f-fields'));
   $('#f-fs').disabled = !editable;
   $('#f-ro').hidden = editable;
   $('#f-save').hidden = !editable;
@@ -637,6 +852,7 @@ function openForm(type, pre, rec) {
     const bs = spOfBird(bird.value);
     if (bs && (!sel.value || sel.value === '__new')) { sel.value = bs; syncSp(); }
     if (type === 'tdose') { const d = $('#fld-drug'); if (d && !d.value) d.value = activeDrug(bird.value); }
+    if (type === 'expo') { const fr = $('#fld-from'), cb = collByName.get(key(bird.value)); if (fr && !fr.value && cb) setEnclSel(fr, placeOf(cb).name); }
   });
   openSheet('form');
 }
@@ -664,6 +880,7 @@ async function fetchAll(table, order) {
 const LOADERS = {
   records: async () => { recs = (await fetchAll('records', 'event_at')).map(fromRec).filter(Boolean); },
   species: async () => { species = (await fetchAll('species', 'created_at')).map(fromSp).filter(Boolean); },
+  enclosures: async () => { encls = (await fetchAll('enclosures', 'created_at')).map(fromEncl).filter(Boolean); },
   collection: async () => { coll = (await fetchAll('collection', 'created_at')).map(fromBird).filter(Boolean); },
   photos: async () => { photos = (await fetchAll('photos', 'created_at')).map(fromPhoto); },
   profiles: async () => {
@@ -726,6 +943,18 @@ async function dropBird(id) {
   must(await sb.from('collection').delete().eq('id', id));
   coll = coll.filter(x => x.id !== id);
 }
+async function putEncl(id, x, isNew) {
+  const row = isNew ? must(await sb.from('enclosures').insert(Object.assign(toEncl(x), {id, created_by: me})).select().single())
+                    : must(await sb.from('enclosures').update(toEncl(x)).eq('id', id).select().single());
+  const y = fromEncl(row), i = encls.findIndex(z => z.id === id);
+  if (i >= 0) encls[i] = y; else encls.push(y);
+  enclByName.set(key(y.name), y); enclMap.set(y.id, y);
+}
+async function dropEncl(id) {
+  await dropPhotosOf('encl', id);
+  must(await sb.from('enclosures').delete().eq('id', id));
+  encls = encls.filter(x => x.id !== id);
+}
 async function ensureSpecies(newName) {
   const ex = findSpByAnyName(newName);
   if (ex) return ex.id;
@@ -760,9 +989,10 @@ $('#form').addEventListener('submit', async e => {
   if (!bird) return err(t('e_bird'));
   const at = fromInput(fd.get('at'));
   if (!isFinite(at)) return err(t('e_at'));
-  const f = {};
+  const f = {}, fresh = [];
   for (const x of tp.fields) {
-    const val = String(fd.get(x.k) || '').trim();
+    let val = String(fd.get(x.k) || '').trim();
+    if (curType === 'expo') { const pe = readEncl(fd, x.k); if (pe.err) return err(pe.err); val = pe.name; if (pe.fresh) fresh.push(x.k); }
     if (x.req && !val) return err(t('e_field', t(x.l)));
     if (val) f[x.k] = x.t === 'number' ? Math.max(x.min || 0, toN(val)) : val;
   }
@@ -773,6 +1003,7 @@ $('#form').addEventListener('submit', async e => {
     try {
       const r = {type: curType, sp: spSel, bird, at, f, note};
       if (spSel === '__new') r.sp = await ensureSpecies(newName);
+      for (const k of fresh) r.f[k] = await ensureEncl(r.f[k]);
       const id = editing ? editing.id : uuid(), wasEdit = !!editing;
       await putRec(id, r, !wasEdit);
       if (phRec && (phRec.added.length || phRec.removed.length)) err(t('ph_saving'));
@@ -802,9 +1033,10 @@ function openBirdForm(cb) {
     + field({k: 'ring', l: 'bf_ring', t: 'text', id: 'bf-ring'}, v.ring) + field({k: 'chip', l: 'bf_chip', t: 'text', id: 'bf-chip'}, v.chip)
     + field({k: 'born', l: 'fa_born', t: 'date', id: 'bf-born'}, v.born) + field({k: 'arrived', l: 'bf_arrived', t: 'date', id: 'bf-arrived'}, v.arrived)
     + field({k: 'origin', l: 'fa_origin', t: 'text', id: 'bf-origin', ph: 'bf_origin_ph'}, v.origin)
-    + field({k: 'encl', l: 'fa_encl', t: 'text', id: 'bf-encl'}, v.encl)
+    + enclSelect({k: 'encl', l: 'fa_encl', id: 'bf-encl'}, cb ? placeOf(cb).name : (tab === 'encl' && enclMap.get(curEncl) ? enclMap.get(curEncl).name : ''))
     + `<div class="fld"><label for="bf-status">${esc(t('bf_status'))}</label><select id="bf-status" name="status">${opt('active', v.status, t('cf_active'))}${opt('out', v.status, t('st_out_opt'))}</select></div>`
     + field({k: 'note', l: 'bf_note', t: 'textarea', id: 'bf-note'}, v.note);
+  wireEnclSelects($('#bf-fields'));
   const sel = $('#bf-sp'), wrap = $('#bf-newsp-wrap'), sync = () => { wrap.hidden = sel.value !== '__new'; };
   if (!species.length && !cb) sel.value = '__new';
   sync();
@@ -823,12 +1055,16 @@ $('#bird-form').addEventListener('submit', async e => {
   if (spSel === '__new' && !newName) return err(t('e_new_sp'));
   if (coll.some(x => key(x.name) === key(name) && (!old || x.id !== old.id))) return err(t('e_bdup'));
   if (phBird && phBird.busy) return;
-  const date = k => /^\d{4}-\d{2}-\d{2}$/.test(g(k)) ? g(k) : '', now = Date.now(), encl = g('encl');
+  const pe = readEncl(fd, 'encl');
+  if (pe.err) return err(pe.err);
+  const date = k => /^\d{4}-\d{2}-\d{2}$/.test(g(k)) ? g(k) : '', now = Date.now(), encl = pe.name, cur = old ? placeOf(old).name : '';
   const b = {name, sp: spSel, sex: g('sex'), ring: g('ring'), chip: g('chip'), born: date('born'), arrived: date('arrived'), origin: g('origin'),
-    encl, enclAt: old && old.encl === encl ? old.enclAt : (encl ? Math.floor(now / 60000) * 60000 : 0), status: g('status') === 'out' ? 'out' : 'active', note: g('note')};
+    encl: old && key(cur) === key(encl) ? old.encl : encl,
+    enclAt: old && key(cur) === key(encl) ? old.enclAt : (encl ? Math.floor(now / 60000) * 60000 : 0), status: g('status') === 'out' ? 'out' : 'active', note: g('note')};
   await withBusy($('#bf-save'), async () => {
     try {
       if (spSel === '__new') b.sp = await ensureSpecies(newName);
+      if (pe.fresh) b.encl = await ensureEncl(b.encl);
       const id = old ? old.id : uuid();
       await putBird(id, b, !old);
       if (phBird && (phBird.added.length || phBird.removed.length)) err(t('ph_saving'));
@@ -846,6 +1082,58 @@ $('#bf-del').addEventListener('click', async () => {
   if (!birdDelArmed) { birdDelArmed = true; $('#bf-del').textContent = t('del_card_confirm'); return; }
   try { await dropBird(editingBird.id); closeSheets(); render(); toast(t('t_card_del')); setTab('coll'); }
   catch (x) { $('#bf-err').textContent = errMsg(x); }
+});
+
+/* ---------- housing places ---------- */
+function openEnclForm(x) {
+  if (!canWrite()) return;
+  editingEncl = x || null; enclDelArmed = false;
+  $('#ef-title').textContent = x ? x.name : t('ef_new');
+  $('#ef-sub').textContent = x ? t('editing') : t('ef_sub_new');
+  const v = x || {kind: ek !== 'all' && ek !== 'off' ? ek : 'enclosure', active: true};
+  const opt = (val, cur, label) => `<option value="${val}"${val === cur ? ' selected' : ''}>${esc(label)}</option>`;
+  $('#ef-fields').innerHTML = field({k: 'name', l: 'ef_name', t: 'text', req: 1, id: 'ef-name', ph: 'ef_name_ph', ac: 'off'}, v.name)
+    + `<div class="fld"><label for="ef-kind">${esc(t('ef_kind'))}</label><select id="ef-kind" name="kind">${EK.map(k => opt(k, v.kind, t('ek_' + k))).join('')}</select></div>`
+    + field({k: 'area', l: 'ef_area', t: 'text', id: 'ef-area', ph: 'ef_area_ph'}, v.area)
+    + field({k: 'size', l: 'ef_size', t: 'text', id: 'ef-size', ph: 'ef_size_ph'}, v.size)
+    + field({k: 'cap', l: 'ef_cap', t: 'number', id: 'ef-cap', min: 1}, v.cap || '')
+    + (x ? `<div class="fld"><label for="ef-state">${esc(t('ef_state'))}</label><select id="ef-state" name="state">${opt('on', x.active ? 'on' : 'off', t('ef_on'))}${opt('off', x.active ? 'on' : 'off', t('ef_off'))}</select></div>` : '')
+    + field({k: 'note', l: 'ef_note', t: 'textarea', id: 'ef-note'}, v.note);
+  $('#ef-note').placeholder = t('ef_note_ph');
+  $('#ef-err').textContent = '';
+  const d = $('#ef-del'); d.hidden = !x || !isAdmin(); d.textContent = t('del_encl');
+  phEncl = photoBox('ef-ph', 'encl', x ? x.id : null, true);
+  openSheet('encl');
+}
+$('#encl-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const fd = new FormData(e.target), err = m => { $('#ef-err').textContent = m; }, g = k => String(fd.get(k) || '').trim(), old = editingEncl;
+  const name = g('name').replace(/\s+/g, ' ');
+  if (!name) return err(t('e_ename'));
+  if (encls.some(x => key(x.name) === key(name) && (!old || x.id !== old.id))) return err(t('e_edup'));
+  if (phEncl && phEncl.busy) return;
+  const x = {name, kind: EK.includes(g('kind')) ? g('kind') : 'other', area: g('area'), size: g('size'), cap: Math.min(10000, toN(g('cap'))),
+    active: old ? g('state') !== 'off' : true, note: g('note')};
+  await withBusy($('#ef-save'), async () => {
+    try {
+      const id = old ? old.id : uuid();
+      await putEncl(id, x, !old);
+      if (phEncl && (phEncl.added.length || phEncl.removed.length)) err(t('ph_saving'));
+      const failed = await commitPhotos(phEncl, id);
+      if (old && old.name !== name) await Promise.all([LOADERS.collection(), LOADERS.records()]);
+      closeSheets();
+      toast(failed ? t('e_photo', failed) : old ? t('t_card_upd') : t('t_encl_added'));
+      openCard('encl', id);
+      render();
+    } catch (y) { err(y && y.code === '23505' ? t('e_edup') : errMsg(y)); }
+  });
+});
+$('#ef-del').addEventListener('click', async () => {
+  if (!editingEncl || !isAdmin()) return;
+  const n = occOf(editingEncl).length;
+  if (!enclDelArmed) { enclDelArmed = true; $('#ef-del').textContent = n ? t('del_encl_n', n) : t('del_confirm'); return; }
+  try { await dropEncl(editingEncl.id); closeSheets(); render(); toast(t('t_encl_del')); setTab('encls'); }
+  catch (y) { $('#ef-err').textContent = errMsg(y); }
 });
 
 const SPF = ['name', 'latin', 'pl', 'en'];
@@ -983,6 +1271,15 @@ document.addEventListener('click', e => {
   if (jp) { const x = $('#' + jp.dataset.jump); if (x) x.scrollIntoView({block: 'start', behavior: 'smooth'}); return; }
   const sgb = e.target.closest('[data-sg]');
   if (sgb) { sg = sgb.dataset.sg; renderSpecies(); return; }
+  const ekb = e.target.closest('[data-ek]');
+  if (ekb) { ek = ekb.dataset.ek; renderEncls(); return; }
+  const ecb = e.target.closest('[data-ec],[data-encl-new],[data-encl-edit]');
+  if (ecb) {
+    if (ecb.dataset.ec) openCard('encl', ecb.dataset.ec);
+    else if (ecb.dataset.enclNew !== undefined) openEnclForm(null);
+    else { const x = enclMap.get(curEncl); if (x) openEnclForm(x); }
+    return;
+  }
   if (e.target.closest('[data-lb-close]') || e.target.id === 'lightbox' || e.target.id === 'lb-img') { closeLightbox(); return; }
   const el = e.target.closest('[data-new],[data-sheet],[data-tab],[data-edit],[data-close],[data-goto],[data-f],[data-view],[data-sp],[data-sp-new],[data-sp-edit],[data-bc],[data-cf],[data-bird-new],[data-bird-edit],[data-lang],[data-user],[data-user-new],[data-logout],[data-pass]');
   if (!el) return;
@@ -1000,7 +1297,7 @@ document.addEventListener('click', e => {
   else if (d.cf) { cf = d.cf; $$('#view-coll .chip').forEach(c => c.setAttribute('aria-pressed', String(c === el))); renderColl(); paintPhotos(); }
   else if (d.sp) openCard('sp', d.sp);
   else if (d.view) setTab(d.view);
-  else if (d.new) { if (!canWrite()) return; const pre = {}; if (d.bird) pre.bird = d.bird; if (d.from) pre.from = d.from; openForm(d.new, pre); }
+  else if (d.new) { if (!canWrite()) return; const pre = {}; if (d.bird) pre.bird = d.bird; if (d.from) pre.from = d.from; if (d.to) pre.to = d.to; openForm(d.new, pre); }
   else if (d.sheet) { if (!canWrite()) return; presetBird = d.preset || null; openSheet(d.sheet); }
   else if (d.tab) setTab(d.tab);
   else if (d.edit) { const r = recs.find(x => x.id === d.edit); if (r) openForm(r.type, null, r); }
@@ -1012,11 +1309,12 @@ document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
   if (!$('#lightbox').hidden) closeLightbox(); else if ($('.sheet.open')) closeSheets();
 });
-[['#form', '#f-err'], ['#sp-form', '#sp-err'], ['#bird-form', '#bf-err'], ['#user-form', '#uf-err'], ['#pass-form', '#pf-err'], ['#login-form', '#lg-err']]
+[['#form', '#f-err'], ['#encl-form', '#ef-err'], ['#sp-form', '#sp-err'], ['#bird-form', '#bf-err'], ['#user-form', '#uf-err'], ['#pass-form', '#pf-err'], ['#login-form', '#lg-err']]
   .forEach(([f, er]) => $(f).addEventListener('input', () => { $(er).textContent = ''; }));
 $('#q').addEventListener('input', e => { q = key(e.target.value); renderLogs(); paintPhotos(); });
 $('#sq').addEventListener('input', e => { sq = key(e.target.value); renderSpecies(); });
 $('#cq').addEventListener('input', e => { cq = key(e.target.value); renderColl(); paintPhotos(); });
+$('#eq').addEventListener('input', e => { eq = key(e.target.value); renderEncls(); });
 
 /* ---------- export ---------- */
 function csv() {
@@ -1055,7 +1353,7 @@ function applyRole() {
   document.body.classList.toggle('admin', isAdmin());
 }
 function resetState() {
-  me = null; myProfile = null; recs = []; species = []; coll = []; photos = []; profiles = new Map(); urlCache.clear();
+  me = null; myProfile = null; recs = []; species = []; coll = []; encls = []; photos = []; profiles = new Map(); urlCache.clear();
   if (channel && sb) { sb.removeChannel(channel); channel = null; }
   document.body.classList.remove('ro', 'admin');
 }
