@@ -20,7 +20,10 @@ Object.assign(DICT.ru, {
   encl_none_opt: '— не указано —', encl_new_opt: '+ Новое место…', encl_new_name: 'Название нового места', encl_unreg: ' (нет в списке мест)',
   del_encl: 'Удалить место', del_encl_n: n => 'Сейчас здесь ' + n + ' ' + pw(n, 'w_animal') + '. Удалить всё равно?',
   e_ename: 'Укажите название места.', e_edup: 'Место с таким названием уже есть.', e_new_encl: 'Укажите название нового места.',
-  t_encl_added: 'Место добавлено', t_encl_del: 'Место удалено'
+  t_encl_added: 'Место добавлено', t_encl_del: 'Место удалено',
+  ek_building: 'Здание', ef_parent: 'Находится в', ef_top: '— отдельно (верхний уровень) —', en_inside: 'Внутри', en_add_inside: 'Добавить внутрь',
+  en_total: 'Всего внутри', en_in: p => 'в: ' + p, en_kids: n => n + ' ' + pw(n, 'w_sub'), w_sub: ['место внутри', 'места внутри', 'мест внутри'],
+  en_no_kids: 'Внутри пока ничего нет.', del_encl_kids: n => 'Внутри ' + n + ' ' + pw(n, 'w_place') + ' — они станут отдельными. Удалить?', e_cycle: 'Нельзя поместить место внутрь самого себя.'
 });
 Object.assign(DICT.pl, {
   fa_encl: 'Miejsce przetrzymywania', ev_expo_sub: 'Przeniesienie między wolierami, klatkami i innymi miejscami',
@@ -42,7 +45,10 @@ Object.assign(DICT.pl, {
   encl_none_opt: '— nie podano —', encl_new_opt: '+ Nowe miejsce…', encl_new_name: 'Nazwa nowego miejsca', encl_unreg: ' (poza listą miejsc)',
   del_encl: 'Usuń miejsce', del_encl_n: n => 'Obecnie przebywa tu ' + n + ' ' + pw(n, 'w_animal') + '. Usunąć mimo to?',
   e_ename: 'Podaj nazwę miejsca.', e_edup: 'Miejsce o tej nazwie już istnieje.', e_new_encl: 'Podaj nazwę nowego miejsca.',
-  t_encl_added: 'Miejsce dodane', t_encl_del: 'Miejsce usunięte'
+  t_encl_added: 'Miejsce dodane', t_encl_del: 'Miejsce usunięte',
+  ek_building: 'Budynek', ef_parent: 'Znajduje się w', ef_top: '— osobno (najwyższy poziom) —', en_inside: 'W środku', en_add_inside: 'Dodaj w środku',
+  en_total: 'Razem w środku', en_in: p => 'w: ' + p, en_kids: n => n + ' ' + pw(n, 'w_sub'), w_sub: ['miejsce w środku', 'miejsca w środku', 'miejsc w środku'],
+  en_no_kids: 'W środku nie ma jeszcze nic.', del_encl_kids: n => 'W środku jest ' + n + ' ' + pw(n, 'w_place') + ' — staną się osobne. Usunąć?', e_cycle: 'Nie można umieścić miejsca w nim samym.'
 });
 Object.assign(DICT.en, {
   fa_encl: 'Housing', ev_expo_sub: 'Moving between enclosures, cages and other places',
@@ -64,7 +70,10 @@ Object.assign(DICT.en, {
   encl_none_opt: '— not set —', encl_new_opt: '+ New place…', encl_new_name: 'Name of the new place', encl_unreg: ' (not in the list of places)',
   del_encl: 'Delete place', del_encl_n: n => n + ' ' + pw(n, 'w_animal') + ' are kept here now. Delete anyway?',
   e_ename: 'Enter the name of the place.', e_edup: 'A place with this name already exists.', e_new_encl: 'Enter the name of the new place.',
-  t_encl_added: 'Place added', t_encl_del: 'Place deleted'
+  t_encl_added: 'Place added', t_encl_del: 'Place deleted',
+  ek_building: 'Building', ef_parent: 'Located in', ef_top: '— on its own (top level) —', en_inside: 'Inside', en_add_inside: 'Add inside',
+  en_total: 'Total inside', en_in: p => 'in: ' + p, en_kids: n => n + ' ' + pw(n, 'w_sub'), w_sub: ['place inside', 'places inside'],
+  en_no_kids: 'Nothing inside yet.', del_encl_kids: n => n + ' ' + pw(n, 'w_place') + ' inside will become separate. Delete?', e_cycle: 'A place cannot be inside itself.'
 });
 
 /* ---------- housing places: screens added to the page ---------- */
@@ -141,6 +150,7 @@ const I = {
   ruler:'<rect x="2" y="7" width="20" height="10" rx="2"/><path d="M6 7v4M10 7v3M14 7v4M18 7v3"/>',
   clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
   cage:'<rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 5v16M12 5v16M16 5v16M9 2h6M12 2v3"/>',
+  building:'<path d="M4 21V7l8-4 8 4v14"/><path d="M2 21h20M9 21v-4h6v4M8 10h2M14 10h2M8 14h2M14 14h2"/>',
   drop:'<path d="M12 3s-6.5 7-6.5 11.5a6.5 6.5 0 0 0 13 0C18.5 10 12 3 12 3z"/>',
   paw:'<circle cx="5.5" cy="10" r="2"/><circle cx="9.5" cy="5.5" r="2"/><circle cx="14.5" cy="5.5" r="2"/><circle cx="18.5" cy="10" r="2"/><path d="M12 12c-3 0-5.5 3.5-5.5 6 0 1.7 1.3 3 3 3 1 0 1.7-.5 2.5-.5s1.5.5 2.5.5c1.7 0 3-1.3 3-3 0-2.5-2.5-6-5.5-6z"/>'
 };
@@ -253,15 +263,15 @@ function fromBird(d) {
 }
 const toBird = b => ({name: b.name, species_id: b.sp || null, sex: b.sex || '', ring: b.ring || '', chip: b.chip || '', born: b.born || null, arrived: b.arrived || null,
   origin: b.origin || '', encl: b.encl || '', encl_at: b.enclAt ? new Date(b.enclAt).toISOString() : null, status: b.status, note: b.note || ''});
-const EK = ['aviary', 'enclosure', 'cage', 'incubator', 'brooder', 'room', 'quarantine', 'pond', 'other'];
-const EK_IC = {aviary: ['tree', 'green'], enclosure: ['home', 'green'], cage: ['cage', 'blue'], incubator: ['egg', 'amber'], brooder: ['chick', 'amber'],
+const EK = ['building', 'aviary', 'enclosure', 'cage', 'incubator', 'brooder', 'room', 'quarantine', 'pond', 'other'];
+const EK_IC = {building: ['building', 'blue'], aviary: ['tree', 'green'], enclosure: ['home', 'green'], cage: ['cage', 'blue'], incubator: ['egg', 'amber'], brooder: ['chick', 'amber'],
   room: ['home', 'grey'], quarantine: ['cross', 'red'], pond: ['drop', 'blue'], other: ['tag', 'grey']};
 function fromEncl(d) {
   if (!d) return null;
   return {id: d.id, name: d.name, kind: EK.includes(d.kind) ? d.kind : 'other', area: d.area || '', size: d.size || '', cap: d.capacity || 0,
-    active: d.active !== false, note: d.note || '', by: d.created_by || null};
+    active: d.active !== false, note: d.note || '', parent: d.parent_id || '', by: d.created_by || null};
 }
-const toEncl = x => ({name: x.name, kind: x.kind, area: x.area || '', size: x.size || '', capacity: x.cap || null, active: x.active, note: x.note || ''});
+const toEncl = x => ({name: x.name, kind: x.kind, area: x.area || '', size: x.size || '', capacity: x.cap || null, active: x.active, note: x.note || '', parent_id: x.parent || null});
 const fromPhoto = d => ({id: d.id, ownerType: d.owner_type, ownerId: d.owner_id, path: d.path, w: d.width, h: d.height, by: d.created_by || null, created: ms(d.created_at)});
 const thumbOf = p => p.replace(/\.jpg$/, '_t.jpg');
 const photosOf = (type, id) => photosByOwner.get(type + ':' + id) || [];
@@ -287,6 +297,22 @@ const SI_WILD = [['range', 'globe'], ['habitat', 'tree'], ['diet_wild', 'leaf'],
 const SI_ZOO = [['diet_zoo', 'bowl'], ['husbandry', 'home'], ['health', 'heart'], ['sex', 'sex']];
 const enclTile = (x, sm) => { const [i, tone] = EK_IC[x ? x.kind : 'other']; return `<span class="tile${sm ? ' sm' : ''} t-${x && !x.active ? 'grey' : tone}">${ic(i, sm ? 18 : 24)}</span>`; };
 const enclLink = n => { const x = n && enclByName.get(key(n)); return x ? `<button class="linkish" type="button" data-ec="${esc(x.id)}">${esc(x.name)}</button>` : esc(n || ''); };
+// places can sit inside other places: building › room › enclosure
+const kidsOf = id => encls.filter(x => x.parent === id && x.parent !== x.id);
+const pathOf = x => { const out = [], seen = new Set(); let p = x && enclMap.get(x.parent); while (p && !seen.has(p.id)) { seen.add(p.id); out.unshift(p); p = enclMap.get(p.parent); } return out; };
+const descOf = x => { const out = [], seen = new Set([x.id]), stack = [x.id]; while (stack.length) { for (const c of kidsOf(stack.pop())) if (!seen.has(c.id)) { seen.add(c.id); out.push(c); stack.push(c.id); } } return out; };
+const pathText = x => pathOf(x).map(p => p.name).concat(x.name).join(' › ');
+const enclPath = n => { const x = n && enclByName.get(key(n)); return x ? pathOf(x).map(p => `<button class="linkish" type="button" data-ec="${esc(p.id)}">${esc(p.name)}</button> › `).join('') + enclLink(n) : esc(n || ''); };
+const INDENT = d => String.fromCharCode(160).repeat(3 * d);
+const byPlace = (a, b) => EK.indexOf(a.kind) - EK.indexOf(b.kind) || a.name.localeCompare(b.name, LOCALE[lang], {numeric: true});
+// places in tree order with depth; roots are places without a (shown) parent
+function treeOrder(list) {
+  const ids = new Set(list.map(x => x.id)), out = [], seen = new Set();
+  const walk = (x, d) => { if (seen.has(x.id)) return; seen.add(x.id); out.push([x, d]); list.filter(c => c.parent === x.id).sort(byPlace).forEach(c => walk(c, d + 1)); };
+  list.filter(x => !x.parent || !ids.has(x.parent)).sort(byPlace).forEach(x => walk(x, 0));
+  list.filter(x => !seen.has(x.id)).forEach(x => walk(x, 0));
+  return out;
+}
 // where an animal is now: the latest of its card's enclosure and its latest transfer record
 const placeOf = cb => { const b = (st && st.birds.get(key(cb.name))) || {}; return b.encl && b.enclAt >= cb.enclAt ? {name: b.encl, at: b.enclAt} : {name: cb.encl, at: cb.enclAt}; };
 const sexText = s => s === 'f' ? t('sex_f') : s === 'm' ? t('sex_m') : '';
@@ -587,7 +613,7 @@ function renderBirdCard() {
     sb2.inc ? pill('p-amber', t('st_inc')) : '', sb2.chicks ? pill('p-blue', t('in_nest', sb2.chicks)) : ''].join('');
   const fact = (l, v, raw) => v ? `<div><dt>${esc(t(l))}</dt><dd>${raw ? v : esc(v)}</dd></div>` : '';
   const n = esc(cb.name), main = spName(s);
-  const enclDd = encl ? enclLink(encl) + (pl.at ? ` <small class="muted">· ${esc(t('en_since', fDate.format(pl.at)))}</small>` : '') : '';
+  const enclDd = encl ? enclPath(encl) + (pl.at ? ` <small class="muted">· ${esc(t('en_since', fDate.format(pl.at)))}</small>` : '') : '';
   box.innerHTML = backBtn('bird') + `<h1>${n}</h1>${s ? `<button class="linkish" type="button" data-sp="${esc(s.id)}">${esc(main)}${s.latin && s.latin !== main ? ' · ' + esc(s.latin) : ''}</button>` : `<p class="sp-meta">${esc(t('no_sp'))}</p>`}
 ${pills ? `<div class="pills">${pills}</div>` : ''}
 ${gallery(photosOf('bird', cb.id))}
@@ -612,16 +638,18 @@ function renderEncls() {
   $('#ek-chips').innerHTML = chips.map(k => `<button class="chip" type="button" data-ek="${k}" aria-pressed="${ek === k}">${esc(t('ek_' + k))} <span class="chip-n">${cnt(k)}</span></button>`).join('');
   $('#ek-chips').hidden = chips.length < 3;
   const list = encls.filter(x => (ek === 'off' ? !x.active : x.active && (ek === 'all' || x.kind === ek))
-      && (!eq || [x.name, x.area, t('ek_' + x.kind)].some(v => key(v).includes(eq))))
-    .sort((a, b) => EK.indexOf(a.kind) - EK.indexOf(b.kind) || a.name.localeCompare(b.name, LOCALE[lang], {numeric: true}));
+      && (!eq || [x.name, x.area, t('ek_' + x.kind)].concat(pathOf(x).map(p => p.name)).some(v => key(v).includes(eq))))
+    .sort(byPlace);
   if (!list.length) { $('#encls-body').innerHTML = `<p class="empty" style="margin-top:16px">${esc(encls.length ? t('none_found') : t('encl_empty'))}</p>`; return; }
-  let h = '', last = null;
-  for (const x of list) {
-    if (ek === 'all' && x.kind !== last) { h += `<h2 class="day">${esc(t('ek_' + x.kind))}</h2>`; last = x.kind; }
-    const n = occOf(x).length, over = x.cap && n > x.cap;
-    const sub = [ek === 'all' ? '' : t('ek_' + x.kind), x.area].filter(Boolean).join(' · ');
-    const occ = n ? t('en_n', n) + (x.cap ? ' · ' + t('en_occ', n, x.cap) : '') : t('en_empty') + (x.cap ? ' · ' + t('en_occ', 0, x.cap) : '');
-    h += `<button class="row" type="button" data-ec="${esc(x.id)}" style="margin-bottom:8px">${enclTile(x)}<span class="rt"><b>${esc(x.name)}</b>${sub ? `<small>${esc(sub)}</small>` : ''}<small${over ? ' class="warn-t"' : ''}>${esc(occ + (over ? ' · ' + t('en_full') : ''))}</small></span><span class="chev">${ic('chev', 20)}</span></button>`;
+  const tree = ek === 'all' && !eq, rows = tree ? treeOrder(list) : list.map(x => [x, 0]);
+  let h = '';
+  for (const [x, d] of rows) {
+    const n = occOf(x).length, over = x.cap && n > x.cap, desc = descOf(x), all = n + desc.reduce((s, c) => s + occOf(c).length, 0);
+    const where = tree ? '' : pathOf(x).map(p => p.name).join(' › ');
+    const sub = [t('ek_' + x.kind), where || x.area].filter(Boolean).join(' · ');
+    const occ = desc.length ? [t('en_kids', kidsOf(x.id).length), t('en_total') + ': ' + t('en_n', all)].join(' · ')
+      : n ? t('en_n', n) + (x.cap ? ' · ' + t('en_occ', n, x.cap) : '') : t('en_empty') + (x.cap ? ' · ' + t('en_occ', 0, x.cap) : '');
+    h += `<button class="row${d ? ' en-sub' : ''}" type="button" data-ec="${esc(x.id)}" style="margin-bottom:8px${d ? `;margin-left:${Math.min(d, 4) * 20}px;width:calc(100% - ${Math.min(d, 4) * 20}px)` : ''}">${enclTile(x, d > 0)}<span class="rt"><b>${esc(x.name)}</b>${sub ? `<small>${esc(sub)}</small>` : ''}<small${over ? ' class="warn-t"' : ''}>${esc(occ + (over ? ' · ' + t('en_full') : ''))}</small></span><span class="chev">${ic('chev', 20)}</span></button>`;
   }
   $('#encls-body').innerHTML = h;
 }
@@ -631,8 +659,9 @@ function renderEnclCard() {
   if (!curEncl) { box.innerHTML = ''; return; }
   const x = enclMap.get(curEncl);
   if (!x) { box.innerHTML = backBtn('encl') + `<h1>${esc(t('en_deleted'))}</h1><p class="lead">${esc(t('en_deleted_p'))}</p>`; return; }
-  const occ = occOf(x).slice().sort((a, b) => (spName(spById(a.sp)) || '￿').localeCompare(spName(spById(b.sp)) || '￿', LOCALE[lang]) || a.name.localeCompare(b.name, LOCALE[lang]));
-  const n = occ.length, over = x.cap && n > x.cap, k = key(x.name);
+  const desc = descOf(x), kids = kidsOf(x.id).sort(byPlace);
+  const occ = occOf(x).concat(...desc.map(c => occOf(c).map(o => Object.assign({}, o, {at: c})))).sort((a, b) => (spName(spById(a.sp)) || '￿').localeCompare(spName(spById(b.sp)) || '￿', LOCALE[lang]) || a.name.localeCompare(b.name, LOCALE[lang]));
+  const n = occ.length, over = x.cap && occOf(x).length > x.cap, k = key(x.name);
   const moves = recs.filter(r => r.type === 'expo' && (key(r.f.to) === k || key(r.f.from) === k)).sort((a, b) => b.at - a.at);
   const fact = (l, v) => v ? `<div><dt>${esc(t(l))}</dt><dd>${esc(v)}</dd></div>` : '';
   const pills = `<span class="pill p-grey">${esc(t('ek_' + x.kind))}</span>${x.active ? '' : `<span class="pill p-grey">${esc(t('en_off_pill'))}</span>`}${over ? `<span class="pill p-red">${esc(t('en_full'))}</span>` : ''}`;
@@ -640,13 +669,17 @@ function renderEnclCard() {
     const s = spById(o.sp), cb = o.cb;
     const nmh = cb ? `<button class="namelink" type="button" data-bc="${esc(cb.id)}">${esc(o.name)}</button>` : `<b>${esc(o.name)}</b>`;
     const sub = [cb ? sexText(cb.sex) : t('not_in_coll_b'), cb && cb.ring ? t('ring_n', cb.ring) : '', o.since ? t('en_since', fDay.format(o.since)) : ''].filter(Boolean).join(' · ');
-    return `<div class="ncard"><div class="nl">${nmh}${s ? `<button class="linkish" type="button" data-sp="${esc(s.id)}">${esc(spName(s))}</button>` : ''}${sub ? `<small>${esc(sub)}</small>` : ''}</div><div class="na"><button class="mini ghost w-only" type="button" data-new="expo" data-bird="${esc(o.name)}" data-from="${esc(x.name)}">${esc(t('en_move'))}</button></div></div>`;
+    const here = o.at || x;
+    return `<div class="ncard"><div class="nl">${nmh}${s ? `<button class="linkish" type="button" data-sp="${esc(s.id)}">${esc(spName(s))}</button>` : ''}${o.at ? `<small>${esc(t('en_in', ''))}<button class="linkish" type="button" data-ec="${esc(o.at.id)}">${esc(o.at.name)}</button></small>` : ''}${sub ? `<small>${esc(sub)}</small>` : ''}</div><div class="na"><button class="mini ghost w-only" type="button" data-new="expo" data-bird="${esc(o.name)}" data-from="${esc(here.name)}">${esc(t('en_move'))}</button></div></div>`;
   });
-  box.innerHTML = backBtn('encl') + `<div class="en-head">${enclTile(x)}<div><h1>${esc(x.name)}</h1><div class="pills">${pills}</div></div></div>
+  const crumbs = pathOf(x).map(p => `<button class="linkish" type="button" data-ec="${esc(p.id)}">${esc(p.name)}</button>`).join(' › ');
+  const kidRows = kids.map(c => { const m = occOf(c).length + descOf(c).reduce((a, z) => a + occOf(z).length, 0); return `<button class="row" type="button" data-ec="${esc(c.id)}" style="margin-bottom:8px">${enclTile(c, 1)}<span class="rt"><b>${esc(c.name)}</b><small>${esc([t('ek_' + c.kind), kidsOf(c.id).length ? t('en_kids', kidsOf(c.id).length) : '', m ? t('en_n', m) : t('en_empty')].filter(Boolean).join(' · '))}</small></span><span class="chev">${ic('chev', 20)}</span></button>`; }).join('');
+  box.innerHTML = backBtn('encl') + `${crumbs ? `<p class="en-crumbs">${crumbs} ›</p>` : ''}<div class="en-head">${enclTile(x)}<div><h1>${esc(x.name)}</h1><div class="pills">${pills}</div></div></div>
 ${gallery(photosOf('encl', x.id))}
-<dl class="facts">${fact('ef_area', x.area)}${fact('ef_size', x.size)}${fact('en_fill', x.cap ? t('en_occ', n, x.cap) : '')}</dl>
+<dl class="facts">${fact('ef_area', x.area)}${fact('ef_size', x.size)}${fact('en_fill', x.cap ? t('en_occ', occOf(x).length, x.cap) : '')}${desc.length ? fact('en_total', t('en_n', n)) : ''}</dl>
 ${x.note ? `<p class="sp-note">${esc(x.note)}</p>` : ''}
 <div class="top-acts w-only"><button class="btn sec" type="button" data-encl-edit>${esc(t('edit_card'))}</button>${x.active ? `<button class="btn sec" type="button" data-new="expo" data-to="${esc(x.name)}">${esc(t('en_move_here'))}</button>` : ''}</div>
+${kids.length || ['building', 'room', 'aviary'].includes(x.kind) ? `<section class="nsec"><h2 class="nh">${esc(t('en_inside'))}<span class="nc">${kids.length}</span></h2>${kidRows || `<p class="empty">${esc(t('en_no_kids'))}</p>`}<button class="mini ghost w-only" type="button" data-encl-new data-parent="${esc(x.id)}" style="margin-top:4px">${esc('+ ' + t('en_add_inside'))}</button></section>` : ''}
 <section class="nsec"><h2 class="nh">${esc(t('en_now'))}<span class="nc">${n}</span></h2>${n ? items.join('') : `<p class="empty">${esc(t('en_none'))}</p>`}</section>
 <section class="nsec"><h2 class="nh">${esc(t('en_hist'))}<span class="nc">${moves.length}</span></h2>${moves.length ? moves.slice(0, 100).map(r => card(r, true)).join('') : `<p class="empty">${esc(t('en_nohist'))}</p>`}</section>`;
 }
@@ -774,14 +807,11 @@ function spSelect(val, p = 'fld') {
     + `<div class="fld" id="${p}-newsp-wrap" hidden><label for="${p}-newsp">${esc(t('f_new_sp_name'))}</label><input id="${p}-newsp" name="newsp" type="text" autocomplete="off"></div>`;
 }
 
-// a list of registered housing places, grouped by type, with "+ new place" at the end
+// a list of registered housing places, in tree order, with "+ new place" at the end
 function enclSelect(f, val) {
   const id = f.id || 'fld-' + f.k, v = String(val || '').trim(), cur = v ? enclByName.get(key(v)) : null;
-  const byN = (a, b) => a.name.localeCompare(b.name, LOCALE[lang], {numeric: true});
-  const groups = EK.map(k => {
-    const xs = encls.filter(x => x.kind === k && (x.active || x === cur)).sort(byN);
-    return xs.length ? `<optgroup label="${esc(t('ek_' + k))}">${xs.map(x => `<option value="${esc(x.name)}"${x === cur ? ' selected' : ''}>${esc(x.name)}</option>`).join('')}</optgroup>` : '';
-  }).join('');
+  const groups = treeOrder(encls.filter(x => x.active || x === cur)).map(([x, d]) =>
+    `<option value="${esc(x.name)}"${x === cur ? ' selected' : ''}>${INDENT(d)}${esc(x.name)} · ${esc(t('ek_' + x.kind))}</option>`).join('');
   const unreg = v && !cur ? `<option value="${esc(v)}" selected>${esc(v + t('encl_unreg'))}</option>` : '';
   return `<div class="fld"><label for="${id}">${esc(t(f.l))}${f.req ? '&nbsp;<span class="req" aria-hidden="true">*</span>' : ''}</label><select id="${id}" name="${f.k}" data-encl${f.req ? ' aria-required="true"' : ''}><option value="">${esc(t('encl_none_opt'))}</option>${unreg}${groups}<option value="__new">${esc(t('encl_new_opt'))}</option></select></div>`
     + `<div class="fld" id="${id}-new-wrap" hidden><label for="${id}-new">${esc(t('encl_new_name'))}</label><input id="${id}-new" name="${f.k}_new" type="text" autocomplete="off"></div>`;
@@ -1085,15 +1115,20 @@ $('#bf-del').addEventListener('click', async () => {
 });
 
 /* ---------- housing places ---------- */
-function openEnclForm(x) {
+function openEnclForm(x, parentId) {
   if (!canWrite()) return;
   editingEncl = x || null; enclDelArmed = false;
   $('#ef-title').textContent = x ? x.name : t('ef_new');
   $('#ef-sub').textContent = x ? t('editing') : t('ef_sub_new');
-  const v = x || {kind: ek !== 'all' && ek !== 'off' ? ek : 'enclosure', active: true};
+  const par = parentId ? enclMap.get(parentId) : null;
+  const v = x || {kind: par ? ({building: 'room', room: 'enclosure'}[par.kind] || 'enclosure') : ek !== 'all' && ek !== 'off' ? ek : 'enclosure', active: true, parent: par ? par.id : ''};
+  const banned = x ? new Set([x.id].concat(descOf(x).map(z => z.id))) : new Set();
+  const parOpts = treeOrder(encls.filter(z => !banned.has(z.id) && (z.active || z.id === v.parent))).map(([z, d]) =>
+    `<option value="${esc(z.id)}"${z.id === v.parent ? ' selected' : ''}>${INDENT(d)}${esc(z.name)} · ${esc(t('ek_' + z.kind))}</option>`).join('');
   const opt = (val, cur, label) => `<option value="${val}"${val === cur ? ' selected' : ''}>${esc(label)}</option>`;
   $('#ef-fields').innerHTML = field({k: 'name', l: 'ef_name', t: 'text', req: 1, id: 'ef-name', ph: 'ef_name_ph', ac: 'off'}, v.name)
     + `<div class="fld"><label for="ef-kind">${esc(t('ef_kind'))}</label><select id="ef-kind" name="kind">${EK.map(k => opt(k, v.kind, t('ek_' + k))).join('')}</select></div>`
+    + `<div class="fld"><label for="ef-parent">${esc(t('ef_parent'))}</label><select id="ef-parent" name="parent"><option value="">${esc(t('ef_top'))}</option>${parOpts}</select></div>`
     + field({k: 'area', l: 'ef_area', t: 'text', id: 'ef-area', ph: 'ef_area_ph'}, v.area)
     + field({k: 'size', l: 'ef_size', t: 'text', id: 'ef-size', ph: 'ef_size_ph'}, v.size)
     + field({k: 'cap', l: 'ef_cap', t: 'number', id: 'ef-cap', min: 1}, v.cap || '')
@@ -1113,7 +1148,8 @@ $('#encl-form').addEventListener('submit', async e => {
   if (encls.some(x => key(x.name) === key(name) && (!old || x.id !== old.id))) return err(t('e_edup'));
   if (phEncl && phEncl.busy) return;
   const x = {name, kind: EK.includes(g('kind')) ? g('kind') : 'other', area: g('area'), size: g('size'), cap: Math.min(10000, toN(g('cap'))),
-    active: old ? g('state') !== 'off' : true, note: g('note')};
+    active: old ? g('state') !== 'off' : true, note: g('note'), parent: enclMap.has(g('parent')) ? g('parent') : ''};
+  if (old && x.parent && (x.parent === old.id || descOf(old).some(z => z.id === x.parent))) return err(t('e_cycle'));
   await withBusy($('#ef-save'), async () => {
     try {
       const id = old ? old.id : uuid();
@@ -1125,14 +1161,14 @@ $('#encl-form').addEventListener('submit', async e => {
       toast(failed ? t('e_photo', failed) : old ? t('t_card_upd') : t('t_encl_added'));
       openCard('encl', id);
       render();
-    } catch (y) { err(y && y.code === '23505' ? t('e_edup') : errMsg(y)); }
+    } catch (y) { err(y && y.code === '23505' ? t('e_edup') : y && y.code === '23514' ? t('e_cycle') : errMsg(y)); }
   });
 });
 $('#ef-del').addEventListener('click', async () => {
   if (!editingEncl || !isAdmin()) return;
-  const n = occOf(editingEncl).length;
-  if (!enclDelArmed) { enclDelArmed = true; $('#ef-del').textContent = n ? t('del_encl_n', n) : t('del_confirm'); return; }
-  try { await dropEncl(editingEncl.id); closeSheets(); render(); toast(t('t_encl_del')); setTab('encls'); }
+  const n = occOf(editingEncl).length, nk = kidsOf(editingEncl.id).length;
+  if (!enclDelArmed) { enclDelArmed = true; $('#ef-del').textContent = n ? t('del_encl_n', n) : nk ? t('del_encl_kids', nk) : t('del_confirm'); return; }
+  try { await dropEncl(editingEncl.id); if (nk) await LOADERS.enclosures(); closeSheets(); render(); toast(t('t_encl_del')); setTab('encls'); }
   catch (y) { $('#ef-err').textContent = errMsg(y); }
 });
 
@@ -1276,7 +1312,7 @@ document.addEventListener('click', e => {
   const ecb = e.target.closest('[data-ec],[data-encl-new],[data-encl-edit]');
   if (ecb) {
     if (ecb.dataset.ec) openCard('encl', ecb.dataset.ec);
-    else if (ecb.dataset.enclNew !== undefined) openEnclForm(null);
+    else if (ecb.dataset.enclNew !== undefined) openEnclForm(null, ecb.dataset.parent || '');
     else { const x = enclMap.get(curEncl); if (x) openEnclForm(x); }
     return;
   }
