@@ -141,6 +141,11 @@ Object.assign(DICT.en, {lk_l: 'Protect from AI', lk_t: 'Protected: AI will not c
   lk_all: 'Protect the whole card from AI', lk_one: 'Protect this field from AI',
   ph_main: 'Make main', ph_is_main: 'Main photo', ph_wiki: 'Wikipedia', ph_all: 'Photos', ph_wiki_rm: 'Remove the Wikipedia photo'});
 
+// calendar view modes: a list of events or month grids one under another
+Object.assign(DICT.ru, {cal_m_list: 'Список', cal_m_grid: 'Месяцы', cal_modes: 'Вид календаря', cal_earlier: 'Более ранние месяцы'});
+Object.assign(DICT.pl, {cal_m_list: 'Lista', cal_m_grid: 'Miesiące', cal_modes: 'Widok kalendarza', cal_earlier: 'Wcześniejsze miesiące'});
+Object.assign(DICT.en, {cal_m_list: 'List', cal_m_grid: 'Months', cal_modes: 'Calendar view', cal_earlier: 'Earlier months'});
+
 // confirmations before signing out and before closing a card with unsaved changes
 Object.assign(DICT.ru, {cf_logout: 'Выйти из аккаунта?', cf_logout_p: 'Чтобы снова работать с журналом, нужно будет войти заново.',
   cf_leave: 'Закрыть без сохранения?', cf_leave_p: 'Изменения в этой карточке не сохранятся.', cf_leave_ok: 'Закрыть без сохранения', cf_stay: 'Остаться', cf_cancel: 'Отмена'});
@@ -167,9 +172,10 @@ Object.assign(DICT.en, {cf_logout: 'Sign out?', cf_logout_p: 'You will need to s
   add('.tab[data-tab=now]', 'afterend', `<button class="tab" type="button" data-tab="cal"><span class="ti" data-ic="calgrid" data-s="22"></span><span data-t="tab_cal"></span></button>`);
   add('#view-users', 'beforebegin', `<section class="view" id="view-cal" hidden>
 <div class="cal-head"><h1 id="cal-title"></h1><div class="cal-nav"><button class="mini ghost" type="button" data-cal-nav="-1" data-ta="cal_prev"><span data-ic="chevl" data-s="18" data-w="2.4"></span></button><button class="mini ghost" type="button" data-cal-nav="0" data-t="cal_today"></button><button class="mini ghost" type="button" data-cal-nav="1" data-ta="cal_next"><span data-ic="chev" data-s="18" data-w="2.4"></span></button></div></div>
-<div class="cal-box"><div class="cal-dow" id="cal-dow"></div><div id="cal-grid"></div><div class="cal-tip" id="cal-tip" role="status" hidden></div></div>
+<div class="chips cal-modes" id="cal-modes" role="group" data-ta="cal_modes"><button class="chip" type="button" data-cal-mode="list" data-t="cal_m_list"></button><button class="chip" type="button" data-cal-mode="grid" data-t="cal_m_grid"></button></div>
+<div class="cal-wrap"><div id="cal-months"></div><div class="cal-tip" id="cal-tip" role="status" hidden></div></div>
 <p class="cal-legend"><span><i class="cdot k-amber"></i><span data-t="leg_dot"></span></span><span><i class="cleg k-amber"></i><span data-t="leg_line"></span></span><span><i class="cleg k-amber pend"></i><span data-t="leg_dash"></span></span></p>
-<section class="nsec"><h2 class="nh"><span data-t="cal_list"></span><span class="nc" id="cal-n"></span></h2><div id="cal-list"></div></section>
+<section class="nsec cal-listsec"><h2 class="nh"><span data-t="cal_list"></span><span class="nc" id="cal-n"></span></h2><div id="cal-list"></div></section>
 </section>
 `);
   add('#view-users', 'beforebegin', `<section class="view" id="view-encls" hidden>
@@ -327,6 +333,7 @@ let statusKey = '', statusKind = 'info', gateKey = 'loading', editingUser = null
 let phRec = null, phSp = null, phBird = null, phEncl = null;
 let encls = [], enclMap = new Map(), enclByName = new Map(), curEncl = null, editingEncl = null, enclDelArmed = false, eq = '', ek = 'all';
 let logRows = [], lgf = 'all', logDelArmed = '';
+let calMode = (() => { try { return localStorage.getItem('zoo-cal-mode') === 'grid' ? 'grid' : 'list'; } catch (x) { return 'list'; } })(), calFrom = null, calTo = null, calObs = null, calObsOn = false;
 let calM = (() => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 1); })(), calSel = '';
 const DEF_BACK = {sp: 'species', bird: 'coll', encl: 'encls'}, backOf = {sp: 'species', bird: 'coll', encl: 'encls'};
 const VIEW_KEY = {add: 'tab_add', now: 'tab_now', logs: 'logs', menu: 'menu', species: 'species_t', sp: 'spf_edit', coll: 'coll', bird: 'bf_edit', users: 'users_t', encls: 'encls_t', encl: 'ef_edit', cal: 'tab_cal', log: 'log_t'};
@@ -874,46 +881,86 @@ function calItems() {
   }
   return out;
 }
-function renderCal() {
-  if (!$('#cal-grid')) return;
-  const L = LOCALE[lang], y = calM.getFullYear(), m = calM.getMonth();
-  $('#cal-title').textContent = cap(new Intl.DateTimeFormat(L, {month: 'long', year: 'numeric'}).format(calM));
-  const wd = new Intl.DateTimeFormat(L, {weekday: 'short'});
-  $('#cal-dow').innerHTML = [0, 1, 2, 3, 4, 5, 6].map(i => `<span>${esc(wd.format(new Date(2024, 0, 1 + i)))}</span>`).join('');
-  const first = new Date(y, m, 1), start = new Date(y, m, 1 - (first.getDay() + 6) % 7).getTime();
-  const last = new Date(y, m + 1, 0), weeks = Math.ceil((dayDiff(start, last.getTime()) + 1) / 7);
-  const items = calItems(), dots = items.filter(i => !i.bar), bars = items.filter(i => i.bar), today = midnight(Date.now());
+const mIdx = d => d.getFullYear() * 12 + d.getMonth();
+// one month as week rows; in the scrolling view days of other months stay empty and bars are cut at the month edge
+function weeksHTML(y, m, dots, bars, clip) {
+  const first = new Date(y, m, 1), lead = (first.getDay() + 6) % 7, last = new Date(y, m + 1, 0);
+  const weeks = Math.ceil((lead + last.getDate()) / 7), today = midnight(Date.now());
   let h = '';
   for (let w = 0; w < weeks; w++) {
-    const ws = new Date(y, m, 1 - (first.getDay() + 6) % 7 + w * 7).getTime();
-    const segs = bars.map(b => ({b, a: dayDiff(ws, b.s), z: dayDiff(ws, b.e)})).filter(g => g.z >= 0 && g.a <= 6).sort((p, q) => p.a - q.a || q.z - p.z);
+    const ws = new Date(y, m, 1 - lead + w * 7).getTime();
+    const lo = clip ? Math.max(0, dayDiff(ws, first.getTime())) : 0, hi = clip ? Math.min(6, dayDiff(ws, last.getTime())) : 6;
+    const segs = bars.map(b => ({b, a: dayDiff(ws, b.s), z: dayDiff(ws, b.e)})).filter(g => g.z >= lo && g.a <= hi).sort((p, q) => p.a - q.a || q.z - p.z);
     const lanes = [];
-    for (const g of segs) { let l = lanes.findIndex(end => end < Math.max(0, g.a)); if (l < 0) { l = lanes.length; lanes.push(-1); } lanes[l] = Math.min(6, g.z); g.l = l; }
+    for (const g of segs) { let l = lanes.findIndex(end => end < Math.max(lo, g.a)); if (l < 0) { l = lanes.length; lanes.push(-1); } lanes[l] = Math.min(hi, g.z); g.l = l; }
     const nl = Math.min(lanes.length, 4);
     let cells = '';
     for (let i = 0; i < 7; i++) {
-      const dms = new Date(y, m, 1 - (first.getDay() + 6) % 7 + w * 7 + i).getTime(), dd = new Date(dms);
+      const dms = new Date(y, m, 1 - lead + w * 7 + i).getTime(), dd = new Date(dms), out = dd.getMonth() !== m;
+      if (clip && out) { cells += `<div class="cd blank" style="grid-column:${i + 1};grid-row:1/span ${nl + 2}"></div>`; continue; }
       const ds = dots.filter(x => midnight(x.s) === dms).sort((p, q) => p.s - q.s);
       const shown = ds.slice(0, ds.length > 4 ? 3 : 4);
-      cells += `<div class="cd${dd.getMonth() !== m ? ' out' : ''}" style="grid-column:${i + 1};grid-row:1/span ${nl + 2}"></div><div class="cc${dd.getMonth() !== m ? ' out' : ''}${dms === today ? ' now' : ''}" style="grid-column:${i + 1};grid-row:1"><span class="cn">${dd.getDate()}</span><span class="cds">${shown.map(x => `<button type="button" class="cdot k-${x.tone}${calSel === x.k ? ' sel' : ''}" data-ci="${esc(x.k)}" aria-label="${esc(x.txt)}"></button>`).join('')}${ds.length > shown.length ? `<button type="button" class="cmore" data-ci="${esc('m:' + dms)}">${esc(t('cal_more', ds.length - shown.length))}</button>` : ''}</span></div>`;
+      cells += `<div class="cd${out ? ' out' : ''}" style="grid-column:${i + 1};grid-row:1/span ${nl + 2}"></div><div class="cc${out ? ' out' : ''}${dms === today ? ' now' : ''}" style="grid-column:${i + 1};grid-row:1"><span class="cn">${dd.getDate()}</span><span class="cds">${shown.map(x => `<button type="button" class="cdot k-${x.tone}${calSel === x.k ? ' sel' : ''}" data-ci="${esc(x.k)}" aria-label="${esc(x.txt)}"></button>`).join('')}${ds.length > shown.length ? `<button type="button" class="cmore" data-ci="${esc('m:' + dms)}">${esc(t('cal_more', ds.length - shown.length))}</button>` : ''}</span></div>`;
     }
-    const barsH = segs.filter(g => g.l < 4).map(g => `<button type="button" class="cbar k-${g.b.tone}${g.b.pend ? ' pend' : ''}${g.a < 0 ? ' cl' : ''}${g.z > 6 ? ' cr' : ''}${calSel === g.b.k ? ' sel' : ''}" data-ci="${esc(g.b.k)}" aria-label="${esc(g.b.txt)}" style="grid-column:${Math.max(0, g.a) + 1}/${Math.min(6, g.z) + 2};grid-row:${g.l + 2}"></button>`).join('');
+    const barsH = segs.filter(g => g.l < 4).map(g => `<button type="button" class="cbar k-${g.b.tone}${g.b.pend ? ' pend' : ''}${g.a < lo ? ' cl' : ''}${g.z > hi ? ' cr' : ''}${calSel === g.b.k ? ' sel' : ''}" data-ci="${esc(g.b.k)}" aria-label="${esc(g.b.txt)}" style="grid-column:${Math.max(lo, g.a) + 1}/${Math.min(hi, g.z) + 2};grid-row:${g.l + 2}"></button>`).join('');
     h += `<div class="cw" style="grid-template-rows:minmax(30px,auto)${' 13px'.repeat(nl)} 6px">${cells}${barsH}</div>`;
   }
-  $('#cal-grid').innerHTML = h;
-  const ms0 = first.getTime(), ms1 = new Date(y, m + 1, 1).getTime();
-  const inMonth = items.filter(x => x.e >= ms0 && x.s < ms1).sort((p, q) => p.s - q.s || p.bar - q.bar);
+  return h;
+}
+function renderCal() {
+  if (!$('#cal-months')) return;
+  const L = LOCALE[lang], grid = calMode === 'grid', items = calItems(), dots = items.filter(i => !i.bar), bars = items.filter(i => i.bar);
+  $('#view-cal').classList.toggle('cal-scroll', grid);
+  $$('#cal-modes [data-cal-mode]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.calMode === calMode)));
+  const fmtM = new Intl.DateTimeFormat(L, {month: 'long', year: 'numeric'});
+  if (grid) {
+    $('#cal-title').textContent = t('tab_cal');
+    const now = mIdx(new Date());
+    if (calFrom == null) { calFrom = now; calTo = now + 6; }
+    const wd = new Intl.DateTimeFormat(L, {weekday: 'short'}), dow = [0, 1, 2, 3, 4, 5, 6].map(i => `<span>${esc(wd.format(new Date(2024, 0, 1 + i)))}</span>`).join('');
+    let h = calFrom > now - 120 ? `<button class="mini ghost cal-earlier" type="button" data-cal-earlier>${ic('chevl', 16, 2.4)}${esc(t('cal_earlier'))}</button>` : '';
+    for (let i = calFrom; i <= calTo; i++) {
+      const y = Math.floor(i / 12), m = i % 12;
+      h += `<section class="cal-month${i === now ? ' cur' : ''}" data-mi="${i}"><h2 class="cal-mt">${esc(cap(fmtM.format(new Date(y, m, 1))))}</h2><div class="cal-box"><div class="cal-dow">${dow}</div>${weeksHTML(y, m, dots, bars, true)}</div></section>`;
+    }
+    $('#cal-months').innerHTML = h + '<div class="cal-more" data-cal-more="1"></div>';
+    // more months appear as the end (or the start) of the list scrolls into view
+    if (calObs) calObs.disconnect();
+    if ('IntersectionObserver' in window) {
+      calObs = new IntersectionObserver(es => {
+        if (!calObsOn || tab !== 'cal') return;
+        for (const e of es) if (e.isIntersecting) {
+          const dir = +e.target.dataset.calMore, now2 = mIdx(new Date());
+          if (dir > 0 && calTo < now2 + 60) { calTo += 6; renderCal(); }
+          return;
+        }
+      }, {rootMargin: '600px 0px'});
+      $$('#cal-months [data-cal-more]').forEach(x => calObs.observe(x));
+    }
+  } else {
+    $('#cal-title').textContent = cap(fmtM.format(calM));
+    $('#cal-months').innerHTML = '';
+  }
+  const y = calM.getFullYear(), m = calM.getMonth(), ms0 = new Date(y, m, 1).getTime(), ms1 = new Date(y, m + 1, 1).getTime();
+  const inMonth = grid ? [] : items.filter(x => x.e >= ms0 && x.s < ms1).sort((p, q) => p.s - q.s || p.bar - q.bar);
   $('#cal-n').textContent = inMonth.length;
   $('#cal-list').innerHTML = inMonth.length ? inMonth.map(x => `<button class="row cal-row" type="button" data-co="${esc(x.k)}"><span class="cl-d">${esc(fDay.format(x.s))}${x.bar ? ' – ' + esc(fDay.format(x.e)) : ''}</span><span class="${x.bar ? 'cleg' : 'cdot'} k-${x.tone}${x.pend ? ' pend' : ''}"></span><span class="rt"><b>${esc(x.txt)}</b></span><span class="chev">${ic('chev', 18)}</span></button>`).join('') : `<p class="empty">${esc(t('cal_none'))}</p>`;
-  const tip = $('#cal-tip'), sel = calSel && $(`#cal-grid [data-ci="${CSS.escape(calSel)}"]`);
+  const tip = $('#cal-tip'), sel = grid && calSel && $(`#cal-months [data-ci="${CSS.escape(calSel)}"]`);
   if (!sel) { tip.hidden = true; return; }
   const it = items.find(x => x.k === calSel);
   const txt = it ? esc(it.txt) : dots.filter(x => 'm:' + midnight(x.s) === calSel).map(x => esc(x.txt)).join('<br>');
   tip.innerHTML = `<b>${txt}</b>${it ? `<small>${esc(t('cal_tap2'))}</small>` : ''}`;
   tip.hidden = false;
-  const box = $('.cal-box').getBoundingClientRect(), r = sel.getBoundingClientRect();
+  const box = $('.cal-wrap').getBoundingClientRect(), r = sel.getBoundingClientRect();
   tip.style.left = Math.max(4, Math.min(box.width - 244, r.left - box.left + r.width / 2 - 120)) + 'px';
   tip.style.top = (r.bottom - box.top + 6) + 'px';
+}
+// scrolls the month grids to the current month
+function calJump() {
+  calObsOn = false;
+  const el = $(`#cal-months [data-mi="${mIdx(new Date())}"]`);
+  if (el) el.scrollIntoView({block: 'start'});
+  setTimeout(() => { calObsOn = true; }, 400);
 }
 // opens the animal card scrolled to the record (or the record itself when the animal has no card)
 function openCalItem(k) {
@@ -1019,6 +1066,7 @@ function setTab(v) {
   $$('.view').forEach(x => { x.hidden = x.id !== 'view-' + v; });
   $$('.tab').forEach(b => { const on = b.dataset.tab === hi; b.classList.toggle('on', on); if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
   window.scrollTo(0, 0);
+  if (v === 'cal' && calMode === 'grid') { calFrom = null; renderCal(); setTimeout(() => { calObsOn = true; }, 400); }
 }
 
 function hideSheet(s) { s.classList.remove('open'); s.setAttribute('aria-hidden', 'true'); s.setAttribute('inert', ''); }
@@ -1635,7 +1683,11 @@ document.addEventListener('click', e => {
   if (nma) { const box = nma.parentElement.querySelector('.nm-rows'), used = $$('select[name=nl]', box).map(x => x.value); box.insertAdjacentHTML('beforeend', nameRow(LANGS.find(l => !used.includes(l) && l !== lang) || LANGS.find(l => !used.includes(l)) || lang, '')); box.lastElementChild.querySelector('input').focus(); return; }
   const nmr = e.target.closest('[data-nm-rm]');
   if (nmr) { nmr.closest('.nm-row').remove(); return; }
+  const cmode = e.target.closest('[data-cal-mode]');
+  if (cmode) { calMode = cmode.dataset.calMode; calSel = ''; try { localStorage.setItem('zoo-cal-mode', calMode); } catch (x) {} calFrom = null; renderCal(); window.scrollTo(0, 0); setTimeout(() => { calObsOn = true; }, 400); return; }
+  if (e.target.closest('[data-cal-earlier]')) { const hgt = document.documentElement.scrollHeight; calFrom -= 6; renderCal(); window.scrollBy(0, document.documentElement.scrollHeight - hgt); return; }
   const cnav = e.target.closest('[data-cal-nav]');
+  if (cnav && calMode === 'grid') { calJump(); return; }
   if (cnav) { const n = +cnav.dataset.calNav, d = new Date(); calM = n ? new Date(calM.getFullYear(), calM.getMonth() + n, 1) : new Date(d.getFullYear(), d.getMonth(), 1); calSel = ''; renderCal(); return; }
   const ci = e.target.closest('[data-ci],[data-co]');
   if (ci) {
