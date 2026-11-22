@@ -167,3 +167,10 @@ button.cn:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .gnum{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
 .gnum input{width:100%}
 .bf-grp[hidden],.bf-one[hidden]{display:none!important}
+/* parents editor in the bird form */
+.pa-rows{display:flex;flex-direction:column;gap:8px;margin:6px 0 8px}
+.pa-row{display:flex;gap:8px;align-items:center}
+.pa-row select{flex:1;min-width:0}
+.pa-row .x{flex:none}
+.pa-ed>.lk,.bf-grp>.lk{top:-8px;bottom:auto}
+.has-lk.pa-ed select{padding-right:40px;background-position:right 14px center}.has-lk.bf-grp input{padding-right:14px}

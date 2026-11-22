@@ -86,7 +86,7 @@ with sync_playwright() as pw:
     print("aviary now:", p.eval_on_selector_all("#encl-body .ncard .nl", "e => e.map(x => x.innerText.split('\\n')[0])"), "| facts:", p.eval_on_selector_all("#encl-body .facts div", "e => e.map(x => x.innerText.replace(/\\n/g, ': '))"))
     p.click("#encl-body [data-new=expo][data-to]"); p.wait_for_timeout(200)
     print("move-here to:", p.input_value("#fld-to"))
-    p.fill("#fld-bird", "Тукан Рио"); p.dispatch_event("#fld-bird", "change"); p.wait_for_timeout(100)
+    print("animal list:", p.eval_on_selector_all("#fld-birdsel option", "e => e.map(x => x.textContent)")); p.select_option("#fld-birdsel", label="Тукан Рио"); p.wait_for_timeout(100)
     print("from after bird pick:", p.input_value("#fld-from"))
     p.select_option("#fld-to", value="__new"); print("new wrap shown:", p.is_visible("#fld-to-new-wrap"))
     p.click("#f-save"); print("new empty err:", p.inner_text("#f-err"))

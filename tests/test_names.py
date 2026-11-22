@@ -30,7 +30,7 @@ with sync_playwright() as pw:
     p.click("#coll-body .row"); p.wait_for_timeout(150); print("PL bird h1:", p.inner_text("#bird-body h1"), "| meta:", p.inner_text("#bird-body .sp-meta"), "| place:", p.eval_on_selector_all("#bird-body .facts dd", "e => e.map(x => x.innerText)"))
     # record via Polish name gets stored under main name
     p.click(".tab[data-tab=add]"); p.click("[data-sheet=breed]"); p.click("#sheet-breed [data-new=incub]"); p.wait_for_timeout(150)
-    p.fill("#fld-bird", "Paw Kongo"); p.dispatch_event("#fld-bird", "change"); p.click("#f-save"); p.wait_for_timeout(300)
+    p.select_option("#fld-birdsel", value="__other"); p.fill("#fld-bird", "Paw Kongo"); p.dispatch_event("#fld-bird", "change"); p.click("#f-save"); p.wait_for_timeout(300)
     print("record stored as:", p.evaluate("__mock.db.records.map(r => r.bird)"), "| shown:", p.eval_on_selector_all("#logs-body .rec .bird, #now-body .rec .bird", "e => e.map(x => x.innerText)"))
     # log
     p.click(".tab[data-tab=menu]"); p.click("[data-view=log]"); p.wait_for_timeout(200)

@@ -400,13 +400,13 @@ function fromBird(d) {
   if (!d) return null;
   return {id: d.id, name: d.name, sp: d.species_id || '', sex: d.sex || '', ring: d.ring || '', chip: d.chip || '', born: d.born || '', arrived: d.arrived || '',
     origin: d.origin || '', encl: d.encl || '', enclAt: ms(d.encl_at), status: d.status === 'out' ? 'out' : 'active', note: d.note || '', names: Array.isArray(d.names) ? d.names : [], locked: Array.isArray(d.locked) ? d.locked : [], by: d.created_by || null,
-    grp: d.grp && typeof d.grp === 'object' ? {m: toN(d.grp.m) || 0, f: toN(d.grp.f) || 0, u: toN(d.grp.u) || 0, j: toN(d.grp.j) || 0} : null};
+    grp: d.grp && typeof d.grp === 'object' ? {m: toN(d.grp.m) || 0, f: toN(d.grp.f) || 0, u: toN(d.grp.u) || 0, j: toN(d.grp.j) || 0} : null, parents: Array.isArray(d.parents) ? d.parents.filter(x => typeof x === 'string') : []};
 }
 // a group of animals kept together: adults by sex (m.f.u, as in zoo records) and juveniles
 const grpTotal = g => g ? g.m + g.f + g.u + g.j : 0;
 const grpText = g => '♂ ' + g.m + ' · ♀ ' + g.f + (g.u ? ' · ? ' + g.u : '') + (g.j ? ' · ' + t('juv') + ' ' + g.j : '') + ' (' + g.m + '.' + g.f + '.' + g.u + ', ' + t('grp_total', grpTotal(g)) + ')';
 const toBird = b => ({name: b.name, species_id: b.sp || null, sex: b.sex || '', ring: b.ring || '', chip: b.chip || '', born: b.born || null, arrived: b.arrived || null,
-  origin: b.origin || '', encl: b.encl || '', encl_at: b.enclAt ? new Date(b.enclAt).toISOString() : null, status: b.status, note: b.note || '', names: b.names || [], locked: b.locked || [], grp: b.grp || null});
+  origin: b.origin || '', encl: b.encl || '', encl_at: b.enclAt ? new Date(b.enclAt).toISOString() : null, status: b.status, note: b.note || '', names: b.names || [], locked: b.locked || [], grp: b.grp || null, parents: b.parents || []});
 const EK = ['building', 'aviary', 'enclosure', 'cage', 'incubator', 'brooder', 'room', 'quarantine', 'pond', 'other'];
 const EK_IC = {building: ['building', 'blue'], aviary: ['tree', 'green'], enclosure: ['home', 'green'], cage: ['cage', 'blue'], incubator: ['egg', 'amber'], brooder: ['chick', 'amber'],
   room: ['home', 'grey'], quarantine: ['cross', 'red'], pond: ['drop', 'blue'], other: ['tag', 'grey']};
@@ -735,9 +735,17 @@ function renderLogs() {
 
 function fillBirds(spId) {
   const ok = sp => !spId || spId === '__new' || sp === spId, names = new Map();
-  coll.filter(b => b.status !== 'out' && ok(b.sp)).forEach(b => names.set(key(b.name), dn(b)));
-  if (st) for (const b of st.birds.values()) if (ok(b.sp) && !names.has(key(b.name))) names.set(key(b.name), b.name);
-  $('#birds').innerHTML = [...names.values()].map(n => `<option value="${esc(n)}"></option>`).join('');
+  coll.filter(b => b.status !== 'out' && ok(b.sp)).forEach(b => names.set(key(b.name), [b.name, dn(b) + (b.grp ? ' (' + t('grp_w') + ')' : '')]));
+  if (st) for (const b of st.birds.values()) if (ok(b.sp) && !names.has(key(b.name))) names.set(key(b.name), [b.name, b.name]);
+  $('#birds').innerHTML = [...names.values()].map(n => `<option value="${esc(n[1])}"></option>`).join('');
+  // the record form shows a real list of the animals (a datalist is barely visible on phones) plus "other" for free text
+  const ps = $('#fld-birdsel'), bird = $('#fld-bird');
+  if (!ps || !bird) return;
+  const list = [...names.values()].sort((a, b) => a[1].localeCompare(b[1], LOCALE[lang], {numeric: true})), cur = key(canonBird(bird.value));
+  const has = list.some(n => key(n[0]) === cur);
+  ps.innerHTML = `<option value="">${esc(t('bird_pick'))}</option>` + list.map(n => `<option value="${esc(n[0])}"${key(n[0]) === cur ? ' selected' : ''}>${esc(n[1])}</option>`).join('') + `<option value="__other"${bird.value && !has ? ' selected' : ''}>${esc(t('bird_other'))}</option>`;
+  if (!list.length && !bird.value) ps.value = '__other';
+  $('#fld-bird').closest('.fld').hidden = ps.value !== '__other';
 }
 
 function renderSpecies() {
@@ -826,6 +834,7 @@ function renderColl() {
   $('#coll-body').innerHTML = h;
 }
 
+const links = list => list.filter(Boolean).map(b => `<button class="linkish" type="button" data-bc="${esc(b.id)}">${esc(dn(b) + (b.grp ? ' (' + t('grp_w') + ')' : ''))}</button>`).join(', ');
 function renderBirdCard() {
   const box = $('#bird-body');
   if (!curBird) { box.innerHTML = ''; return; }
@@ -844,7 +853,7 @@ function renderBirdCard() {
   box.innerHTML = backBtn('bird') + `<h1>${esc(dn(cb))}</h1>${other ? `<p class="sp-meta">${esc(other)}</p>` : ''}${s ? `<button class="linkish" type="button" data-sp="${esc(s.id)}">${esc(main)}${s.latin && s.latin !== main ? ' · ' + esc(s.latin) : ''}</button>` : `<p class="sp-meta">${esc(t('no_sp'))}</p>`}
 ${pills ? `<div class="pills">${pills}</div>` : ''}
 ${gallery(photosOf('bird', cb.id))}
-<dl class="facts">${fact('fa_grp', cb.grp ? grpText(cb.grp) : '')}${fact('fa_sex', cap(sexText(cb.sex)))}${fact('fa_ring', cb.ring)}${fact('fa_chip', cb.chip)}${fact('fa_encl', enclDd, 1)}${fact('fa_born', cb.born ? fDate.format(ymd(cb.born)) + age(cb.born) : '')}${fact('fa_arrived', cb.arrived ? fDate.format(ymd(cb.arrived)) : '')}${fact('fa_origin', cb.origin)}</dl>
+<dl class="facts">${fact('fa_grp', cb.grp ? grpText(cb.grp) : '')}${fact('fa_sex', cap(sexText(cb.sex)))}${fact('fa_ring', cb.ring)}${fact('fa_chip', cb.chip)}${fact('fa_encl', enclDd, 1)}${fact('fa_born', cb.born ? fDate.format(ymd(cb.born)) + age(cb.born) : '')}${fact('fa_arrived', cb.arrived ? fDate.format(ymd(cb.arrived)) : '')}${fact('fa_origin', cb.origin)}${fact('fa_parents', links(cb.parents.map(id => collMap.get(id))), 1)}${fact('fa_kids', links(coll.filter(x => x.parents.includes(cb.id))), 1)}</dl>
 ${cb.note ? `<p class="sp-note">${esc(cb.note)}</p>` : ''}
 <div class="top-acts w-only"><button class="btn sec" type="button" data-bird-edit>${esc(t('edit_card'))}</button></div>
 <section class="nsec w-only"><h2 class="nh">${esc(t('add_title'))}</h2><div class="na">
@@ -1248,7 +1257,7 @@ let formDirty = false;
 const markDirty = e => { if (e.target.closest && e.target.closest('.sheet.open form')) formDirty = true; };
 document.addEventListener('input', markDirty, true);
 document.addEventListener('change', markDirty, true);
-document.addEventListener('click', e => { if (e.target.closest('.sheet.open form [data-star],.sheet.open form [data-rmw],.sheet.open form [data-rmk],.sheet.open form [data-rma],.sheet.open form [data-nm-add],.sheet.open form [data-nm-rm]')) formDirty = true; }, true);
+document.addEventListener('click', e => { if (e.target.closest('.sheet.open form [data-star],.sheet.open form [data-rmw],.sheet.open form [data-rmk],.sheet.open form [data-rma],.sheet.open form [data-nm-add],.sheet.open form [data-nm-rm],.sheet.open form [data-pa-add],.sheet.open form [data-pa-rm]')) formDirty = true; }, true);
 window.addEventListener('beforeunload', e => { if (formDirty && $('.sheet.open')) { e.preventDefault(); e.returnValue = ''; } });
 // closing on request (cross, overlay, Back, Escape): asks first when there are unsaved changes
 async function requestClose() {
@@ -1338,7 +1347,7 @@ function openForm(type, pre, rec) {
     if (type === 'incub' && v.days == null && incubDays(v.sp)) v.days = incubDays(v.sp);
     if (type === 'expo' && v.bird && !v.from) { const cb = collByName.get(key(canonBird(v.bird))); v.from = cb ? placeOf(cb).name : ((st && st.birds.get(key(v.bird))) || {}).encl || ''; }
   }
-  let h = spSelect(v.sp) + field({k:'bird', l:'f_bird', t:'text', req:1, list:'birds'}, v.bird);
+  let h = spSelect(v.sp) + `<div class="fld"><label for="fld-birdsel">${esc(t('f_bird'))}&nbsp;<span class="req" aria-hidden="true">*</span></label><select id="fld-birdsel"></select></div>` + field({k:'bird', l:'f_bird_other', t:'text', list:'birds'}, v.bird);
   for (const f of tp.fields) h += type === 'expo' ? enclSelect(f, v[f.k]) : field(f, v[f.k]);
   h += field({k:'at', l:'f_at', t:'datetime-local', req:1}, toInput(v.at));
   h += field({k:'note', l:tp.noteLabel || 'f_note', t:'textarea', req:tp.noteReq}, v.note);
@@ -1358,6 +1367,13 @@ function openForm(type, pre, rec) {
   if (!species.length && !rec) sel.value = '__new';
   syncSp();
   sel.addEventListener('change', () => { syncSp(); if (sel.value === '__new') $('#fld-newsp').focus(); });
+  const ps = $('#fld-birdsel');
+  ps.addEventListener('change', () => {
+    const o = ps.value === '__other';
+    bird.closest('.fld').hidden = !o;
+    bird.value = o ? '' : ps.value;
+    if (o) bird.focus(); else bird.dispatchEvent(new Event('change'));
+  });
   bird.addEventListener('change', () => {
     const bs = spOfBird(bird.value);
     if (bs && (!sel.value || sel.value === '__new')) { sel.value = bs; syncSp(); } else autoDays();
@@ -1521,6 +1537,7 @@ $('#form').addEventListener('submit', async e => {
       const failed = await commitPhotos(phRec, id);
       closeSheets(); render();
       toast(failed ? t('e_photo', failed) : wasEdit ? t('t_updated') : t('t_saved'));
+      if (!wasEdit && (r.type === 'hatch' || r.type === 'birth')) offerKid(r);
     } catch (x) { err(errMsg(x)); }
   });
 });
@@ -1532,12 +1549,26 @@ $('#f-del').addEventListener('click', async () => {
   catch (x) { $('#f-err').textContent = errMsg(x); }
 });
 
-function openBirdForm(cb) {
+// after a hatching or a birth: offer a collection card for the young, filled from the record and its parent
+async function offerKid(r) {
+  const n = r.f.n || 1, par = collByName.get(key(r.bird));
+  if (!await ask(t('kid_t'), t('kid_p', n, par ? dn(par) : ''), t('kid_yes'), t('kid_no'))) return;
+  const d = new Date(r.at), p2 = x => String(x).padStart(2, '0');
+  openBirdForm(null, {sp: r.sp, born: d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate()), parents: par ? [par.id] : [],
+    grp: n > 1 ? {m: 0, f: 0, u: 0, j: n} : null, encl: par ? placeOf(par).name : ''});
+}
+// parents: any number of collection cards, groups included (when the exact parent is unknown)
+const paOpts = (self, cur) => `<option value="">${esc(t('bird_pick'))}</option>` + [...coll].filter(b => b.id !== self).sort((a, b) => (spName(spById(a.sp)) || '').localeCompare(spName(spById(b.sp)) || '', LOCALE[lang]) || byName(a, b))
+  .map(b => `<option value="${esc(b.id)}"${b.id === cur ? ' selected' : ''}>${esc(dn(b) + (b.grp ? ' (' + t('grp_w') + ')' : '') + (spById(b.sp) ? ' · ' + spName(spById(b.sp)) : '') + (b.status === 'out' ? ' · ' + t('st_out') : ''))}</option>`).join('');
+const paRow = (self, cur) => `<div class="pa-row"><select name="pa" aria-label="${esc(t('bf_parents'))}">${paOpts(self, cur)}</select><button type="button" class="x" data-pa-rm aria-label="${esc(t('pa_rm'))}">${ic('x', 18, 2.2)}</button></div>`;
+const parentsEditor = (self, list) => `<div class="fld pa-ed"><span class="lbl">${esc(t('bf_parents'))}</span><div class="pa-rows" data-self="${esc(self || '')}">${(list || []).map(id => paRow(self, id)).join('')}</div><button type="button" class="mini ghost" id="parents" data-pa-add>${esc('+ ' + t('pa_add'))}</button><p class="hint">${esc(t('pa_hint'))}</p></div>`;
+
+function openBirdForm(cb, pre) {
   if (!canWrite()) return;
   editingBird = cb || null; birdDelArmed = false;
   $('#bf-title').textContent = cb ? t('bf_edit') : t('bf_new');
   $('#bf-sub').textContent = cb ? t('editing') : t('bf_sub_new');
-  const v = cb || {sp: tab === 'sp' ? curSp : '', status: 'active'};
+  const v = cb || Object.assign({sp: tab === 'sp' ? curSp : '', status: 'active'}, pre || {});
   const opt = (val, cur, label) => `<option value="${val}"${val === (cur || '') ? ' selected' : ''}>${esc(label)}</option>`;
   const gv = v.grp || {}, gIn = k => `<label class="gnum"><span>${esc(t('g_' + k))}</span><input id="bf-g${k}" name="g_${k}" type="number" min="0" inputmode="numeric" value="${gv[k] || ''}"></label>`;
   $('#bf-fields').innerHTML = `<div class="fld"><label for="bf-kind">${esc(t('bf_kind'))}</label><select id="bf-kind" name="kind">${opt('one', v.grp ? 'group' : 'one', t('bf_one'))}${opt('group', v.grp ? 'group' : 'one', t('bf_group'))}</select></div>`
@@ -1547,7 +1578,8 @@ function openBirdForm(cb) {
     + field({k: 'ring', l: 'bf_ring', t: 'text', id: 'bf-ring'}, v.ring).replace('class="fld"', 'class="fld bf-one"') + field({k: 'chip', l: 'bf_chip', t: 'text', id: 'bf-chip'}, v.chip).replace('class="fld"', 'class="fld bf-one"')
     + field({k: 'born', l: 'fa_born', t: 'date', id: 'bf-born'}, v.born) + field({k: 'arrived', l: 'bf_arrived', t: 'date', id: 'bf-arrived'}, v.arrived)
     + field({k: 'origin', l: 'fa_origin', t: 'text', id: 'bf-origin', ph: 'bf_origin_ph'}, v.origin)
-    + enclSelect({k: 'encl', l: 'fa_encl', id: 'bf-encl'}, cb ? placeOf(cb).name : (tab === 'encl' && enclMap.get(curEncl) ? enclMap.get(curEncl).name : ''))
+    + parentsEditor(cb ? cb.id : '', v.parents)
+    + enclSelect({k: 'encl', l: 'fa_encl', id: 'bf-encl'}, cb ? placeOf(cb).name : pre && pre.encl ? pre.encl : (tab === 'encl' && enclMap.get(curEncl) ? enclMap.get(curEncl).name : ''))
     + `<div class="fld"><label for="bf-status">${esc(t('bf_status'))}</label><select id="bf-status" name="status">${opt('active', v.status, t('cf_active'))}${opt('out', v.status, t('st_out_opt'))}</select></div>`
     + field({k: 'note', l: 'bf_note', t: 'textarea', id: 'bf-note'}, v.note);
   wireEnclSelects($('#bf-fields'));
@@ -1561,6 +1593,8 @@ function openBirdForm(cb) {
   addLocks($('#bird-form'), BIRD_LOCK, cb ? cb.locked || [] : [], 'lk_hint_g');
   const gl = cb && !isAdmin() && ((cb.locked || []).includes('grp') || (cb.locked || []).includes('*'));
   $$('.gnums input', $('#bird-form')).forEach(x => { x.disabled = !!gl; });
+  const pl = cb && !isAdmin() && ((cb.locked || []).includes('parents') || (cb.locked || []).includes('*'));
+  $$('.pa-ed select, .pa-ed [data-pa-rm], .pa-ed [data-pa-add]', $('#bird-form')).forEach(x => { x.disabled = !!pl; });
   const kind = $('#bf-kind'), kSync = () => { const g = kind.value === 'group'; $$('#bf-fields .bf-one').forEach(x => { x.hidden = g; }); $('#bf-fields .bf-grp').hidden = !g; };
   kind.addEventListener('change', kSync); kSync();
   openSheet('bird');
@@ -1587,7 +1621,8 @@ $('#bird-form').addEventListener('submit', async e => {
   const date = k => /^\d{4}-\d{2}-\d{2}$/.test(g(k)) ? g(k) : '', now = Date.now(), encl = pe.name, cur = old ? placeOf(old).name : '';
   const b = {name, sp: spSel, grp, sex: isGrp ? '' : g('sex'), ring: isGrp ? '' : g('ring'), chip: isGrp ? '' : g('chip'), born: date('born'), arrived: date('arrived'), origin: g('origin'),
     encl: old && key(cur) === key(encl) ? old.encl : encl,
-    enclAt: old && key(cur) === key(encl) ? old.enclAt : (encl ? Math.floor(now / 60000) * 60000 : 0), status: g('status') === 'out' ? 'out' : 'active', note: g('note'), names: readNames(fd), locked: lockList(e.target, BIRD_LOCK)};
+    enclAt: old && key(cur) === key(encl) ? old.enclAt : (encl ? Math.floor(now / 60000) * 60000 : 0), status: g('status') === 'out' ? 'out' : 'active', note: g('note'), names: readNames(fd), locked: lockList(e.target, BIRD_LOCK),
+    parents: [...new Set(fd.getAll('pa').map(String).filter(x => x && collMap.has(x) && (!old || x !== old.id)))]};
   await withBusy($('#bf-save'), async () => {
     try {
       if (spSel === '__new') b.sp = await ensureSpecies(newName);
@@ -1701,7 +1736,7 @@ function addLocks(form, map, locked, hint) {
 const lockList = form => { const l = $$('input[name=lk]:checked', form).map(x => x.value); if (l.includes('encl')) l.push('encl_at'); return l; };
 // FormData skips disabled (protected) fields, so put their shown values back
 const formData = f => { const fd = new FormData(f); $$('[disabled][name]', f).forEach(x => { if (x.name !== 'lk') fd.set(x.name, x.value); }); return fd; };
-const BIRD_LOCK = {name: 'name', sp: 'species_id', g_m: 'grp', sex: 'sex', ring: 'ring', chip: 'chip', born: 'born', arrived: 'arrived', origin: 'origin', encl: 'encl', status: 'status', note: 'note'};
+const BIRD_LOCK = {name: 'name', sp: 'species_id', g_m: 'grp', parents: 'parents', sex: 'sex', ring: 'ring', chip: 'chip', born: 'born', arrived: 'arrived', origin: 'origin', encl: 'encl', status: 'status', note: 'note'};
 const ENCL_LOCK = {name: 'name', kind: 'kind', parent: 'parent_id', area: 'area', size: 'size', cap: 'capacity', state: 'active', note: 'note'};
 function infoFields(inf) {
   const opt = (val, cur, label) => `<option value="${val}"${val === (cur || '') ? ' selected' : ''}>${esc(label)}</option>`;
@@ -1912,6 +1947,10 @@ document.addEventListener('click', e => {
     return;
   }
   if (logDelArmed) { logDelArmed = ''; renderLog(); }
+  const paa = e.target.closest('[data-pa-add]');
+  if (paa) { const box = paa.parentElement.querySelector('.pa-rows'); box.insertAdjacentHTML('beforeend', paRow(box.dataset.self, '')); box.lastElementChild.querySelector('select').focus(); return; }
+  const par = e.target.closest('[data-pa-rm]');
+  if (par) { par.closest('.pa-row').remove(); return; }
   const nma = e.target.closest('[data-nm-add]');
   if (nma) { const box = nma.parentElement.querySelector('.nm-rows'), used = $$('select[name=nl]', box).map(x => x.value); box.insertAdjacentHTML('beforeend', nameRow(LANGS.find(l => !used.includes(l) && l !== lang) || LANGS.find(l => !used.includes(l)) || lang, '')); box.lastElementChild.querySelector('input').focus(); return; }
   const nmr = e.target.closest('[data-nm-rm]');
