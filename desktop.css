@@ -54,6 +54,12 @@ button.cdot::before,.cbar::before{content:"";position:absolute;inset:-6px}
 .ph-star.on{background:var(--amber);color:#fff}.ph-star.on svg{fill:currentColor}
 .ph-tag{position:absolute;left:4px;bottom:4px;padding:2px 6px;border-radius:6px;background:rgba(8,16,13,.62);color:#fff;font-size:11px;font-weight:600}
 .ph .ph-open{display:block;width:100%;height:100%;border:0;padding:0;background:none}
+/* confirmation window */
+.cfm{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(8,16,13,.55)}.cfm[hidden]{display:none}
+.cfm-box{width:min(380px,100%);padding:20px;border-radius:18px;background:var(--card);border:1px solid var(--line);box-shadow:0 24px 64px rgba(0,0,0,.35)}
+.cfm-box h2{margin:0 0 6px;font:700 19px/1.3 Manrope,sans-serif}.cfm-box p{margin:0 0 18px;color:var(--muted);line-height:1.45}
+.cfm-acts{display:flex;flex-direction:column-reverse;gap:8px}.cfm-acts .btn{width:100%}
+.cfm-acts .btn.danger{background:var(--red);color:#fff;border-color:var(--red)}
 /* Computer: sidebar menu on the left, wider content, forms as centred windows */
 @media (min-width:900px){
 .app{max-width:none;display:grid;grid-template-columns:248px minmax(0,1fr);grid-template-rows:auto auto 1fr;box-shadow:none}
