@@ -195,3 +195,10 @@ button.cn:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .gap-list{display:flex;flex-direction:column;gap:6px;padding:0 10px 10px}
 .gap-ok{display:flex;align-items:center;gap:10px;min-height:52px;padding:10px 14px;color:var(--muted);opacity:.8}.gap-ok svg{color:var(--accent)}
 .fld.flash{outline:3px solid var(--amber);outline-offset:4px;border-radius:12px;transition:outline-color .4s}
+/* calendar: event icons instead of plain dots */
+.cdot.cic{width:21px;height:21px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.cdot.cic svg{display:block}
+.cal-row .cdot.cic,#dy-body .cdot.cic{width:28px;height:28px;border-radius:8px}
+.cdot.cic.guess{background:transparent;box-shadow:none;outline:1.5px dashed currentColor;outline-offset:-1.5px}
+.cdot.cic.sel{outline:2px solid var(--ink);outline-offset:2px}
+.cds{gap:3px}

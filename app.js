@@ -15,7 +15,7 @@ Object.assign(DICT.ru, {
   cal_tap2: 'Нажмите ещё раз, чтобы открыть запись', cal_list: 'События месяца', cal_none: 'В этом месяце событий нет.',
   cl_lay: 'снесла яйцо', cl_incub: 'старт инкубации', cl_hatch: 'выклев', cl_fledge: 'вылет из гнезда', cl_tstart: 'начало лечения', cl_tend: 'конец лечения', cl_expo: 'перевод',
   cl_incub_p: d => 'инкубация, выклев ≈ ' + d, cl_incub_done: 'инкубация (выклев был)', cl_treat_p: 'курс лечения',
-  leg_dot: 'точка — событие', leg_line: 'линия — период: инкубация, курс лечения', leg_dash: 'штриховка — ещё идёт',
+  leg_dot: 'значок — событие', leg_line: 'линия — период: инкубация, курс лечения', leg_dash: 'штриховка — ещё идёт',
   f_incub_days: 'Инкубация, дней', sf_incub_days: 'Инкубация, дней (для расчёта выклева)', si_incub: 'Инкубация', si_incub_v: n => n + ' дн.',
   d_incub: (n, d) => 'инкубация ' + n + ' дн., выклев ≈ ' + d, cal_more: n => '+' + n,
   fa_encl: 'Место содержания', ev_expo_sub: 'Перевод между вольерами, клетками и другими местами',
@@ -57,7 +57,7 @@ Object.assign(DICT.pl, {
   cal_tap2: 'Naciśnij ponownie, aby otworzyć wpis', cal_list: 'Wydarzenia miesiąca', cal_none: 'W tym miesiącu nie ma wydarzeń.',
   cl_lay: 'zniesienie jaja', cl_incub: 'początek inkubacji', cl_hatch: 'klucie', cl_fledge: 'opuszczenie gniazda', cl_tstart: 'początek leczenia', cl_tend: 'koniec leczenia', cl_expo: 'przeniesienie',
   cl_incub_p: d => 'inkubacja, klucie ≈ ' + d, cl_incub_done: 'inkubacja (klucie było)', cl_treat_p: 'kuracja',
-  leg_dot: 'kropka — wydarzenie', leg_line: 'linia — okres: inkubacja, kuracja', leg_dash: 'kreskowanie — jeszcze trwa',
+  leg_dot: 'ikona — wydarzenie', leg_line: 'linia — okres: inkubacja, kuracja', leg_dash: 'kreskowanie — jeszcze trwa',
   f_incub_days: 'Inkubacja, dni', sf_incub_days: 'Inkubacja, dni (do wyliczenia klucia)', si_incub: 'Inkubacja', si_incub_v: n => n + ' dni',
   d_incub: (n, d) => 'inkubacja ' + n + ' dni, klucie ≈ ' + d, cal_more: n => '+' + n,
   fa_encl: 'Miejsce przetrzymywania', ev_expo_sub: 'Przeniesienie między wolierami, klatkami i innymi miejscami',
@@ -99,7 +99,7 @@ Object.assign(DICT.en, {
   cal_tap2: 'Tap again to open the record', cal_list: 'This month', cal_none: 'No events this month.',
   cl_lay: 'egg laid', cl_incub: 'incubation start', cl_hatch: 'hatching', cl_fledge: 'left the nest', cl_tstart: 'treatment start', cl_tend: 'treatment end', cl_expo: 'move',
   cl_incub_p: d => 'incubation, hatching ≈ ' + d, cl_incub_done: 'incubation (hatched)', cl_treat_p: 'treatment course',
-  leg_dot: 'dot — event', leg_line: 'line — period: incubation, treatment', leg_dash: 'striped — still going',
+  leg_dot: 'icon — event', leg_line: 'line — period: incubation, treatment', leg_dash: 'striped — still going',
   f_incub_days: 'Incubation, days', sf_incub_days: 'Incubation, days (to predict hatching)', si_incub: 'Incubation', si_incub_v: n => n + ' days',
   d_incub: (n, d) => 'incubation ' + n + ' days, hatching ≈ ' + d, cal_more: n => '+' + n,
   fa_encl: 'Housing', ev_expo_sub: 'Moving between enclosures, cages and other places',
@@ -212,7 +212,7 @@ Object.assign(DICT.en, {cf_logout: 'Sign out?', cf_logout_p: 'You will need to s
 <div class="cal-head"><h1 id="cal-title"></h1><div class="cal-nav"><button class="mini ghost" type="button" data-cal-nav="-1" data-ta="cal_prev"><span data-ic="chevl" data-s="18" data-w="2.4"></span></button><button class="mini ghost" type="button" data-cal-nav="0" data-t="cal_today"></button><button class="mini ghost" type="button" data-cal-nav="1" data-ta="cal_next"><span data-ic="chev" data-s="18" data-w="2.4"></span></button></div></div>
 <div class="chips cal-modes" id="cal-modes" role="group" data-ta="cal_modes"><button class="chip" type="button" data-cal-mode="list" data-t="cal_m_list"></button><button class="chip" type="button" data-cal-mode="grid" data-t="cal_m_grid"></button></div>
 <div class="cal-wrap"><div id="cal-months"></div><div class="cal-tip" id="cal-tip" role="status" hidden></div></div>
-<p class="cal-legend"><span><i class="cdot k-amber"></i><span data-t="leg_dot"></span></span><span><i class="cleg k-amber"></i><span data-t="leg_line"></span></span><span><i class="cleg k-amber pend"></i><span data-t="leg_dash"></span></span><span><i class="cdot k-amber guess"></i><span data-t="leg_guess"></span></span></p>
+<p class="cal-legend"><span><i class="cdot cic t-amber" data-ic="crack" data-s="14" data-w="2.2"></i><span data-t="leg_dot"></span></span><span><i class="cleg k-amber"></i><span data-t="leg_line"></span></span><span><i class="cleg k-amber pend"></i><span data-t="leg_dash"></span></span><span><i class="cdot cic t-amber guess" data-ic="crack" data-s="14" data-w="2.2"></i><span data-t="leg_guess"></span></span></p>
 <section class="nsec cal-listsec"><h2 class="nh"><span data-t="cal_list"></span><span class="nc" id="cal-n"></span></h2><div id="cal-list"></div></section>
 </section>
 `);
@@ -966,12 +966,15 @@ const midnight = ms => { const d = new Date(ms); return new Date(d.getFullYear()
 const dayDiff = (a, b) => Math.round((midnight(b) - midnight(a)) / DAY);
 const CAL_DOT = ['lay', 'incub', 'hatch', 'fledge', 'birth', 'tstart', 'tend', 'expo'];
 // points are single events, bars are periods (incubation until hatching, a course of treatment)
+// events show their own icon in the calendar; expected dates get the icon of the event they predict, in a dashed frame
+const GUESS_IC = {hatch: 'crack', fledge: 'out', fert: 'heart', incub: 'sit'};
+const calIc = (x, sz) => ic(x.icon || 'egg', sz, 2.2);
 function calItems() {
   const out = [], byBird = new Map();
   for (const r of recs) { const k = key(r.bird); if (!byBird.has(k)) byBird.set(k, []); byBird.get(k).push(r); }
   const nextOf = (r, type, until) => (byBird.get(key(r.bird)) || []).filter(x => x.type === type && x.at > r.at && x.at <= until).sort((a, b) => a.at - b.at)[0];
   // expected dates are calculated from species timings and vanish once the real event is recorded
-  const guess = (r, kind, at) => out.push({k: 'g' + kind + ':' + r.id, bar: 0, guess: 1, s: at, e: at, r, tone: 'amber', txt: bn(r.bird) + ', ' + t('cl_p_' + kind)});
+  const guess = (r, kind, at) => out.push({k: 'g' + kind + ':' + r.id, bar: 0, guess: 1, icon: GUESS_IC[kind], s: at, e: at, r, tone: 'amber', txt: bn(r.bird) + ', ' + t('cl_p_' + kind)});
   const fledgeGuess = (r, from) => { const fd = fledgeDays(r.sp); if (!fd) return; const at = from + fd * DAY; if (!nextOf(r, 'fledge', at + 30 * DAY)) guess(r, 'fledge', at); };
   for (const r of recs) {
     if (r.type === 'hatch') {
@@ -981,7 +984,7 @@ function calItems() {
       if (id && !(byBird.get(key(r.bird)) || []).some(x => x.type === 'incub' && x.at < r.at && x.at >= r.at - (id + 21) * DAY)) guess(r, 'incub', r.at - id * DAY);
     }
     if (r.type === 'birth') { const gd = gestDays(r.sp); if (gd) guess(r, 'fert', r.at - gd * DAY); }
-    if (CAL_DOT.includes(r.type)) out.push({k: 'd:' + r.id, bar: 0, s: r.at, e: r.at, r, tone: T[r.type].tone, txt: bn(r.bird) + ', ' + t('cl_' + r.type)});
+    if (CAL_DOT.includes(r.type)) out.push({k: 'd:' + r.id, bar: 0, icon: T[r.type].icon, s: r.at, e: r.at, r, tone: T[r.type].tone, txt: bn(r.bird) + ', ' + t('cl_' + r.type)});
     if (r.type === 'incub') {
       const days = r.f.days || incubDays(r.sp);
       if (!days) continue;
@@ -1017,7 +1020,7 @@ function weeksHTML(y, m, dots, bars, clip) {
       const ds = dots.filter(x => midnight(x.s) === dms).sort((p, q) => p.s - q.s);
       const shown = ds.slice(0, ds.length > 4 ? 3 : 4);
       const lab = esc(t('cal_day_open') + ': ' + cap(fDate.format(dms)));
-      cells += `<div class="cd${out ? ' out' : ''}" data-day="${dms}" style="grid-column:${i + 1};grid-row:1/span ${nl + 2}"></div><div class="cc${out ? ' out' : ''}${dms === today ? ' now' : ''}" data-day="${dms}" style="grid-column:${i + 1};grid-row:1"><button type="button" class="cn" data-day="${dms}" aria-label="${lab}">${dd.getDate()}</button><span class="cds">${shown.map(x => `<button type="button" class="cdot k-${x.tone}${x.guess ? ' guess' : ''}${calSel === x.k ? ' sel' : ''}" data-ci="${esc(x.k)}" aria-label="${esc(x.txt)}"></button>`).join('')}${ds.length > shown.length ? `<button type="button" class="cmore" data-day="${dms}" aria-label="${lab}">${esc(t('cal_more', ds.length - shown.length))}</button>` : ''}</span></div>`;
+      cells += `<div class="cd${out ? ' out' : ''}" data-day="${dms}" style="grid-column:${i + 1};grid-row:1/span ${nl + 2}"></div><div class="cc${out ? ' out' : ''}${dms === today ? ' now' : ''}" data-day="${dms}" style="grid-column:${i + 1};grid-row:1"><button type="button" class="cn" data-day="${dms}" aria-label="${lab}">${dd.getDate()}</button><span class="cds">${shown.map(x => `<button type="button" class="cdot cic t-${x.tone}${x.guess ? ' guess' : ''}${calSel === x.k ? ' sel' : ''}" data-ci="${esc(x.k)}" aria-label="${esc(x.txt)}">${calIc(x, 14)}</button>`).join('')}${ds.length > shown.length ? `<button type="button" class="cmore" data-day="${dms}" aria-label="${lab}">${esc(t('cal_more', ds.length - shown.length))}</button>` : ''}</span></div>`;
     }
     const barsH = segs.filter(g => g.l < 4).map(g => `<button type="button" class="cbar k-${g.b.tone}${g.b.pend ? ' pend' : ''}${g.a < lo ? ' cl' : ''}${g.z > hi ? ' cr' : ''}${calSel === g.b.k ? ' sel' : ''}" data-ci="${esc(g.b.k)}" aria-label="${esc(g.b.txt)}" style="grid-column:${Math.max(lo, g.a) + 1}/${Math.min(hi, g.z) + 2};grid-row:${g.l + 2}"></button>`).join('');
     h += `<div class="cw" style="grid-template-rows:minmax(30px,auto)${' 13px'.repeat(nl)} 6px">${cells}${barsH}</div>`;
@@ -1061,7 +1064,7 @@ function renderCal() {
   const y = calM.getFullYear(), m = calM.getMonth(), ms0 = new Date(y, m, 1).getTime(), ms1 = new Date(y, m + 1, 1).getTime();
   const inMonth = grid ? [] : items.filter(x => x.e >= ms0 && x.s < ms1).sort((p, q) => p.s - q.s || p.bar - q.bar);
   $('#cal-n').textContent = inMonth.length;
-  $('#cal-list').innerHTML = inMonth.length ? inMonth.map(x => `<button class="row cal-row" type="button" data-co="${esc(x.k)}"><span class="cl-d">${esc(fDay.format(x.s))}${x.bar ? ' – ' + esc(fDay.format(x.e)) : ''}</span><span class="${x.bar ? 'cleg' : 'cdot'} k-${x.tone}${x.pend ? ' pend' : ''}${x.guess ? ' guess' : ''}"></span><span class="rt"><b>${esc(x.txt)}</b></span><span class="chev">${ic('chev', 18)}</span></button>`).join('') : `<p class="empty">${esc(t('cal_none'))}</p>`;
+  $('#cal-list').innerHTML = inMonth.length ? inMonth.map(x => `<button class="row cal-row" type="button" data-co="${esc(x.k)}"><span class="cl-d">${esc(fDay.format(x.s))}${x.bar ? ' – ' + esc(fDay.format(x.e)) : ''}</span>${x.bar ? `<span class="cleg k-${x.tone}${x.pend ? ' pend' : ''}"></span>` : `<span class="cdot cic t-${x.tone}${x.guess ? ' guess' : ''}">${calIc(x, 16)}</span>`}<span class="rt"><b>${esc(x.txt)}</b></span><span class="chev">${ic('chev', 18)}</span></button>`).join('') : `<p class="empty">${esc(t('cal_none'))}</p>`;
   const tip = $('#cal-tip'), sel = grid && calSel && $(`#cal-months [data-ci="${CSS.escape(calSel)}"]`);
   if (!sel) { tip.hidden = true; return; }
   const it = items.find(x => x.k === calSel);
@@ -1103,7 +1106,7 @@ function renderDay() {
   let h = '';
   if (rs.length) h += `<section class="nsec"><h2 class="nh">${esc(t('cal_day_recs'))}<span class="nc">${rs.length}</span></h2>${rs.map(r => card(r)).join('')}</section>`;
   if (per.length) h += `<section class="nsec"><h2 class="nh">${esc(t('cal_day_per'))}<span class="nc">${per.length}</span></h2>${per.map(x => `<button class="row cal-row" type="button" data-co="${esc(x.k)}"><span class="cl-d">${esc(fDay.format(x.s))} – ${esc(fDay.format(x.e))}</span><span class="cleg k-${x.tone}${x.pend ? ' pend' : ''}"></span><span class="rt"><b>${esc(x.txt)}</b></span><span class="chev">${ic('chev', 18)}</span></button>`).join('')}</section>`;
-  if (exp.length) h += `<section class="nsec"><h2 class="nh">${esc(t('cal_day_exp'))}<span class="nc">${exp.length}</span></h2>${exp.map(x => `<button class="row cal-row" type="button" data-co="${esc(x.k)}"><span class="cl-d">≈ ${esc(fDay.format(x.s))}</span><span class="cdot k-${x.tone} guess"></span><span class="rt"><b>${esc(x.txt)}</b></span><span class="chev">${ic('chev', 18)}</span></button>`).join('')}</section>`;
+  if (exp.length) h += `<section class="nsec"><h2 class="nh">${esc(t('cal_day_exp'))}<span class="nc">${exp.length}</span></h2>${exp.map(x => `<button class="row cal-row" type="button" data-co="${esc(x.k)}"><span class="cl-d">≈ ${esc(fDay.format(x.s))}</span><span class="cdot cic t-${x.tone} guess">${calIc(x, 16)}</span><span class="rt"><b>${esc(x.txt)}</b></span><span class="chev">${ic('chev', 18)}</span></button>`).join('')}</section>`;
   if (!rs.length && !per.length && !exp.length && !canWrite()) h += `<p class="empty">${esc(t('cal_day_none'))}</p>`;
   if (canWrite()) {
     // the new record gets this date and the current time of day
