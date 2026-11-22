@@ -38,9 +38,13 @@ button.cdot::before,.cbar::before{content:"";position:absolute;inset:-6px}
 .lg-del{flex:none;border:0;background:none;color:var(--muted);padding:2px 4px;border-radius:8px;min-width:28px;min-height:28px}.lg-del.armed{background:var(--red-soft);color:var(--red);font-weight:700;font-size:13px}
 #log-body{max-width:900px}
 /* protected texts and species photos */
-.lk{display:inline-flex;align-items:center;gap:6px;margin-top:6px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;min-height:32px}
-.lk input{width:18px;height:18px;margin:0;accent-color:var(--accent)}.lk input:checked~svg,.lk input:checked~span{color:var(--accent)}
-.lk input:disabled~span{opacity:.8}
+.fld.has-lk{position:relative}.has-lk input,.has-lk textarea{padding-right:50px}.has-lk textarea{resize:none}.has-lk select{padding-right:84px;background-position:right 52px center}
+.lk{position:absolute;right:5px;bottom:5px;width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--muted);cursor:pointer}
+.lk .vh{position:absolute;opacity:0;width:1px;height:1px}.lk svg:last-child{display:none}
+.lk:has(input:checked){background:var(--green-soft);color:var(--accent)}.lk:has(input:checked) svg:first-of-type{display:none}.lk:has(input:checked) svg:last-child{display:block}
+.lk:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:1px}.lk:has(input:disabled){cursor:default;opacity:.75}
+.lk-all-box{margin-bottom:14px;padding:12px 14px;border:1.5px solid var(--line);border-radius:14px}.lk-all-box .hint{margin:6px 0 0}
+.lk-all{display:flex;align-items:center;gap:8px;min-height:36px;font-weight:700;cursor:pointer}.lk-all input{width:20px;height:20px;min-height:0;margin:0;accent-color:var(--accent)}
 .lk-i{display:inline-flex;align-items:center;margin-left:6px;color:var(--accent)}
 .sp-photo>.lk-i{position:absolute;top:8px;left:8px;margin:0;width:28px;height:28px;justify-content:center;border-radius:14px;background:rgba(8,16,13,.62);color:#fff}
 .sp-strip{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px;padding:6px;background:var(--card)}
