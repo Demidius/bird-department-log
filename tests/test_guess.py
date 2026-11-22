@@ -21,6 +21,8 @@ with sync_playwright() as pw:
         rows = p.locator("#cal-list .cal-row:has(.guess)").all_inner_texts()
         print(tag, "list guesses:", [r.replace("\n", " ") for r in rows])
         assert len(rows) == 4, rows   # hatch 12, nest 17 (Павлин), nest 9 (Голубь), fertilisation 18 (Мара)
+        ig = p.evaluate("calItems().filter(x => x.k.startsWith('gincub')).map(x => x.txt + ' @' + new Date(x.s).getDate())"); print(tag, "incub start from hatch:", ig)
+        assert len(ig) == 1 and "Голубь" in ig[0]   # Павлин has a recorded incubation, so no guess for it
         p.click("[data-cal-mode=grid]"); p.wait_for_timeout(500)
         cur = ".cal-month.cur"
         print(tag, "grid guess dots:", p.locator(f"{cur} .cdot.guess").count())

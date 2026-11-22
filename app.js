@@ -964,7 +964,12 @@ function calItems() {
   const guess = (r, kind, at) => out.push({k: 'g' + kind + ':' + r.id, bar: 0, guess: 1, s: at, e: at, r, tone: 'amber', txt: bn(r.bird) + ', ' + t('cl_p_' + kind)});
   const fledgeGuess = (r, from) => { const fd = fledgeDays(r.sp); if (!fd) return; const at = from + fd * DAY; if (!nextOf(r, 'fledge', at + 30 * DAY)) guess(r, 'fledge', at); };
   for (const r of recs) {
-    if (r.type === 'hatch') fledgeGuess(r, r.at);
+    if (r.type === 'hatch') {
+      fledgeGuess(r, r.at);
+      // counted back from the hatching: when incubation should have started, unless it was recorded
+      const id = incubDays(r.sp);
+      if (id && !(byBird.get(key(r.bird)) || []).some(x => x.type === 'incub' && x.at < r.at && x.at >= r.at - (id + 21) * DAY)) guess(r, 'incub', r.at - id * DAY);
+    }
     if (r.type === 'birth') { const gd = gestDays(r.sp); if (gd) guess(r, 'fert', r.at - gd * DAY); }
     if (CAL_DOT.includes(r.type)) out.push({k: 'd:' + r.id, bar: 0, s: r.at, e: r.at, r, tone: T[r.type].tone, txt: bn(r.bird) + ', ' + t('cl_' + r.type)});
     if (r.type === 'incub') {
