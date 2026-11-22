@@ -189,6 +189,15 @@ Object.assign(DICT.en, {cf_logout: 'Sign out?', cf_logout_p: 'You will need to s
   add('#acc-line', 'afterend', '<p class="hint app-ver" id="app-ver"></p>');
   add('#view-menu [data-view=species]', 'beforebegin', `<button class="row" type="button" data-view="log" style="margin-top:10px"><span class="tile t-grey" data-ic="clock"></span><span class="rt"><b data-t="log_t"></b><small id="log-count"></small></span><span class="chev" data-ic="chev" data-s="20"></span></button>
 `);
+  add('#view-menu [data-view=species]', 'beforebegin', `<button class="row" type="button" data-view="gaps" style="margin-top:10px"><span class="tile t-amber" data-ic="clip"></span><span class="rt"><b data-t="gaps_t"></b><small id="gaps-count"></small></span><span class="chev" data-ic="chev" data-s="20"></span></button>
+`);
+  add('#view-users', 'beforebegin', `<section class="view" id="view-gaps" hidden>
+<button class="backlink" type="button" data-tab="menu"><span data-ic="back" data-s="18" data-w="2.2"></span><span data-t="menu"></span></button>
+<h1 data-t="gaps_t"></h1>
+<p class="lead" data-t="gaps_lead"></p>
+<div class="list" id="gaps-body"></div>
+</section>
+`);
   add('#view-users', 'beforebegin', `<section class="view" id="view-log" hidden>
 <button class="backlink" type="button" data-tab="menu"><span data-ic="back" data-s="18" data-w="2.2"></span><span data-t="menu"></span></button>
 <h1 data-t="log_t"></h1>
@@ -1155,6 +1164,7 @@ function render() {
   renderNow();
   renderLogs();
   renderSpecies();
+  renderGaps();
   renderSpCard();
   renderColl();
   renderBirdCard();
@@ -1193,7 +1203,7 @@ function setLang(l) {
   mkFmt(); applyStatic(); render();
 }
 
-const TAB_OF = {species: 'menu', sp: 'menu', coll: 'menu', bird: 'menu', users: 'menu', encls: 'menu', encl: 'menu', log: 'menu'};
+const TAB_OF = {gaps: 'menu', species: 'menu', sp: 'menu', coll: 'menu', bird: 'menu', users: 'menu', encls: 'menu', encl: 'menu', log: 'menu'};
 // the phone's Back button moves through screens: every screen change is a history entry
 let navOn = false;
 const navState = () => ({app: 1, v: tab, id: tab === 'sp' ? curSp : tab === 'bird' ? curBird : tab === 'encl' ? curEncl : null});
@@ -1833,6 +1843,48 @@ async function translateDirty() {
   }
   return fails;
 }
+/* ---------- missing data in species cards ---------- */
+// kinds of data: [key, label, where it lives, only for this group]
+const GAPS = [['latin', 'spf_latin', 'col'], ['pl', 'spf_pl', 'col'], ['en', 'spf_en', 'col'], ['name', 'spf_ru', 'col'], ['photo', 'gap_photo', 'photo'],
+  ['iucn', 'sf_iucn', 'val'], ['order', 'sf_order', 'val'], ['family', 'sf_family', 'val'], ['size', 'si_size', 'txt'], ['life', 'si_life', 'txt'],
+  ['incub_days', 'si_incub', 'num', 'bird'], ['fledge_days', 'si_fledge', 'num', 'bird'], ['gest_days', 'si_gest', 'num', 'mammal'],
+  ['range', 'si_range', 'txt'], ['habitat', 'si_habitat', 'txt'], ['diet_wild', 'si_diet_wild', 'txt'], ['behaviour', 'si_behaviour', 'txt'], ['breeding', 'si_breeding', 'txt'],
+  ['diet_zoo', 'si_diet_zoo', 'txt'], ['husbandry', 'si_husbandry', 'txt'], ['health', 'si_health', 'txt'], ['sex', 'si_sex', 'txt']];
+const hasTxt = v => typeof v === 'string' ? !!v.trim() : !!(v && typeof v === 'object' && LANG_ORDER.some(l => typeof v[l] === 'string' && v[l].trim()));
+function gapMissing(sp, g) {
+  const [k, , w, grp] = g, inf = spInfo(sp);
+  if (grp && spGroup(sp) !== grp) return false;
+  if (w === 'col') return !String(sp[k] || '').trim();
+  if (w === 'photo') return !(inf.photo && inf.photo.src) && !photosOf('species', sp.id).length;
+  if (w === 'num') return !(toN(inf[k]) > 0);
+  return !hasTxt(inf[k]);
+}
+let gapsOpen = new Set();
+function renderGaps() {
+  const box = $('#gaps-body'); if (!box) return;
+  const rows = GAPS.map(g => ({g, list: species.filter(sp => gapMissing(sp, g)).sort(bySp)}));
+  const withGaps = rows.filter(r => r.list.length);
+  $('#gaps-count').textContent = species.length ? t('gaps_menu', withGaps.length) : '';
+  box.innerHTML = withGaps.concat(rows.filter(r => !r.list.length)).map(({g, list}) => {
+    const [k, l, , grp] = g, sub = grp ? ' · ' + t(grp === 'bird' ? 'gaps_birds' : 'gaps_mammals') : '';
+    if (!list.length) return `<div class="gap gap-ok"><span class="gap-h"><b>${esc(t(l))}</b><small>${esc(t('gaps_full') + sub)}</small></span>${ic('check', 18, 2.4)}</div>`;
+    return `<details class="gap" data-gap="${k}"${gapsOpen.has(k) ? ' open' : ''}><summary><span class="gap-h"><b>${esc(t(l))}</b>${sub ? `<small>${esc(sub.slice(3))}</small>` : ''}</span><span class="nc">${list.length}</span></summary>`
+      + `<div class="gap-list">${list.map(sp => `<button class="row" type="button" data-gap-sp="${esc(sp.id)}" data-gap-k="${k}"><span class="rt"><b>${esc(spName(sp))}</b>${sp.latin && sp.latin !== spName(sp) ? `<small><i>${esc(sp.latin)}</i></small>` : ''}</span><span class="chev">${ic('chev', 18)}</span></button>`).join('')}</div></details>`;
+  }).join('');
+  $$('#gaps-body details').forEach(d => d.addEventListener('toggle', () => { if (d.open) gapsOpen.add(d.dataset.gap); else gapsOpen.delete(d.dataset.gap); }));
+}
+// opens the species form at the missing field (staff) or the species card (read-only)
+function openGap(id, k) {
+  const sp = spById(id); if (!sp) return;
+  if (!canWrite()) { openCard('sp', id); return; }
+  openSpForm(sp);
+  const g = GAPS.find(x => x[0] === k) || [];
+  if (g[2] !== 'col') $('#sp-more').open = true;
+  const el = g[2] === 'col' ? $('#sp-' + k) : g[2] === 'photo' ? $('#sp-ph') || $('#sfi-photo-src') : $('#' + sifId(k));
+  const f = el && (el.closest('.fld') || el);
+  if (f) setTimeout(() => { f.scrollIntoView({block: 'center'}); f.classList.add('flash'); setTimeout(() => f.classList.remove('flash'), 2400); }, 320);
+}
+
 function openSpForm(s) {
   if (!canWrite()) return;
   editingSp = s || null; spDelArmed = false;
@@ -1971,6 +2023,8 @@ document.addEventListener('click', e => {
     return;
   }
   if (logDelArmed) { logDelArmed = ''; renderLog(); }
+  const gsp = e.target.closest('[data-gap-sp]');
+  if (gsp) { openGap(gsp.dataset.gapSp, gsp.dataset.gapK); return; }
   const paa = e.target.closest('[data-pa-add]');
   if (paa) { const box = paa.parentElement.querySelector('.pa-rows'); box.insertAdjacentHTML('beforeend', paRow(box.dataset.self, '')); box.lastElementChild.querySelector('select').focus(); return; }
   const par = e.target.closest('[data-pa-rm]');

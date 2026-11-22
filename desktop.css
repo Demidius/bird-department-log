@@ -183,3 +183,15 @@ button.cn:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .pick-o{text-align:left;min-height:50px;padding:12px;border:0;border-bottom:1px solid var(--line);background:none;font-size:16px;color:var(--ink);cursor:pointer}
 .pick-o.on{color:var(--accent);font-weight:700}.pick-o.sp{color:var(--muted)}.pick-o:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 @media (min-width:700px){.pick{align-items:center}.pick-box{border-radius:18px}}
+/* missing data: one block per kind of data, opens to the species lacking it */
+#gaps-body{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.gap{border:1px solid var(--line);border-radius:14px;background:var(--card)}
+.gap>summary{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:56px;padding:10px 14px;cursor:pointer;list-style:none}
+.gap>summary::-webkit-details-marker{display:none}
+.gap>summary::after{content:"";width:9px;height:9px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);margin:0 4px 4px;flex:none;transition:transform .2s}
+.gap[open]>summary::after{transform:rotate(225deg);margin-bottom:-4px}
+.gap-h{display:flex;flex-direction:column;flex:1;min-width:0}.gap-h small{color:var(--muted);font-size:13px}
+.gap .nc{margin-left:auto}
+.gap-list{display:flex;flex-direction:column;gap:6px;padding:0 10px 10px}
+.gap-ok{display:flex;align-items:center;gap:10px;min-height:52px;padding:10px 14px;color:var(--muted);opacity:.8}.gap-ok svg{color:var(--accent)}
+.fld.flash{outline:3px solid var(--amber);outline-offset:4px;border-radius:12px;transition:outline-color .4s}
