@@ -146,6 +146,25 @@ Object.assign(DICT.ru, {cal_m_list: 'Список', cal_m_grid: 'Месяцы', 
 Object.assign(DICT.pl, {cal_m_list: 'Lista', cal_m_grid: 'Miesiące', cal_modes: 'Widok kalendarza', cal_earlier: 'Wcześniejsze miesiące'});
 Object.assign(DICT.en, {cal_m_list: 'List', cal_m_grid: 'Months', cal_modes: 'Calendar view', cal_earlier: 'Earlier months'});
 
+// change log tabs and version, three-language species texts, locks for animals and places
+Object.assign(DICT.ru, {lg_user: 'Пользователи', lg_ai: 'ИИ: данные', lg_dev: 'ИИ: разработка', lg_ai_who: 'ИИ', lg_dev_who: 'ИИ-разработка',
+  app_ver: v => 'Версия приложения: v' + v, lg_n: n => '№' + n,
+  tr_lang: 'Язык описаний', tr_hint: 'Пишите на любом языке: при сохранении остальные языки переведутся автоматически. Исправленный вручную перевод больше не перезаписывается.',
+  tr_from: l => 'Автоперевод ' + {pl: 'с польского', en: 'с английского', ru: 'с русского'}[l], tr_orig: l => 'Текст есть только ' + {pl: 'на польском', en: 'на английском', ru: 'на русском'}[l],
+  tr_busy: 'Перевожу описания…', tr_fail: 'Автоперевод сейчас недоступен — текст сохранён без перевода',
+  lk_hint_g: 'Замок справа в поле защищает только это поле. Защищённое поле не изменит никто, кроме администратора, — ни нейросеть, ни другие сотрудники.'});
+Object.assign(DICT.pl, {lg_user: 'Użytkownicy', lg_ai: 'AI: dane', lg_dev: 'AI: rozwój', lg_ai_who: 'AI', lg_dev_who: 'AI – rozwój',
+  app_ver: v => 'Wersja aplikacji: v' + v, lg_n: n => 'nr ' + n,
+  tr_lang: 'Język opisów', tr_hint: 'Pisz w dowolnym języku: przy zapisie pozostałe języki zostaną przetłumaczone automatycznie. Tłumaczenie poprawione ręcznie nie jest już nadpisywane.',
+  tr_from: l => 'Tłumaczenie automatyczne ' + {pl: 'z polskiego', en: 'z angielskiego', ru: 'z rosyjskiego'}[l], tr_orig: l => 'Tekst dostępny tylko ' + {pl: 'po polsku', en: 'po angielsku', ru: 'po rosyjsku'}[l],
+  tr_busy: 'Tłumaczę opisy…', tr_fail: 'Tłumaczenie automatyczne jest teraz niedostępne — tekst zapisano bez tłumaczenia',
+  lk_hint_g: 'Kłódka po prawej w polu chroni tylko to pole. Chronionego pola nie zmieni nikt poza administratorem — ani AI, ani inni pracownicy.'});
+Object.assign(DICT.en, {lg_user: 'Users', lg_ai: 'AI: data', lg_dev: 'AI: development', lg_ai_who: 'AI', lg_dev_who: 'AI development',
+  app_ver: v => 'App version: v' + v, lg_n: n => '#' + n,
+  tr_lang: 'Description language', tr_hint: 'Write in any language: the other languages are translated automatically when you save. A translation you corrected by hand is never overwritten.',
+  tr_from: l => 'Machine-translated ' + {pl: 'from Polish', en: 'from English', ru: 'from Russian'}[l], tr_orig: l => 'Only available ' + {pl: 'in Polish', en: 'in English', ru: 'in Russian'}[l],
+  tr_busy: 'Translating descriptions…', tr_fail: 'Machine translation is unavailable right now — the text was saved untranslated',
+  lk_hint_g: 'The lock on the right of a field protects just that field. Nobody but an administrator can change a protected field — neither AI nor other staff.'});
 // confirmations before signing out and before closing a card with unsaved changes
 Object.assign(DICT.ru, {cf_logout: 'Выйти из аккаунта?', cf_logout_p: 'Чтобы снова работать с журналом, нужно будет войти заново.',
   cf_leave: 'Закрыть без сохранения?', cf_leave_p: 'Изменения в этой карточке не сохранятся.', cf_leave_ok: 'Закрыть без сохранения', cf_stay: 'Остаться', cf_cancel: 'Отмена'});
@@ -159,6 +178,7 @@ Object.assign(DICT.en, {cf_logout: 'Sign out?', cf_logout_p: 'You will need to s
   const add = (sel, where, html) => { const el = document.querySelector(sel); if (el) el.insertAdjacentHTML(where, html); };
   add('#view-menu [data-view=species]', 'beforebegin', `<button class="row" type="button" data-view="encls" style="margin-top:10px"><span class="tile t-amber" data-ic="home"></span><span class="rt"><b data-t="encls_t"></b><small id="encl-count"></small></span><span class="chev" data-ic="chev" data-s="20"></span></button>
 `);
+  add('#acc-line', 'afterend', '<p class="hint app-ver" id="app-ver"></p>');
   add('#view-menu [data-view=species]', 'beforebegin', `<button class="row" type="button" data-view="log" style="margin-top:10px"><span class="tile t-grey" data-ic="clock"></span><span class="rt"><b data-t="log_t"></b><small id="log-count"></small></span><span class="chev" data-ic="chev" data-s="20"></span></button>
 `);
   add('#view-users', 'beforebegin', `<section class="view" id="view-log" hidden>
@@ -363,19 +383,19 @@ const toSp = s => ({name_ru: s.name || '', name_pl: s.pl || '', name_en: s.en ||
 function fromBird(d) {
   if (!d) return null;
   return {id: d.id, name: d.name, sp: d.species_id || '', sex: d.sex || '', ring: d.ring || '', chip: d.chip || '', born: d.born || '', arrived: d.arrived || '',
-    origin: d.origin || '', encl: d.encl || '', enclAt: ms(d.encl_at), status: d.status === 'out' ? 'out' : 'active', note: d.note || '', names: Array.isArray(d.names) ? d.names : [], by: d.created_by || null};
+    origin: d.origin || '', encl: d.encl || '', enclAt: ms(d.encl_at), status: d.status === 'out' ? 'out' : 'active', note: d.note || '', names: Array.isArray(d.names) ? d.names : [], locked: Array.isArray(d.locked) ? d.locked : [], by: d.created_by || null};
 }
 const toBird = b => ({name: b.name, species_id: b.sp || null, sex: b.sex || '', ring: b.ring || '', chip: b.chip || '', born: b.born || null, arrived: b.arrived || null,
-  origin: b.origin || '', encl: b.encl || '', encl_at: b.enclAt ? new Date(b.enclAt).toISOString() : null, status: b.status, note: b.note || '', names: b.names || []});
+  origin: b.origin || '', encl: b.encl || '', encl_at: b.enclAt ? new Date(b.enclAt).toISOString() : null, status: b.status, note: b.note || '', names: b.names || [], locked: b.locked || []});
 const EK = ['building', 'aviary', 'enclosure', 'cage', 'incubator', 'brooder', 'room', 'quarantine', 'pond', 'other'];
 const EK_IC = {building: ['building', 'blue'], aviary: ['tree', 'green'], enclosure: ['home', 'green'], cage: ['cage', 'blue'], incubator: ['egg', 'amber'], brooder: ['chick', 'amber'],
   room: ['home', 'grey'], quarantine: ['cross', 'red'], pond: ['drop', 'blue'], other: ['tag', 'grey']};
 function fromEncl(d) {
   if (!d) return null;
   return {id: d.id, name: d.name, kind: EK.includes(d.kind) ? d.kind : 'other', area: d.area || '', size: d.size || '', cap: d.capacity || 0,
-    active: d.active !== false, note: d.note || '', parent: d.parent_id || '', names: Array.isArray(d.names) ? d.names : [], by: d.created_by || null};
+    active: d.active !== false, note: d.note || '', parent: d.parent_id || '', names: Array.isArray(d.names) ? d.names : [], locked: Array.isArray(d.locked) ? d.locked : [], by: d.created_by || null};
 }
-const toEncl = x => ({name: x.name, kind: x.kind, area: x.area || '', size: x.size || '', capacity: x.cap || null, active: x.active, note: x.note || '', parent_id: x.parent || null, names: x.names || []});
+const toEncl = x => ({name: x.name, kind: x.kind, area: x.area || '', size: x.size || '', capacity: x.cap || null, active: x.active, note: x.note || '', parent_id: x.parent || null, names: x.names || [], locked: x.locked || []});
 const fromPhoto = d => ({id: d.id, ownerType: d.owner_type, ownerId: d.owner_id, path: d.path, w: d.width, h: d.height, by: d.created_by || null, created: ms(d.created_at)});
 const thumbOf = p => p.replace(/\.jpg$/, '_t.jpg');
 const photosOf = (type, id) => photosByOwner.get(type + ':' + id) || [];
@@ -424,6 +444,42 @@ function spMain(s) {
 const iucnBadge = (c, long) => IUCN.includes(c) ? `<span class="iucn iucn-${c}" title="${esc(t('iucn_t') + ' ' + c + ' — ' + t('iucn_' + c))}"><b>${c}</b>${long ? `<span>${esc(t('iucn_' + c))}</span>` : ''}</span>` : '';
 const SI_WILD = [['range', 'globe'], ['habitat', 'tree'], ['diet_wild', 'leaf'], ['behaviour', 'eye'], ['breeding', 'egg']];
 const SI_ZOO = [['diet_zoo', 'bowl'], ['husbandry', 'home'], ['health', 'heart'], ['sex', 'sex']];
+// species texts kept in three languages: {pl, en, ru, src, auto: [machine-translated languages]}; a plain string is an old Russian-only text
+const TRK = ['size', 'life', 'order', 'family', 'range', 'habitat', 'diet_wild', 'behaviour', 'breeding', 'diet_zoo', 'husbandry', 'health', 'sex'];
+const trObj = v => typeof v === 'string' ? (v.trim() ? {ru: v, src: 'ru'} : null) : v && typeof v === 'object' && !Array.isArray(v) ? v : null;
+function trPick(v, L = lang) {
+  const o = trObj(v); if (!o) return null;
+  const s0 = typeof o[L] === 'string' ? o[L].trim() : '';
+  if (s0) return {txt: s0, auto: Array.isArray(o.auto) && o.auto.includes(L) ? o.src || 'ru' : ''};
+  for (const l of [o.src].concat(LANG_ORDER)) if (l && typeof o[l] === 'string' && o[l].trim()) return {txt: o[l].trim(), only: l};
+  return null;
+}
+const trText = v => { const p = trPick(v); return p ? p.txt : ''; };
+const trNote = p => p && p.auto ? `<span class="tr-note">${ic('globe', 13)}${esc(t('tr_from', p.auto))}</span>` : p && p.only && p.only !== lang ? `<span class="tr-note">${ic('globe', 13)}${esc(t('tr_orig', p.only))}</span>` : '';
+const decodeHtml = s0 => { const d = document.createElement('textarea'); d.innerHTML = s0; return d.value; };
+// machine translation through the free MyMemory service, in pieces of up to ~450 bytes
+async function mt(text, from, to) {
+  const enc = new TextEncoder(), sz = x => enc.encode(x).length, out = [];
+  for (const para of text.split('\n')) {
+    if (!para.trim()) { out.push(para); continue; }
+    const parts = []; let cur = '';
+    for (let sen of para.split(/(?<=[.!?…;])\s+/)) {
+      while (sz(sen) > 450) { let cut = sen.lastIndexOf(' ', 200); if (cut < 40) cut = 200; if (cur) { parts.push(cur); cur = ''; } parts.push(sen.slice(0, cut)); sen = sen.slice(cut).trim(); }
+      if (cur && sz(cur + ' ' + sen) > 450) { parts.push(cur); cur = sen; } else cur = cur ? cur + ' ' + sen : sen;
+    }
+    if (cur) parts.push(cur);
+    const tr = [];
+    for (const q0 of parts) {
+      const r = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(q0) + '&langpair=' + from + '|' + to);
+      const j = await r.json();
+      const v = j && j.responseData && j.responseData.translatedText;
+      if (!r.ok || Number(j.responseStatus) !== 200 || !v || /MYMEMORY WARNING/i.test(v)) throw new Error('mt');
+      tr.push(decodeHtml(v));
+    }
+    out.push(tr.join(' '));
+  }
+  return out.join('\n');
+}
 const enclTile = (x, sm) => { const [i, tone] = EK_IC[x ? x.kind : 'other']; return `<span class="tile${sm ? ' sm' : ''} t-${x && !x.active ? 'grey' : tone}">${ic(i, sm ? 18 : 24)}</span>`; };
 const enclLink = n => { const x = n && enclByName.get(key(n)); return x ? `<button class="linkish" type="button" data-ec="${esc(x.id)}">${esc(dn(x))}</button>` : esc(n || ''); };
 // places can sit inside other places: building › room › enclosure
@@ -688,11 +744,11 @@ function renderSpCard() {
   const others = birds.filter(b => !cnames.has(key(b.name)));
   const bItems = cbs.map(cb => `<div class="ncard"><div class="nl"><button class="namelink" type="button" data-bc="${esc(cb.id)}">${esc(dn(cb))}</button><small>${esc([cb.status === 'out' ? t('st_out') : '', stat(st.birds.get(key(cb.name)) || {})].filter(Boolean).join(' · '))}</small></div></div>`)
     .concat(others.map(b => `<div class="ncard"><div class="nl"><b>${esc(b.name)}</b><small>${esc(stat(b) + ' · ' + t('not_in_coll_b'))}</small></div></div>`));
-  const main = spName(s), txt = v => typeof v === 'string' ? v.trim() : '';
-  const lk = spLocked(s), secCard = (k, icn, tone) => txt(inf[k]) ? `<article class="si-card"><h3><span class="tile sm t-${tone}">${ic(icn, 18)}</span>${esc(t('si_' + k))}${lockMark(lk.includes(k))}</h3><p>${esc(txt(inf[k]))}</p></article>` : '';
+  const main = spName(s), txt = v => typeof v === 'string' ? v.trim() : trText(v);
+  const lk = spLocked(s), secCard = (k, icn, tone) => { const p = trPick(inf[k]); return p ? `<article class="si-card"><h3><span class="tile sm t-${tone}">${ic(icn, 18)}</span>${esc(t('si_' + k))}${lockMark(lk.includes(k))}</h3><p>${esc(p.txt)}</p>${trNote(p)}</article>` : ''; };
   const wild = SI_WILD.map(([k, i]) => secCard(k, i, 'green')).join('');
   const zoo = SI_ZOO.map(([k, i]) => secCard(k, i, k === 'health' ? 'red' : 'amber')).join('');
-  const facts = [['si_tax', [txt(inf.order), txt(inf.family)].filter(Boolean).join(' · '), 'tag'], ['si_size', txt(inf.size), 'ruler'], ['si_life', txt(inf.life), 'clock'], ['si_incub', toN(inf.incub_days) ? t('si_incub_v', toN(inf.incub_days)) : '', 'egg']].filter(f => f[1]);
+  const facts = [['si_tax', [txt(inf.order), txt(inf.family)].filter(Boolean).join(' · '), 'tag'], ['si_size', txt(inf.size), 'ruler'], ['si_life', txt(inf.life), 'clock'], ['si_incub', toN(inf.incub_days) ? t('si_incub_v', toN(inf.incub_days)) + (txt(inf.incub_range) && txt(inf.incub_range) !== String(toN(inf.incub_days)) ? ' (' + txt(inf.incub_range) + ')' : '') : '', 'egg']].filter(f => f[1]);
   const names = [['PL', s.pl, 'pl'], ['EN', s.en, 'en'], ['RU', s.name, 'ru']].filter(v => v[1]);
   const mp = spMain(s), dPhotos = photosOf('species', s.id);
   const wikiCap = ph && (ph.credit || ph.page) ? `<figcaption>${esc(t('si_photo_by') + (ph.credit || ''))}${ph.page ? ` · <a href="${esc(ph.page)}" target="_blank" rel="noopener">Wikimedia Commons</a>` : ''}</figcaption>` : '';
@@ -709,7 +765,6 @@ function renderSpCard() {
 ${names.length ? `<dl class="sp-names">${names.map(([c, v, l]) => `<div><dt>${c}</dt><dd lang="${l}">${esc(v)}</dd></div>`).join('')}</dl>` : ''}
 <div class="sp-badges">${iucnBadge(inf.iucn, true)}<span class="pill p-grey">${esc(t('sg_' + grp))}</span>${txt(inf.cites) ? `<span class="pill p-blue">${esc(t('si_cites') + ' ' + txt(inf.cites))}</span>` : ''}</div>
 ${facts.length ? `<dl class="sp-facts">${facts.map(([l, v, i]) => `<div><dt>${ic(i, 15)}${esc(t(l))}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>` : ''}
-${lang !== 'ru' && (wild || zoo) ? `<p class="hint" style="margin-top:12px">${esc(t('si_note_lang'))}</p>` : ''}
 </div></div>
 ${jump.length > 1 ? `<div class="chips sp-jump">${jump.map(j => `<button class="chip" type="button" data-jump="${j}">${esc(t(j.replace('-', '_')))}</button>`).join('')}</div>` : ''}
 ${wild ? `<section class="si-group" id="si-wild"><h2 class="si-gh">${esc(t('si_wild'))}</h2><div class="si-grid">${wild}</div></section>` : ''}
@@ -842,15 +897,18 @@ function renderLog() {
   if (!$('#log-body')) return;
   $('#log-count').textContent = t('log_count', logRows.length);
   const cnt = k => logRows.filter(x => k === 'all' || x.kind === k).length;
-  $('#lg-chips').innerHTML = ['all', 'user', 'dev'].map(k => `<button class="chip" type="button" data-lgf="${k}" aria-pressed="${lgf === k}">${esc(t('lg_' + k))} <span class="chip-n">${cnt(k)}</span></button>`).join('');
+  const ver = logRows.reduce((m, x) => x.kind === 'dev' && x.ver > m ? x.ver : m, 0);
+  if ($('#app-ver')) $('#app-ver').textContent = ver ? t('app_ver', ver) : '';
+  $('#lg-chips').innerHTML = ['all', 'user', 'ai', 'dev'].map(k => `<button class="chip" type="button" data-lgf="${k}" aria-pressed="${lgf === k}">${esc(t('lg_' + k))} <span class="chip-n">${cnt(k)}</span></button>`).join('');
   const list = logRows.filter(x => lgf === 'all' || x.kind === lgf);
   if (!list.length) { $('#log-body').innerHTML = `<p class="empty">${esc(t('log_empty'))}</p>`; return; }
   let h = '', last = '';
   for (const x of list) {
     const k = dayKey(x.at);
     if (k !== last) { h += `<h2 class="day">${esc(dayTitle(x.at))}</h2>`; last = k; }
-    const who = x.kind === 'dev' ? t('lg_dev_who') : x.actor ? authorName(x.actor) || '—' : t('lg_sys');
-    h += `<div class="lg-row${x.kind === 'dev' ? ' dev' : ''}"><time>${esc(fTime.format(x.at))}</time><span class="lg-t"><b>${esc(who)}</b> ${esc(logLine(x))}</span>${isAdmin() ? `<button type="button" class="lg-del${logDelArmed === String(x.id) ? ' armed' : ''}" data-lg-del="${esc(x.id)}" aria-label="${esc(t('lg_del'))}">${logDelArmed === String(x.id) ? esc(t('lg_del2')) : ic('x', 16, 2.2)}</button>` : ''}</div>`;
+    const who = x.kind === 'dev' ? t('lg_dev_who') : x.kind === 'ai' ? t('lg_ai_who') : x.actor ? authorName(x.actor) || '—' : t('lg_sys');
+    const num = x.kind === 'dev' && x.ver ? `<span class="lg-ver">v${esc(x.ver)}</span>` : `<span class="lg-n">${esc(t('lg_n', x.id))}</span>`;
+    h += `<div class="lg-row${x.kind === 'dev' ? ' dev' : x.kind === 'ai' ? ' ai' : ''}"><time>${esc(fTime.format(x.at))}</time><span class="lg-t">${num}<b>${esc(who)}</b> ${esc(logLine(x))}</span>${isAdmin() ? `<button type="button" class="lg-del${logDelArmed === String(x.id) ? ' armed' : ''}" data-lg-del="${esc(x.id)}" aria-label="${esc(t('lg_del'))}">${logDelArmed === String(x.id) ? esc(t('lg_del2')) : ic('x', 16, 2.2)}</button>` : ''}</div>`;
   }
   $('#log-body').innerHTML = h;
 }
@@ -1406,11 +1464,12 @@ function openBirdForm(cb) {
   $('#bf-err').textContent = '';
   const d = $('#bf-del'); d.hidden = !cb || !isAdmin(); d.textContent = t('del_card');
   phBird = photoBox('bf-ph', 'bird', cb ? cb.id : null, true);
+  addLocks($('#bird-form'), BIRD_LOCK, cb ? cb.locked || [] : [], 'lk_hint_g');
   openSheet('bird');
 }
 $('#bird-form').addEventListener('submit', async e => {
   e.preventDefault();
-  const fd = new FormData(e.target), err = m => { $('#bf-err').textContent = m; }, g = k => String(fd.get(k) || '').trim();
+  const fd = formData(e.target), err = m => { $('#bf-err').textContent = m; }, g = k => String(fd.get(k) || '').trim();
   const name = g('name'), spSel = g('sp'), newName = g('newsp'), old = editingBird;
   if (!name) return err(t('e_bname'));
   if (!spSel) return err(t('e_pick_sp'));
@@ -1422,7 +1481,7 @@ $('#bird-form').addEventListener('submit', async e => {
   const date = k => /^\d{4}-\d{2}-\d{2}$/.test(g(k)) ? g(k) : '', now = Date.now(), encl = pe.name, cur = old ? placeOf(old).name : '';
   const b = {name, sp: spSel, sex: g('sex'), ring: g('ring'), chip: g('chip'), born: date('born'), arrived: date('arrived'), origin: g('origin'),
     encl: old && key(cur) === key(encl) ? old.encl : encl,
-    enclAt: old && key(cur) === key(encl) ? old.enclAt : (encl ? Math.floor(now / 60000) * 60000 : 0), status: g('status') === 'out' ? 'out' : 'active', note: g('note'), names: readNames(fd)};
+    enclAt: old && key(cur) === key(encl) ? old.enclAt : (encl ? Math.floor(now / 60000) * 60000 : 0), status: g('status') === 'out' ? 'out' : 'active', note: g('note'), names: readNames(fd), locked: lockList(e.target, BIRD_LOCK)};
   await withBusy($('#bf-save'), async () => {
     try {
       if (spSel === '__new') b.sp = await ensureSpecies(newName);
@@ -1470,17 +1529,18 @@ function openEnclForm(x, parentId) {
   $('#ef-err').textContent = '';
   const d = $('#ef-del'); d.hidden = !x || !isAdmin(); d.textContent = t('del_encl');
   phEncl = photoBox('ef-ph', 'encl', x ? x.id : null, true);
+  addLocks($('#encl-form'), ENCL_LOCK, x ? x.locked || [] : [], 'lk_hint_g');
   openSheet('encl');
 }
 $('#encl-form').addEventListener('submit', async e => {
   e.preventDefault();
-  const fd = new FormData(e.target), err = m => { $('#ef-err').textContent = m; }, g = k => String(fd.get(k) || '').trim(), old = editingEncl;
+  const fd = formData(e.target), err = m => { $('#ef-err').textContent = m; }, g = k => String(fd.get(k) || '').trim(), old = editingEncl;
   const name = g('name').replace(/\s+/g, ' ');
   if (!name) return err(t('e_ename'));
   if (encls.some(x => key(x.name) === key(name) && (!old || x.id !== old.id))) return err(t('e_edup'));
   if (phEncl && phEncl.busy) return;
   const x = {name, kind: EK.includes(g('kind')) ? g('kind') : 'other', area: g('area'), size: g('size'), cap: Math.min(10000, toN(g('cap'))),
-    active: old ? g('state') !== 'off' : true, note: g('note'), parent: enclMap.has(g('parent')) ? g('parent') : '', names: readNames(fd)};
+    active: old ? g('state') !== 'off' : true, note: g('note'), parent: enclMap.has(g('parent')) ? g('parent') : '', names: readNames(fd), locked: lockList(e.target, ENCL_LOCK)};
   if (old && x.parent && (x.parent === old.id || descOf(old).some(z => z.id === x.parent))) return err(t('e_cycle'));
   await withBusy($('#ef-save'), async () => {
     try {
@@ -1517,11 +1577,31 @@ const lockKey = k => k.startsWith('photo.') ? 'photo' : k;
 const lockBox = (k, locked) => { const tt = esc(t(isAdmin() || !locked.includes(k) ? 'lk_one' : 'lk_ro')); return `<label class="lk" title="${tt}"><input class="vh" type="checkbox" name="lk" value="${esc(k)}" aria-label="${tt}"${locked.includes(k) ? ' checked' : ''}${isAdmin() ? '' : ' disabled'}>${ic('unlock', 18, 2.2)}${ic('lock', 18, 2.2)}</label>`; };
 // the species name fields are columns, protected under these keys
 const SP_LOCK = {latin: 'latin', name: 'name_ru', pl: 'name_pl', en: 'name_en'};
+// put a lock into each listed field of a form (input name -> protected key) and "protect the whole card" on top
+function addLocks(form, map, locked, hint) {
+  for (const [nm, k] of Object.entries(map)) {
+    const inp = $(`[name="${nm}"]`, form) || $('#' + nm, form); if (!inp) continue;
+    const f = inp.closest('.fld'); if (!f) continue;
+    $$('.lk', f).forEach(x => x.remove());
+    f.classList.add('has-lk'); f.insertAdjacentHTML('beforeend', lockBox(k, locked));
+    inp.disabled = !isAdmin() && (locked.includes(k) || locked.includes('*'));
+  }
+  $$('.lk-all-box', form).forEach(x => x.remove());
+  form.insertAdjacentHTML('afterbegin', `<div class="lk-all-box"><label class="lk-all"><input type="checkbox" name="lk" value="*"${locked.includes('*') ? ' checked' : ''}${isAdmin() ? '' : ' disabled'}>${ic('lock', 16, 2.2)}<span>${esc(t('lk_all'))}</span></label><p class="hint">${esc(t(hint))}</p></div>`);
+  const lkAll = $('input[name=lk][value="*"]', form), lkOne = () => $$('input[name=lk]', form).filter(x => x !== lkAll);
+  lkAll.addEventListener('change', () => lkOne().forEach(x => { x.checked = lkAll.checked; }));
+  lkOne().forEach(x => x.addEventListener('change', () => { lkAll.checked = lkOne().every(y => y.checked); }));
+}
+const lockList = form => { const l = $$('input[name=lk]:checked', form).map(x => x.value); if (l.includes('encl')) l.push('encl_at'); return l; };
+// FormData skips disabled (protected) fields, so put their shown values back
+const formData = f => { const fd = new FormData(f); $$('[disabled][name]', f).forEach(x => { if (x.name !== 'lk') fd.set(x.name, x.value); }); return fd; };
+const BIRD_LOCK = {name: 'name', sp: 'species_id', sex: 'sex', ring: 'ring', chip: 'chip', born: 'born', arrived: 'arrived', origin: 'origin', encl: 'encl', status: 'status', note: 'note'};
+const ENCL_LOCK = {name: 'name', kind: 'kind', parent: 'parent_id', area: 'area', size: 'size', cap: 'capacity', state: 'active', note: 'note'};
 function infoFields(inf) {
   const opt = (val, cur, label) => `<option value="${val}"${val === (cur || '') ? ' selected' : ''}>${esc(label)}</option>`;
   const ph = inf.photo || {}, locked = Array.isArray(inf.locked) ? inf.locked : [];
   return SIF.map(([k, tp, l]) => {
-    const id = sifId(k), v = k.startsWith('photo.') ? ph[k.slice(6)] : inf[k];
+    const id = sifId(k), v = k.startsWith('photo.') ? ph[k.slice(6)] : TRK.includes(k) ? '' : inf[k];
     let h;
     if (k === 'group') h = `<div class="fld"><label for="${id}">${esc(t(l))}</label><select id="${id}">${opt('bird', v || 'bird', t('sg_bird'))}${opt('mammal', v, t('sg_mammal'))}</select></div>`;
     else if (k === 'iucn') h = `<div class="fld"><label for="${id}">${esc(t(l))}</label><select id="${id}">${opt('', v, t('sf_iucn_none'))}${IUCN.map(c => opt(c, v, c + ' — ' + t('iucn_' + c))).join('')}</select></div>`;
@@ -1534,6 +1614,7 @@ function readInfo(base) {
   const inf = JSON.parse(JSON.stringify(base || {})), ph = Object.assign({}, inf.photo || {});
   for (const [k] of SIF) {
     const v = ($('#' + sifId(k)).value || '').trim();
+    if (TRK.includes(k)) { const o = spTr[k]; if (o && LANG_ORDER.some(l => (o[l] || '').trim())) inf[k] = o; else delete inf[k]; continue; }
     if (k.startsWith('photo.')) { const pk = k.slice(6); if (pk === 'src' && v !== (ph.src || '')) delete ph.thumb; if (v) ph[pk] = v; else delete ph[pk]; }
     else if (v) inf[k] = v; else delete inf[k];
   }
@@ -1542,6 +1623,50 @@ function readInfo(base) {
   if (lk.length) inf.locked = lk; else delete inf.locked;
   if (phSp) { const m = mainOf(phSp, inf.photo); if (m && (m !== 'wiki' || dPhotoCount() > 0)) inf.main = m; else delete inf.main; }
   return inf;
+}
+let spTr = {}, spFL = 'pl';
+// keep what is typed in the shown language; a changed text becomes the source for the other languages
+function stashTr() {
+  for (const k of TRK) {
+    const el = $('#' + sifId(k)); if (!el || el.disabled) continue;
+    const v = el.value.trim(), o = spTr[k] || {}, old = (o[spFL] || '').trim();
+    if (v === old) continue;
+    const wasAuto = (o.auto || []).includes(spFL) && o.src && o.src !== spFL && (o[o.src] || '').trim();
+    if (v) o[spFL] = v; else delete o[spFL];
+    o.auto = (o.auto || []).filter(l => l !== spFL);
+    // correcting a machine translation keeps the source; any other edit makes this language the source
+    if (v && wasAuto) o.fix = (o.fix || []).filter(l => l !== spFL).concat(spFL);
+    else if (v) { o.src = spFL; o.fix = (o.fix || []).filter(l => l !== spFL); o._dirty = 1; }
+    else o.fix = (o.fix || []).filter(l => l !== spFL);
+    if (o.fix && !o.fix.length) delete o.fix;
+    spTr[k] = o;
+  }
+}
+function fillTr() {
+  for (const k of TRK) {
+    const el = $('#' + sifId(k)); if (!el) continue;
+    const o = spTr[k] || {}, f = el.closest('.fld');
+    el.value = o[spFL] || '';
+    $$('.tr-note', f).forEach(x => x.remove());
+    const p = o[spFL] ? (o.auto || []).includes(spFL) ? {auto: o.src || 'ru'} : null : trPick(o, spFL);
+    if (p && (p.auto || p.only)) el.insertAdjacentHTML('afterend', trNote(p).replace('class="tr-note"', 'class="tr-note fld-tr"'));
+  }
+}
+// translate every changed text into the languages that are empty or were machine-translated before
+async function translateDirty() {
+  let fails = 0;
+  for (const k of TRK) {
+    const o = spTr[k]; if (!o || !o._dirty) continue;
+    delete o._dirty;
+    const src = o.src, text = (o[src] || '').trim(); if (!text) continue;
+    for (const l of LANG_ORDER) {
+      if (l === src || ((o[l] || '').trim() && (o.fix || []).includes(l))) continue;
+      try { o[l] = await mt(text, src, l); o.auto = (o.auto || []).filter(x => x !== l).concat(l); }
+      catch (e) { fails++; delete o[l]; o.auto = (o.auto || []).filter(x => x !== l); }
+    }
+    if (!(o.auto || []).length) delete o.auto;
+  }
+  return fails;
 }
 function openSpForm(s) {
   if (!canWrite()) return;
@@ -1553,17 +1678,14 @@ function openSpForm(s) {
   const inf0 = s ? s.info || {} : {}, locked = Array.isArray(inf0.locked) ? inf0.locked : [];
   $('#sp-info-fields').innerHTML = infoFields(inf0);
   // a lock inside each name field and the notes, plus "protect the whole card" at the top
-  for (const [id, k] of Object.entries(Object.assign({note: 'note'}, SP_LOCK))) {
-    const inp = $('#sp-' + id), f = inp.closest('.fld');
-    $$('.lk', f).forEach(x => x.remove());
-    f.classList.add('has-lk'); f.insertAdjacentHTML('beforeend', lockBox(k, locked));
-    inp.disabled = !isAdmin() && locked.includes(k);
-  }
-  $$('#sp-form .lk-all-box').forEach(x => x.remove());
-  $('#sp-form').insertAdjacentHTML('afterbegin', `<div class="lk-all-box"><label class="lk-all"><input type="checkbox" name="lk" value="*"${locked.includes('*') ? ' checked' : ''}${isAdmin() ? '' : ' disabled'}>${ic('lock', 16, 2.2)}<span>${esc(t('lk_all'))}</span></label><p class="hint">${esc(t('lk_hint'))}</p></div>`);
-  const lkAll = $('#sp-form input[name=lk][value="*"]'), lkOne = () => $$('#sp-form input[name=lk]').filter(x => x !== lkAll);
-  lkAll.addEventListener('change', () => lkOne().forEach(x => { x.checked = lkAll.checked; }));
-  lkOne().forEach(x => x.addEventListener('change', () => { lkAll.checked = lkOne().every(y => y.checked); }));
+  addLocks($('#sp-form'), Object.fromEntries(Object.entries(Object.assign({note: 'note'}, SP_LOCK)).map(([id, k]) => ['sp-' + id, k])), locked, 'lk_hint');
+  // the description texts are edited one language at a time
+  spTr = {}; spFL = lang;
+  for (const k of TRK) { const o = trObj(inf0[k]); if (o) spTr[k] = JSON.parse(JSON.stringify(o)); }
+  $$('#sp-form .tr-switch').forEach(x => x.remove());
+  $('#sp-info-fields').insertAdjacentHTML('beforebegin', `<div class="tr-switch"><span class="tr-l">${esc(t('tr_lang'))}</span><div class="seg" role="group">${LANG_ORDER.map(l => `<button type="button" data-trl="${l}" aria-pressed="${l === spFL}">${l.toUpperCase()}</button>`).join('')}</div><p class="hint">${esc(t('tr_hint'))}</p></div>`);
+  $$('#sp-form [data-trl]').forEach(b => b.addEventListener('click', () => { stashTr(); spFL = b.dataset.trl; $$('#sp-form [data-trl]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); fillTr(); }));
+  fillTr();
   $('#sp-more').open = !s;
   $('#sp-err').textContent = '';
   const d = $('#sp-del'); d.hidden = !s || !isAdmin(); d.textContent = t('del_sp');
@@ -1583,9 +1705,14 @@ $('#sp-form').addEventListener('submit', async e => {
   if (species.some(x => (!editingSp || x.id !== editingSp.id) && SPF.some(k => v[k] && key(x[k]) === key(v[k])))) return err(t('e_spdup'));
   if (phSp && phSp.busy) return;
   v.note = $('#sp-note').value.trim();
-  v.info = readInfo(editingSp ? editingSp.info : {});
+  stashTr();
   await withBusy($('#sp-save'), async () => {
     try {
+      if (TRK.some(k => spTr[k] && spTr[k]._dirty)) err(t('tr_busy'));
+      const trFail = await translateDirty();
+      err('');
+      if (trFail) toast(t('tr_fail'));
+      v.info = readInfo(editingSp ? editingSp.info : {});
       const wasEdit = !!editingSp, id = wasEdit ? editingSp.id : uuid();
       await putSp(id, v, !wasEdit);
       if (phSp && (phSp.added.length || phSp.removed.length)) err(t('ph_saving'));
