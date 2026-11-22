@@ -1,6 +1,23 @@
 {
 // Texts for enclosures and other housing places (Russian, Polish, English)
 Object.assign(DICT.ru, {
+  log_t: 'Журнал изменений', log_lead: 'Всё, что меняли на сайте, и изменения в самом приложении. Удалять записи может только администратор.',
+  log_count: n => n + ' ' + pw(n, 'w_entry'), w_entry: ['запись', 'записи', 'записей'], log_empty: 'Изменений пока нет.',
+  lg_all: 'Все', lg_user: 'На сайте', lg_dev: 'Разработка', lg_insert: 'Добавлено', lg_update: 'Изменено', lg_delete: 'Удалено', lg_dev_who: 'Разработка', lg_sys: 'Система',
+  le_species: 'вид', le_collection: 'животное', le_records: 'запись', le_enclosures: 'место', le_photos: 'фото', le_profiles: 'сотрудник',
+  lg_del: 'Удалить запись журнала', lg_del2: 'Удалить?', t_log_del: 'Запись журнала удалена',
+  lf_name: 'название', lf_names: 'названия на языках', lf_encl: 'место', lf_encl_at: 'место', lf_parent_id: 'находится в', lf_capacity: 'вместимость', lf_active: 'состояние', lf_note: 'заметки',
+  lf_info: 'данные вида', lf_f: 'данные записи', lf_event_at: 'время', lf_bird: 'животное', lf_status: 'статус', lf_species_id: 'вид', lf_sex: 'пол', lf_ring: 'кольцо', lf_chip: 'чип',
+  lf_born: 'дата рождения', lf_arrived: 'дата поступления', lf_origin: 'происхождение', lf_kind: 'тип', lf_area: 'расположение', lf_size: 'размеры', lf_role: 'роль', lf_display_name: 'имя',
+  lf_name_ru: 'название RU', lf_name_pl: 'название PL', lf_name_en: 'название EN', lf_latin: 'латынь', lf_type: 'тип записи', lf_login: 'логин',
+  alt_names: 'Названия на других языках', alt_add: 'Добавить название', alt_lang: 'Язык', alt_name: 'Название', alt_rm: 'Убрать название', alt_hint: 'Показывается, когда приложение открыто на этом языке. Если названия на языке нет — показывается основное.', alt_main: 'основное',
+  tab_cal: 'Календарь', cal_today: 'Сегодня', cal_prev: 'Предыдущий месяц', cal_next: 'Следующий месяц',
+  cal_tap2: 'Нажмите ещё раз, чтобы открыть запись', cal_list: 'События месяца', cal_none: 'В этом месяце событий нет.',
+  cl_lay: 'снесла яйцо', cl_incub: 'старт инкубации', cl_hatch: 'выклев', cl_fledge: 'вылет из гнезда', cl_tstart: 'начало лечения', cl_tend: 'конец лечения', cl_expo: 'перевод',
+  cl_incub_p: d => 'инкубация, выклев ≈ ' + d, cl_incub_done: 'инкубация (выклев был)', cl_treat_p: 'курс лечения',
+  leg_dot: 'точка — событие', leg_line: 'линия — период: инкубация, курс лечения', leg_dash: 'штриховка — ещё идёт',
+  f_incub_days: 'Инкубация, дней', sf_incub_days: 'Инкубация, дней (для расчёта выклева)', si_incub: 'Инкубация', si_incub_v: n => n + ' дн.',
+  d_incub: (n, d) => 'инкубация ' + n + ' дн., выклев ≈ ' + d, cal_more: n => '+' + n,
   fa_encl: 'Место содержания', ev_expo_sub: 'Перевод между вольерами, клетками и другими местами',
   encls_t: 'Вольеры и помещения', encls_lead: 'Места содержания отдела: авиарии, вольеры, клетки, инкубаторы и другие',
   add_encl: 'Добавить место', eq_label: 'Поиск по названию или расположению', eq_ph: 'Например: авиарий 2', ek_aria: 'Тип места',
@@ -26,6 +43,23 @@ Object.assign(DICT.ru, {
   en_no_kids: 'Внутри пока ничего нет.', del_encl_kids: n => 'Внутри ' + n + ' ' + pw(n, 'w_place') + ' — они станут отдельными. Удалить?', e_cycle: 'Нельзя поместить место внутрь самого себя.'
 });
 Object.assign(DICT.pl, {
+  log_t: 'Dziennik zmian', log_lead: 'Wszystko, co zmieniano w aplikacji, oraz zmiany w samej aplikacji. Wpisy może usuwać tylko administrator.',
+  log_count: n => n + ' ' + pw(n, 'w_entry'), w_entry: ['wpis', 'wpisy', 'wpisów'], log_empty: 'Nie ma jeszcze zmian.',
+  lg_all: 'Wszystkie', lg_user: 'W aplikacji', lg_dev: 'Rozwój', lg_insert: 'Dodano', lg_update: 'Zmieniono', lg_delete: 'Usunięto', lg_dev_who: 'Rozwój', lg_sys: 'System',
+  le_species: 'gatunek', le_collection: 'zwierzę', le_records: 'wpis', le_enclosures: 'miejsce', le_photos: 'zdjęcie', le_profiles: 'pracownik',
+  lg_del: 'Usuń wpis dziennika', lg_del2: 'Usunąć?', t_log_del: 'Wpis dziennika usunięty',
+  lf_name: 'nazwa', lf_names: 'nazwy w językach', lf_encl: 'miejsce', lf_encl_at: 'miejsce', lf_parent_id: 'znajduje się w', lf_capacity: 'pojemność', lf_active: 'stan', lf_note: 'notatki',
+  lf_info: 'dane gatunku', lf_f: 'dane wpisu', lf_event_at: 'czas', lf_bird: 'zwierzę', lf_status: 'status', lf_species_id: 'gatunek', lf_sex: 'płeć', lf_ring: 'obrączka', lf_chip: 'chip',
+  lf_born: 'data urodzenia', lf_arrived: 'data przybycia', lf_origin: 'pochodzenie', lf_kind: 'rodzaj', lf_area: 'lokalizacja', lf_size: 'wymiary', lf_role: 'rola', lf_display_name: 'imię',
+  lf_name_ru: 'nazwa RU', lf_name_pl: 'nazwa PL', lf_name_en: 'nazwa EN', lf_latin: 'łacina', lf_type: 'rodzaj wpisu', lf_login: 'login',
+  alt_names: 'Nazwy w innych językach', alt_add: 'Dodaj nazwę', alt_lang: 'Język', alt_name: 'Nazwa', alt_rm: 'Usuń nazwę', alt_hint: 'Wyświetlana, gdy aplikacja jest otwarta w tym języku. Jeśli brak — wyświetlana jest nazwa główna.', alt_main: 'główna',
+  tab_cal: 'Kalendarz', cal_today: 'Dziś', cal_prev: 'Poprzedni miesiąc', cal_next: 'Następny miesiąc',
+  cal_tap2: 'Naciśnij ponownie, aby otworzyć wpis', cal_list: 'Wydarzenia miesiąca', cal_none: 'W tym miesiącu nie ma wydarzeń.',
+  cl_lay: 'zniesienie jaja', cl_incub: 'początek inkubacji', cl_hatch: 'klucie', cl_fledge: 'opuszczenie gniazda', cl_tstart: 'początek leczenia', cl_tend: 'koniec leczenia', cl_expo: 'przeniesienie',
+  cl_incub_p: d => 'inkubacja, klucie ≈ ' + d, cl_incub_done: 'inkubacja (klucie było)', cl_treat_p: 'kuracja',
+  leg_dot: 'kropka — wydarzenie', leg_line: 'linia — okres: inkubacja, kuracja', leg_dash: 'kreskowanie — jeszcze trwa',
+  f_incub_days: 'Inkubacja, dni', sf_incub_days: 'Inkubacja, dni (do wyliczenia klucia)', si_incub: 'Inkubacja', si_incub_v: n => n + ' dni',
+  d_incub: (n, d) => 'inkubacja ' + n + ' dni, klucie ≈ ' + d, cal_more: n => '+' + n,
   fa_encl: 'Miejsce przetrzymywania', ev_expo_sub: 'Przeniesienie między wolierami, klatkami i innymi miejscami',
   encls_t: 'Woliery i pomieszczenia', encls_lead: 'Miejsca przetrzymywania działu: ptaszarnie, woliery, klatki, inkubatory i inne',
   add_encl: 'Dodaj miejsce', eq_label: 'Szukaj po nazwie lub lokalizacji', eq_ph: 'Np.: ptaszarnia 2', ek_aria: 'Rodzaj miejsca',
@@ -51,6 +85,23 @@ Object.assign(DICT.pl, {
   en_no_kids: 'W środku nie ma jeszcze nic.', del_encl_kids: n => 'W środku jest ' + n + ' ' + pw(n, 'w_place') + ' — staną się osobne. Usunąć?', e_cycle: 'Nie można umieścić miejsca w nim samym.'
 });
 Object.assign(DICT.en, {
+  log_t: 'Change log', log_lead: 'Everything changed in the app, and changes to the app itself. Only an admin can delete entries.',
+  log_count: n => n + ' ' + pw(n, 'w_entry'), w_entry: ['entry', 'entries'], log_empty: 'No changes yet.',
+  lg_all: 'All', lg_user: 'In the app', lg_dev: 'Development', lg_insert: 'Added', lg_update: 'Changed', lg_delete: 'Deleted', lg_dev_who: 'Development', lg_sys: 'System',
+  le_species: 'species', le_collection: 'animal', le_records: 'record', le_enclosures: 'place', le_photos: 'photo', le_profiles: 'staff member',
+  lg_del: 'Delete log entry', lg_del2: 'Delete?', t_log_del: 'Log entry deleted',
+  lf_name: 'name', lf_names: 'names in languages', lf_encl: 'place', lf_encl_at: 'place', lf_parent_id: 'located in', lf_capacity: 'capacity', lf_active: 'state', lf_note: 'notes',
+  lf_info: 'species details', lf_f: 'record details', lf_event_at: 'time', lf_bird: 'animal', lf_status: 'status', lf_species_id: 'species', lf_sex: 'sex', lf_ring: 'ring', lf_chip: 'chip',
+  lf_born: 'birth date', lf_arrived: 'arrival date', lf_origin: 'origin', lf_kind: 'type', lf_area: 'location', lf_size: 'dimensions', lf_role: 'role', lf_display_name: 'name',
+  lf_name_ru: 'name RU', lf_name_pl: 'name PL', lf_name_en: 'name EN', lf_latin: 'Latin', lf_type: 'record type', lf_login: 'login',
+  alt_names: 'Names in other languages', alt_add: 'Add a name', alt_lang: 'Language', alt_name: 'Name', alt_rm: 'Remove name', alt_hint: 'Shown when the app is open in that language. Without one, the main name is shown.', alt_main: 'main',
+  tab_cal: 'Calendar', cal_today: 'Today', cal_prev: 'Previous month', cal_next: 'Next month',
+  cal_tap2: 'Tap again to open the record', cal_list: 'This month', cal_none: 'No events this month.',
+  cl_lay: 'egg laid', cl_incub: 'incubation start', cl_hatch: 'hatching', cl_fledge: 'left the nest', cl_tstart: 'treatment start', cl_tend: 'treatment end', cl_expo: 'move',
+  cl_incub_p: d => 'incubation, hatching ≈ ' + d, cl_incub_done: 'incubation (hatched)', cl_treat_p: 'treatment course',
+  leg_dot: 'dot — event', leg_line: 'line — period: incubation, treatment', leg_dash: 'striped — still going',
+  f_incub_days: 'Incubation, days', sf_incub_days: 'Incubation, days (to predict hatching)', si_incub: 'Incubation', si_incub_v: n => n + ' days',
+  d_incub: (n, d) => 'incubation ' + n + ' days, hatching ≈ ' + d, cal_more: n => '+' + n,
   fa_encl: 'Housing', ev_expo_sub: 'Moving between enclosures, cages and other places',
   encls_t: 'Enclosures and rooms', encls_lead: 'Where the department keeps its animals: aviaries, enclosures, cages, incubators and more',
   add_encl: 'Add place', eq_label: 'Search by name or location', eq_ph: 'E.g. aviary 2', ek_aria: 'Type of place',
@@ -80,6 +131,24 @@ Object.assign(DICT.en, {
 {
   const add = (sel, where, html) => { const el = document.querySelector(sel); if (el) el.insertAdjacentHTML(where, html); };
   add('#view-menu [data-view=species]', 'beforebegin', `<button class="row" type="button" data-view="encls" style="margin-top:10px"><span class="tile t-amber" data-ic="home"></span><span class="rt"><b data-t="encls_t"></b><small id="encl-count"></small></span><span class="chev" data-ic="chev" data-s="20"></span></button>
+`);
+  add('#view-menu [data-view=species]', 'beforebegin', `<button class="row" type="button" data-view="log" style="margin-top:10px"><span class="tile t-grey" data-ic="clock"></span><span class="rt"><b data-t="log_t"></b><small id="log-count"></small></span><span class="chev" data-ic="chev" data-s="20"></span></button>
+`);
+  add('#view-users', 'beforebegin', `<section class="view" id="view-log" hidden>
+<button class="backlink" type="button" data-tab="menu"><span data-ic="back" data-s="18" data-w="2.2"></span><span data-t="menu"></span></button>
+<h1 data-t="log_t"></h1>
+<p class="lead" data-t="log_lead"></p>
+<div class="chips" id="lg-chips" role="group"></div>
+<div class="list" id="log-body" style="margin-top:12px"></div>
+</section>
+`);
+  add('.tab[data-tab=now]', 'afterend', `<button class="tab" type="button" data-tab="cal"><span class="ti" data-ic="calgrid" data-s="22"></span><span data-t="tab_cal"></span></button>`);
+  add('#view-users', 'beforebegin', `<section class="view" id="view-cal" hidden>
+<div class="cal-head"><h1 id="cal-title"></h1><div class="cal-nav"><button class="mini ghost" type="button" data-cal-nav="-1" data-ta="cal_prev"><span data-ic="chevl" data-s="18" data-w="2.4"></span></button><button class="mini ghost" type="button" data-cal-nav="0" data-t="cal_today"></button><button class="mini ghost" type="button" data-cal-nav="1" data-ta="cal_next"><span data-ic="chev" data-s="18" data-w="2.4"></span></button></div></div>
+<div class="cal-box"><div class="cal-dow" id="cal-dow"></div><div id="cal-grid"></div><div class="cal-tip" id="cal-tip" role="status" hidden></div></div>
+<p class="cal-legend"><span><i class="cdot k-amber"></i><span data-t="leg_dot"></span></span><span><i class="cleg k-amber"></i><span data-t="leg_line"></span></span><span><i class="cleg k-amber pend"></i><span data-t="leg_dash"></span></span></p>
+<section class="nsec"><h2 class="nh"><span data-t="cal_list"></span><span class="nc" id="cal-n"></span></h2><div id="cal-list"></div></section>
+</section>
 `);
   add('#view-users', 'beforebegin', `<section class="view" id="view-encls" hidden>
 <button class="backlink" type="button" data-tab="menu"><span data-ic="back" data-s="18" data-w="2.2"></span><span data-t="menu"></span></button>
@@ -151,6 +220,8 @@ const I = {
   clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
   cage:'<rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 5v16M12 5v16M16 5v16M9 2h6M12 2v3"/>',
   building:'<path d="M4 21V7l8-4 8 4v14"/><path d="M2 21h20M9 21v-4h6v4M8 10h2M14 10h2M8 14h2M14 14h2"/>',
+  calgrid:'<rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/><circle cx="8" cy="14" r="1"/><path d="M11 17.5h7"/>',
+  chevl:'<path d="m15 6-6 6 6 6"/>',
   drop:'<path d="M12 3s-6.5 7-6.5 11.5a6.5 6.5 0 0 0 13 0C18.5 10 12 3 12 3z"/>',
   paw:'<circle cx="5.5" cy="10" r="2"/><circle cx="9.5" cy="5.5" r="2"/><circle cx="14.5" cy="5.5" r="2"/><circle cx="18.5" cy="10" r="2"/><path d="M12 12c-3 0-5.5 3.5-5.5 6 0 1.7 1.3 3 3 3 1 0 1.7-.5 2.5-.5s1.5.5 2.5.5c1.7 0 3-1.3 3-3 0-2.5-2.5-6-5.5-6z"/>'
 };
@@ -192,7 +263,7 @@ const T = {
   tdose: {g:'vet', tone:'red', icon:'pill', fields:[{k:'drug',l:'f_drug',t:'text',req:1}]},
   tend:  {g:'vet', tone:'red', icon:'check', fields:[{k:'result',l:'f_result',t:'text'}]},
   lay:   {g:'breed', tone:'amber', icon:'eggplus', fields:[{k:'n',l:'f_eggs',t:'number',min:1,def:1}]},
-  incub: {g:'breed', tone:'amber', icon:'sit', fields:[]},
+  incub: {g:'breed', tone:'amber', icon:'sit', fields:[{k:'days',l:'f_incub_days',t:'number',min:1}]},
   hatch: {g:'breed', tone:'amber', icon:'crack', fields:[{k:'n',l:'f_chicks',t:'number',min:1,def:1}]},
   fledge:{g:'breed', tone:'amber', icon:'out', fields:[{k:'n',l:'f_chicks',t:'number',min:1,def:1}]}
 };
@@ -231,8 +302,10 @@ let tab = 'add', filt = 'all', q = '', curType = null, editing = null, delArmed 
 let statusKey = '', statusKind = 'info', gateKey = 'loading', editingUser = null;
 let phRec = null, phSp = null, phBird = null, phEncl = null;
 let encls = [], enclMap = new Map(), enclByName = new Map(), curEncl = null, editingEncl = null, enclDelArmed = false, eq = '', ek = 'all';
+let logRows = [], lgf = 'all', logDelArmed = '';
+let calM = (() => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 1); })(), calSel = '';
 const DEF_BACK = {sp: 'species', bird: 'coll', encl: 'encls'}, backOf = {sp: 'species', bird: 'coll', encl: 'encls'};
-const VIEW_KEY = {add: 'tab_add', now: 'tab_now', logs: 'logs', menu: 'menu', species: 'species_t', sp: 'spf_edit', coll: 'coll', bird: 'bf_edit', users: 'users_t', encls: 'encls_t', encl: 'ef_edit'};
+const VIEW_KEY = {add: 'tab_add', now: 'tab_now', logs: 'logs', menu: 'menu', species: 'species_t', sp: 'spf_edit', coll: 'coll', bird: 'bf_edit', users: 'users_t', encls: 'encls_t', encl: 'ef_edit', cal: 'tab_cal', log: 'log_t'};
 
 const role = () => myProfile ? myProfile.role : null;
 const canWrite = () => role() === 'admin' || role() === 'staff';
@@ -259,23 +332,32 @@ const toSp = s => ({name_ru: s.name || '', name_pl: s.pl || '', name_en: s.en ||
 function fromBird(d) {
   if (!d) return null;
   return {id: d.id, name: d.name, sp: d.species_id || '', sex: d.sex || '', ring: d.ring || '', chip: d.chip || '', born: d.born || '', arrived: d.arrived || '',
-    origin: d.origin || '', encl: d.encl || '', enclAt: ms(d.encl_at), status: d.status === 'out' ? 'out' : 'active', note: d.note || '', by: d.created_by || null};
+    origin: d.origin || '', encl: d.encl || '', enclAt: ms(d.encl_at), status: d.status === 'out' ? 'out' : 'active', note: d.note || '', names: Array.isArray(d.names) ? d.names : [], by: d.created_by || null};
 }
 const toBird = b => ({name: b.name, species_id: b.sp || null, sex: b.sex || '', ring: b.ring || '', chip: b.chip || '', born: b.born || null, arrived: b.arrived || null,
-  origin: b.origin || '', encl: b.encl || '', encl_at: b.enclAt ? new Date(b.enclAt).toISOString() : null, status: b.status, note: b.note || ''});
+  origin: b.origin || '', encl: b.encl || '', encl_at: b.enclAt ? new Date(b.enclAt).toISOString() : null, status: b.status, note: b.note || '', names: b.names || []});
 const EK = ['building', 'aviary', 'enclosure', 'cage', 'incubator', 'brooder', 'room', 'quarantine', 'pond', 'other'];
 const EK_IC = {building: ['building', 'blue'], aviary: ['tree', 'green'], enclosure: ['home', 'green'], cage: ['cage', 'blue'], incubator: ['egg', 'amber'], brooder: ['chick', 'amber'],
   room: ['home', 'grey'], quarantine: ['cross', 'red'], pond: ['drop', 'blue'], other: ['tag', 'grey']};
 function fromEncl(d) {
   if (!d) return null;
   return {id: d.id, name: d.name, kind: EK.includes(d.kind) ? d.kind : 'other', area: d.area || '', size: d.size || '', cap: d.capacity || 0,
-    active: d.active !== false, note: d.note || '', parent: d.parent_id || '', by: d.created_by || null};
+    active: d.active !== false, note: d.note || '', parent: d.parent_id || '', names: Array.isArray(d.names) ? d.names : [], by: d.created_by || null};
 }
-const toEncl = x => ({name: x.name, kind: x.kind, area: x.area || '', size: x.size || '', capacity: x.cap || null, active: x.active, note: x.note || '', parent_id: x.parent || null});
+const toEncl = x => ({name: x.name, kind: x.kind, area: x.area || '', size: x.size || '', capacity: x.cap || null, active: x.active, note: x.note || '', parent_id: x.parent || null, names: x.names || []});
 const fromPhoto = d => ({id: d.id, ownerType: d.owner_type, ownerId: d.owner_id, path: d.path, w: d.width, h: d.height, by: d.created_by || null, created: ms(d.created_at)});
 const thumbOf = p => p.replace(/\.jpg$/, '_t.jpg');
 const photosOf = (type, id) => photosByOwner.get(type + ':' + id) || [];
 
+// names in several languages: the main name is the stable key, the others are shown when the app is in that language
+const LANGS = ['ru', 'pl', 'en'], LANG_NAME = {ru: 'Русский', pl: 'Polski', en: 'English'};
+const altNames = x => (x && Array.isArray(x.names) ? x.names : []).filter(n => n && LANGS.includes(n.l) && String(n.v || '').trim());
+const dn = x => { if (!x) return ''; const a = altNames(x).find(n => n.l === lang); return a ? a.v : x.name; };
+const allNames = x => [x.name].concat(altNames(x).map(n => n.v));
+const otherNames = x => { const shown = dn(x); return (x.name !== shown ? [t('alt_main') + ': ' + x.name] : []).concat(altNames(x).filter(n => n.v !== shown).map(n => n.l.toUpperCase() + ': ' + n.v)).join(' · '); };
+const bn = name => { const cb = collByName.get(key(name)); return cb ? dn(cb) : name; };
+const enDn = name => { const x = name && enclByName.get(key(name)); return x ? dn(x) : (name || ''); };
+const canonBird = v => { if (collByName.has(key(v))) return v; const cb = coll.find(x => altNames(x).some(n => key(n.v) === key(v))); return cb ? cb.name : v; };
 const spById = id => (id && spMap.get(id)) || null;
 const spName = s => !s ? '' : s[LANG_FIELD[lang]] || s.latin || s.name || s.pl || s.en;
 const spNames = s => [s.name, s.latin, s.pl, s.en].filter(Boolean);
@@ -283,10 +365,10 @@ const spOther = s => { const main = spName(s); return [['RU', s.name], ['PL', s.
 const bySp = (a, b) => spName(a).localeCompare(spName(b), LOCALE[lang]);
 const byName = (a, b) => a.name.localeCompare(b.name, LOCALE[lang]);
 const findSpByAnyName = n => species.find(x => spNames(x).some(v => key(v) === key(n)));
-const spOfBird = name => { const cb = collByName.get(key(name)); if (cb && spById(cb.sp)) return cb.sp; const b = st && st.birds.get(key(name)); return b && spById(b.sp) ? b.sp : ''; };
-const nm = b => { const cb = collByName.get(key(b.name)); return cb ? `<button class="namelink" type="button" data-bc="${esc(cb.id)}">${esc(b.name)}</button>` : `<b>${esc(b.name)}</b>`; };
+const spOfBird = name => { const cb = collByName.get(key(canonBird(name))); if (cb && spById(cb.sp)) return cb.sp; const b = st && st.birds.get(key(name)); return b && spById(b.sp) ? b.sp : ''; };
+const nm = b => { const cb = collByName.get(key(b.name)); return cb ? `<button class="namelink" type="button" data-bc="${esc(cb.id)}">${esc(dn(cb))}</button>` : `<b>${esc(b.name)}</b>`; };
 const backBtn = k => `<button class="backlink" type="button" data-view="${backOf[k]}">${ic('back', 18, 2.2)}${esc(t(VIEW_KEY[backOf[k]] || 'back'))}</button>`;
-const matchQ = r => { if (key(r.bird).includes(q)) return true; const s = spById(r.sp); return !!s && spNames(s).some(v => key(v).includes(q)); };
+const matchQ = r => { if (key(r.bird).includes(q) || key(bn(r.bird)).includes(q)) return true; const s = spById(r.sp); return !!s && spNames(s).some(v => key(v).includes(q)); };
 const spLink = b => { const s = spById(b.sp); return s ? `<button class="linkish" type="button" data-sp="${esc(s.id)}">${esc(spName(s))}</button>` : ''; };
 const IUCN = ['LC', 'NT', 'VU', 'EN', 'CR', 'EW', 'DD'];
 const spInfo = s => (s && s.info) || {};
@@ -296,13 +378,13 @@ const iucnBadge = (c, long) => IUCN.includes(c) ? `<span class="iucn iucn-${c}" 
 const SI_WILD = [['range', 'globe'], ['habitat', 'tree'], ['diet_wild', 'leaf'], ['behaviour', 'eye'], ['breeding', 'egg']];
 const SI_ZOO = [['diet_zoo', 'bowl'], ['husbandry', 'home'], ['health', 'heart'], ['sex', 'sex']];
 const enclTile = (x, sm) => { const [i, tone] = EK_IC[x ? x.kind : 'other']; return `<span class="tile${sm ? ' sm' : ''} t-${x && !x.active ? 'grey' : tone}">${ic(i, sm ? 18 : 24)}</span>`; };
-const enclLink = n => { const x = n && enclByName.get(key(n)); return x ? `<button class="linkish" type="button" data-ec="${esc(x.id)}">${esc(x.name)}</button>` : esc(n || ''); };
+const enclLink = n => { const x = n && enclByName.get(key(n)); return x ? `<button class="linkish" type="button" data-ec="${esc(x.id)}">${esc(dn(x))}</button>` : esc(n || ''); };
 // places can sit inside other places: building › room › enclosure
 const kidsOf = id => encls.filter(x => x.parent === id && x.parent !== x.id);
 const pathOf = x => { const out = [], seen = new Set(); let p = x && enclMap.get(x.parent); while (p && !seen.has(p.id)) { seen.add(p.id); out.unshift(p); p = enclMap.get(p.parent); } return out; };
 const descOf = x => { const out = [], seen = new Set([x.id]), stack = [x.id]; while (stack.length) { for (const c of kidsOf(stack.pop())) if (!seen.has(c.id)) { seen.add(c.id); out.push(c); stack.push(c.id); } } return out; };
 const pathText = x => pathOf(x).map(p => p.name).concat(x.name).join(' › ');
-const enclPath = n => { const x = n && enclByName.get(key(n)); return x ? pathOf(x).map(p => `<button class="linkish" type="button" data-ec="${esc(p.id)}">${esc(p.name)}</button> › `).join('') + enclLink(n) : esc(n || ''); };
+const enclPath = n => { const x = n && enclByName.get(key(n)); return x ? pathOf(x).map(p => `<button class="linkish" type="button" data-ec="${esc(p.id)}">${esc(dn(p))}</button> › `).join('') + enclLink(n) : esc(n || ''); };
 const INDENT = d => String.fromCharCode(160).repeat(3 * d);
 const byPlace = (a, b) => EK.indexOf(a.kind) - EK.indexOf(b.kind) || a.name.localeCompare(b.name, LOCALE[lang], {numeric: true});
 // places in tree order with depth; roots are places without a (shown) parent
@@ -315,6 +397,7 @@ function treeOrder(list) {
 }
 // where an animal is now: the latest of its card's enclosure and its latest transfer record
 const placeOf = cb => { const b = (st && st.birds.get(key(cb.name))) || {}; return b.encl && b.enclAt >= cb.enclAt ? {name: b.encl, at: b.enclAt} : {name: cb.encl, at: cb.enclAt}; };
+const incubDays = spId => toN(spInfo(spById(spId)).incub_days);
 const sexText = s => s === 'f' ? t('sex_f') : s === 'm' ? t('sex_m') : '';
 const authorName = id => { const p = profiles.get(id); return p ? (p.display_name || p.login) : ''; };
 const roleText = r => t('role_' + r);
@@ -348,11 +431,12 @@ function compute() {
 function details(r) {
   const f = r.f;
   switch (r.type) {
-    case 'expo': return (f.from ? f.from + ' → ' : '→ ') + (f.to || '');
+    case 'expo': return (f.from ? enDn(f.from) + ' → ' : '→ ') + enDn(f.to || '');
     case 'tstart': return [f.reason, f.drug, f.days ? t('d_course', f.days) : ''].filter(Boolean).join(' · ');
     case 'tdose': return f.drug || '';
     case 'tend': return f.result || '';
     case 'lay': return t('d_eggs', f.n || 1);
+    case 'incub': return f.days ? t('d_incub', f.days, fDay.format(r.at + f.days * 864e5)) : '';
     case 'hatch': case 'fledge': return t('d_chicks', f.n || 1);
     default: return '';
   }
@@ -480,7 +564,7 @@ async function dropPhotosOf(type, id) {
 /* ---------- render ---------- */
 const card = (r, full) => {
   const tp = T[r.type], d = details(r), s = spById(r.sp), au = r.by ? authorName(r.by) : '';
-  return `<button class="rec" type="button" data-edit="${esc(r.id)}"><span class="tile sm t-${tp.tone}">${ic(tp.icon, 18)}</span><span class="rb"><span class="rh"><b>${esc(evLabel(r.type))}</b><time>${full ? when(r.at) : fTime.format(r.at)}</time></span><span class="bird">${esc(r.bird)}${s ? ` <span class="spn">· ${esc(spName(s))}</span>` : ''}</span>${d ? `<span class="det">${esc(d)}</span>` : ''}${r.note ? `<span class="note">${esc(r.note)}</span>` : ''}${thumbs(photosOf('record', r.id))}${au ? `<span class="by">${esc(t('author') + au)}</span>` : ''}</span></button>`;
+  return `<button class="rec" type="button" data-edit="${esc(r.id)}"><span class="tile sm t-${tp.tone}">${ic(tp.icon, 18)}</span><span class="rb"><span class="rh"><b>${esc(evLabel(r.type))}</b><time>${full ? when(r.at) : fTime.format(r.at)}</time></span><span class="bird">${esc(bn(r.bird))}${s ? ` <span class="spn">· ${esc(spName(s))}</span>` : ''}</span>${d ? `<span class="det">${esc(d)}</span>` : ''}${r.note ? `<span class="note">${esc(r.note)}</span>` : ''}${thumbs(photosOf('record', r.id))}${au ? `<span class="by">${esc(t('author') + au)}</span>` : ''}</span></button>`;
 };
 
 function renderNow() {
@@ -512,7 +596,7 @@ function renderLogs() {
 
 function fillBirds(spId) {
   const ok = sp => !spId || spId === '__new' || sp === spId, names = new Map();
-  coll.filter(b => b.status !== 'out' && ok(b.sp)).forEach(b => names.set(key(b.name), b.name));
+  coll.filter(b => b.status !== 'out' && ok(b.sp)).forEach(b => names.set(key(b.name), dn(b)));
   if (st) for (const b of st.birds.values()) if (ok(b.sp) && !names.has(key(b.name))) names.set(key(b.name), b.name);
   $('#birds').innerHTML = [...names.values()].map(n => `<option value="${esc(n)}"></option>`).join('');
 }
@@ -544,13 +628,13 @@ function renderSpCard() {
   const rs = recs.filter(r => r.sp === s.id).sort((a, b) => b.at - a.at);
   const cbs = coll.filter(b => b.sp === s.id).sort(byName), cnames = new Set(cbs.map(b => key(b.name)));
   const others = birds.filter(b => !cnames.has(key(b.name)));
-  const bItems = cbs.map(cb => `<div class="ncard"><div class="nl"><button class="namelink" type="button" data-bc="${esc(cb.id)}">${esc(cb.name)}</button><small>${esc([cb.status === 'out' ? t('st_out') : '', stat(st.birds.get(key(cb.name)) || {})].filter(Boolean).join(' · '))}</small></div></div>`)
+  const bItems = cbs.map(cb => `<div class="ncard"><div class="nl"><button class="namelink" type="button" data-bc="${esc(cb.id)}">${esc(dn(cb))}</button><small>${esc([cb.status === 'out' ? t('st_out') : '', stat(st.birds.get(key(cb.name)) || {})].filter(Boolean).join(' · '))}</small></div></div>`)
     .concat(others.map(b => `<div class="ncard"><div class="nl"><b>${esc(b.name)}</b><small>${esc(stat(b) + ' · ' + t('not_in_coll_b'))}</small></div></div>`));
   const main = spName(s), txt = v => typeof v === 'string' ? v.trim() : '';
   const secCard = (k, icn, tone) => txt(inf[k]) ? `<article class="si-card"><h3><span class="tile sm t-${tone}">${ic(icn, 18)}</span>${esc(t('si_' + k))}</h3><p>${esc(txt(inf[k]))}</p></article>` : '';
   const wild = SI_WILD.map(([k, i]) => secCard(k, i, 'green')).join('');
   const zoo = SI_ZOO.map(([k, i]) => secCard(k, i, k === 'health' ? 'red' : 'amber')).join('');
-  const facts = [['si_tax', [txt(inf.order), txt(inf.family)].filter(Boolean).join(' · '), 'tag'], ['si_size', txt(inf.size), 'ruler'], ['si_life', txt(inf.life), 'clock']].filter(f => f[1]);
+  const facts = [['si_tax', [txt(inf.order), txt(inf.family)].filter(Boolean).join(' · '), 'tag'], ['si_size', txt(inf.size), 'ruler'], ['si_life', txt(inf.life), 'clock'], ['si_incub', toN(inf.incub_days) ? t('si_incub_v', toN(inf.incub_days)) : '', 'egg']].filter(f => f[1]);
   const names = [['RU', s.name, 'ru'], ['PL', s.pl, 'pl'], ['EN', s.en, 'en']].filter(v => v[1]);
   const photo = ph
     ? `<figure class="sp-photo"><button type="button" class="ph-open" data-lbu="${esc(ph.src)}" aria-label="${esc(t('open_photo'))}"><img src="${esc(ph.src)}" alt="${esc(main)}"></button>${ph.credit || ph.page ? `<figcaption>${esc(t('si_photo_by') + (ph.credit || ''))}${ph.page ? ` · <a href="${esc(ph.page)}" target="_blank" rel="noopener">Wikimedia Commons</a>` : ''}</figcaption>` : ''}</figure>`
@@ -582,7 +666,7 @@ function renderColl() {
   $('#coll-count').textContent = coll.length ? t('coll_count', act) : t('coll_count0');
   const sn = b => spName(spById(b.sp));
   const list = coll.filter(b => (cf === 'all' || (cf === 'out') === (b.status === 'out'))
-      && (!cq || [b.name, b.ring, b.chip].concat(spById(b.sp) ? spNames(spById(b.sp)) : []).some(x => key(x).includes(cq))))
+      && (!cq || allNames(b).concat(b.ring, b.chip).concat(spById(b.sp) ? spNames(spById(b.sp)) : []).some(x => key(x).includes(cq))))
     .sort((a, b) => (sn(a) || '￿').localeCompare(sn(b) || '￿', LOCALE[lang]) || byName(a, b));
   if (!list.length) { $('#coll-body').innerHTML = `<p class="empty" style="margin-top:16px">${esc(coll.length ? t('none_found') : t('coll_empty'))}</p>`; return; }
   let h = '', last = null;
@@ -591,11 +675,11 @@ function renderColl() {
     if (g !== last) { h += `<h2 class="day">${esc(g)}</h2>`; last = g; }
     const sb2 = st.birds.get(key(b.name)) || {};
     const encl = placeOf(b).name;
-    const sub = [sexText(b.sex), b.ring ? t('ring_n', b.ring) : '', encl].filter(Boolean).join(' · ');
+    const sub = [sexText(b.sex), b.ring ? t('ring_n', b.ring) : '', enDn(encl)].filter(Boolean).join(' · ');
     const flags = [b.status === 'out' ? t('st_out') : '', sb2.treat ? t('c_treat') : '', sb2.inc ? t('st_inc') : '', sb2.chicks ? sb2.chicks + ' ' + pw(sb2.chicks, 'chick') : ''].filter(Boolean).join(' · ');
     const ph = photosOf('bird', b.id)[0];
     const tile = ph ? `<span class="tile t-green" style="overflow:hidden">${thumbImg(ph).replace('<img', '<img style="width:100%;height:100%;object-fit:cover"')}</span>` : `<span class="tile t-green">${ic('bird')}</span>`;
-    h += `<button class="row" type="button" data-bc="${esc(b.id)}" style="margin-bottom:8px">${tile}<span class="rt"><b>${esc(b.name)}</b>${sub ? `<small>${esc(sub)}</small>` : ''}${flags ? `<small>${esc(flags)}</small>` : ''}</span><span class="chev">${ic('chev', 20)}</span></button>`;
+    h += `<button class="row" type="button" data-bc="${esc(b.id)}" style="margin-bottom:8px">${tile}<span class="rt"><b>${esc(dn(b))}</b>${sub ? `<small>${esc(sub)}</small>` : ''}${flags ? `<small>${esc(flags)}</small>` : ''}</span><span class="chev">${ic('chev', 20)}</span></button>`;
   }
   $('#coll-body').innerHTML = h;
 }
@@ -614,7 +698,8 @@ function renderBirdCard() {
   const fact = (l, v, raw) => v ? `<div><dt>${esc(t(l))}</dt><dd>${raw ? v : esc(v)}</dd></div>` : '';
   const n = esc(cb.name), main = spName(s);
   const enclDd = encl ? enclPath(encl) + (pl.at ? ` <small class="muted">· ${esc(t('en_since', fDate.format(pl.at)))}</small>` : '') : '';
-  box.innerHTML = backBtn('bird') + `<h1>${n}</h1>${s ? `<button class="linkish" type="button" data-sp="${esc(s.id)}">${esc(main)}${s.latin && s.latin !== main ? ' · ' + esc(s.latin) : ''}</button>` : `<p class="sp-meta">${esc(t('no_sp'))}</p>`}
+  const other = otherNames(cb);
+  box.innerHTML = backBtn('bird') + `<h1>${esc(dn(cb))}</h1>${other ? `<p class="sp-meta">${esc(other)}</p>` : ''}${s ? `<button class="linkish" type="button" data-sp="${esc(s.id)}">${esc(main)}${s.latin && s.latin !== main ? ' · ' + esc(s.latin) : ''}</button>` : `<p class="sp-meta">${esc(t('no_sp'))}</p>`}
 ${pills ? `<div class="pills">${pills}</div>` : ''}
 ${gallery(photosOf('bird', cb.id))}
 <dl class="facts">${fact('fa_sex', cap(sexText(cb.sex)))}${fact('fa_ring', cb.ring)}${fact('fa_chip', cb.chip)}${fact('fa_encl', enclDd, 1)}${fact('fa_born', cb.born ? fDate.format(ymd(cb.born)) + age(cb.born) : '')}${fact('fa_arrived', cb.arrived ? fDate.format(ymd(cb.arrived)) : '')}${fact('fa_origin', cb.origin)}</dl>
@@ -638,18 +723,18 @@ function renderEncls() {
   $('#ek-chips').innerHTML = chips.map(k => `<button class="chip" type="button" data-ek="${k}" aria-pressed="${ek === k}">${esc(t('ek_' + k))} <span class="chip-n">${cnt(k)}</span></button>`).join('');
   $('#ek-chips').hidden = chips.length < 3;
   const list = encls.filter(x => (ek === 'off' ? !x.active : x.active && (ek === 'all' || x.kind === ek))
-      && (!eq || [x.name, x.area, t('ek_' + x.kind)].concat(pathOf(x).map(p => p.name)).some(v => key(v).includes(eq))))
+      && (!eq || allNames(x).concat(x.area, t('ek_' + x.kind)).concat(...pathOf(x).map(allNames)).some(v => key(v).includes(eq))))
     .sort(byPlace);
   if (!list.length) { $('#encls-body').innerHTML = `<p class="empty" style="margin-top:16px">${esc(encls.length ? t('none_found') : t('encl_empty'))}</p>`; return; }
   const tree = ek === 'all' && !eq, rows = tree ? treeOrder(list) : list.map(x => [x, 0]);
   let h = '';
   for (const [x, d] of rows) {
     const n = occOf(x).length, over = x.cap && n > x.cap, desc = descOf(x), all = n + desc.reduce((s, c) => s + occOf(c).length, 0);
-    const where = tree ? '' : pathOf(x).map(p => p.name).join(' › ');
+    const where = tree ? '' : pathOf(x).map(dn).join(' › ');
     const sub = [t('ek_' + x.kind), where || x.area].filter(Boolean).join(' · ');
     const occ = desc.length ? [t('en_kids', kidsOf(x.id).length), t('en_total') + ': ' + t('en_n', all)].join(' · ')
       : n ? t('en_n', n) + (x.cap ? ' · ' + t('en_occ', n, x.cap) : '') : t('en_empty') + (x.cap ? ' · ' + t('en_occ', 0, x.cap) : '');
-    h += `<button class="row${d ? ' en-sub' : ''}" type="button" data-ec="${esc(x.id)}" style="margin-bottom:8px${d ? `;margin-left:${Math.min(d, 4) * 20}px;width:calc(100% - ${Math.min(d, 4) * 20}px)` : ''}">${enclTile(x, d > 0)}<span class="rt"><b>${esc(x.name)}</b>${sub ? `<small>${esc(sub)}</small>` : ''}<small${over ? ' class="warn-t"' : ''}>${esc(occ + (over ? ' · ' + t('en_full') : ''))}</small></span><span class="chev">${ic('chev', 20)}</span></button>`;
+    h += `<button class="row${d ? ' en-sub' : ''}" type="button" data-ec="${esc(x.id)}" style="margin-bottom:8px${d ? `;margin-left:${Math.min(d, 4) * 20}px;width:calc(100% - ${Math.min(d, 4) * 20}px)` : ''}">${enclTile(x, d > 0)}<span class="rt"><b>${esc(dn(x))}</b>${sub ? `<small>${esc(sub)}</small>` : ''}<small${over ? ' class="warn-t"' : ''}>${esc(occ + (over ? ' · ' + t('en_full') : ''))}</small></span><span class="chev">${ic('chev', 20)}</span></button>`;
   }
   $('#encls-body').innerHTML = h;
 }
@@ -667,14 +752,14 @@ function renderEnclCard() {
   const pills = `<span class="pill p-grey">${esc(t('ek_' + x.kind))}</span>${x.active ? '' : `<span class="pill p-grey">${esc(t('en_off_pill'))}</span>`}${over ? `<span class="pill p-red">${esc(t('en_full'))}</span>` : ''}`;
   const items = occ.map(o => {
     const s = spById(o.sp), cb = o.cb;
-    const nmh = cb ? `<button class="namelink" type="button" data-bc="${esc(cb.id)}">${esc(o.name)}</button>` : `<b>${esc(o.name)}</b>`;
+    const nmh = cb ? `<button class="namelink" type="button" data-bc="${esc(cb.id)}">${esc(dn(cb))}</button>` : `<b>${esc(o.name)}</b>`;
     const sub = [cb ? sexText(cb.sex) : t('not_in_coll_b'), cb && cb.ring ? t('ring_n', cb.ring) : '', o.since ? t('en_since', fDay.format(o.since)) : ''].filter(Boolean).join(' · ');
     const here = o.at || x;
-    return `<div class="ncard"><div class="nl">${nmh}${s ? `<button class="linkish" type="button" data-sp="${esc(s.id)}">${esc(spName(s))}</button>` : ''}${o.at ? `<small>${esc(t('en_in', ''))}<button class="linkish" type="button" data-ec="${esc(o.at.id)}">${esc(o.at.name)}</button></small>` : ''}${sub ? `<small>${esc(sub)}</small>` : ''}</div><div class="na"><button class="mini ghost w-only" type="button" data-new="expo" data-bird="${esc(o.name)}" data-from="${esc(here.name)}">${esc(t('en_move'))}</button></div></div>`;
+    return `<div class="ncard"><div class="nl">${nmh}${s ? `<button class="linkish" type="button" data-sp="${esc(s.id)}">${esc(spName(s))}</button>` : ''}${o.at ? `<small>${esc(t('en_in', ''))}<button class="linkish" type="button" data-ec="${esc(o.at.id)}">${esc(dn(o.at))}</button></small>` : ''}${sub ? `<small>${esc(sub)}</small>` : ''}</div><div class="na"><button class="mini ghost w-only" type="button" data-new="expo" data-bird="${esc(o.name)}" data-from="${esc(here.name)}">${esc(t('en_move'))}</button></div></div>`;
   });
-  const crumbs = pathOf(x).map(p => `<button class="linkish" type="button" data-ec="${esc(p.id)}">${esc(p.name)}</button>`).join(' › ');
-  const kidRows = kids.map(c => { const m = occOf(c).length + descOf(c).reduce((a, z) => a + occOf(z).length, 0); return `<button class="row" type="button" data-ec="${esc(c.id)}" style="margin-bottom:8px">${enclTile(c, 1)}<span class="rt"><b>${esc(c.name)}</b><small>${esc([t('ek_' + c.kind), kidsOf(c.id).length ? t('en_kids', kidsOf(c.id).length) : '', m ? t('en_n', m) : t('en_empty')].filter(Boolean).join(' · '))}</small></span><span class="chev">${ic('chev', 20)}</span></button>`; }).join('');
-  box.innerHTML = backBtn('encl') + `${crumbs ? `<p class="en-crumbs">${crumbs} ›</p>` : ''}<div class="en-head">${enclTile(x)}<div><h1>${esc(x.name)}</h1><div class="pills">${pills}</div></div></div>
+  const crumbs = pathOf(x).map(p => `<button class="linkish" type="button" data-ec="${esc(p.id)}">${esc(dn(p))}</button>`).join(' › ');
+  const kidRows = kids.map(c => { const m = occOf(c).length + descOf(c).reduce((a, z) => a + occOf(z).length, 0); return `<button class="row" type="button" data-ec="${esc(c.id)}" style="margin-bottom:8px">${enclTile(c, 1)}<span class="rt"><b>${esc(dn(c))}</b><small>${esc([t('ek_' + c.kind), kidsOf(c.id).length ? t('en_kids', kidsOf(c.id).length) : '', m ? t('en_n', m) : t('en_empty')].filter(Boolean).join(' · '))}</small></span><span class="chev">${ic('chev', 20)}</span></button>`; }).join('');
+  box.innerHTML = backBtn('encl') + `${crumbs ? `<p class="en-crumbs">${crumbs} ›</p>` : ''}<div class="en-head">${enclTile(x)}<div><h1>${esc(dn(x))}</h1>${otherNames(x) ? `<p class="sp-meta">${esc(otherNames(x))}</p>` : ''}<div class="pills">${pills}</div></div></div>
 ${gallery(photosOf('encl', x.id))}
 <dl class="facts">${fact('ef_area', x.area)}${fact('ef_size', x.size)}${fact('en_fill', x.cap ? t('en_occ', occOf(x).length, x.cap) : '')}${desc.length ? fact('en_total', t('en_n', n)) : ''}</dl>
 ${x.note ? `<p class="sp-note">${esc(x.note)}</p>` : ''}
@@ -682,6 +767,108 @@ ${x.note ? `<p class="sp-note">${esc(x.note)}</p>` : ''}
 ${kids.length || ['building', 'room', 'aviary'].includes(x.kind) ? `<section class="nsec"><h2 class="nh">${esc(t('en_inside'))}<span class="nc">${kids.length}</span></h2>${kidRows || `<p class="empty">${esc(t('en_no_kids'))}</p>`}<button class="mini ghost w-only" type="button" data-encl-new data-parent="${esc(x.id)}" style="margin-top:4px">${esc('+ ' + t('en_add_inside'))}</button></section>` : ''}
 <section class="nsec"><h2 class="nh">${esc(t('en_now'))}<span class="nc">${n}</span></h2>${n ? items.join('') : `<p class="empty">${esc(t('en_none'))}</p>`}</section>
 <section class="nsec"><h2 class="nh">${esc(t('en_hist'))}<span class="nc">${moves.length}</span></h2>${moves.length ? moves.slice(0, 100).map(r => card(r, true)).join('') : `<p class="empty">${esc(t('en_nohist'))}</p>`}</section>`;
+}
+
+/* ---------- change log ---------- */
+function logLine(x) {
+  if (x.kind === 'dev') return x.summary;
+  const what = x.entity === 'records' && x.extra && T[x.extra.type] ? evLabel(x.extra.type) + ' · ' + bn(x.label) : x.entity === 'photos' ? t('le_' + (x.extra && x.extra.owner ? 'photos' : 'photos')) : t('le_' + x.entity) + (x.label ? ' «' + (x.entity === 'collection' ? bn(x.label) : x.entity === 'enclosures' ? enDn(x.label) : x.label) + '»' : '');
+  const f = (x.fields || []).map(k => t('lf_' + k) === 'lf_' + k ? k : t('lf_' + k)).filter((v, i, a) => a.indexOf(v) === i).join(', ');
+  return t('lg_' + x.action) + ': ' + what + (x.action === 'update' && f ? ' — ' + f : '') + (x.summary ? ' — ' + x.summary : '');
+}
+function renderLog() {
+  if (!$('#log-body')) return;
+  $('#log-count').textContent = t('log_count', logRows.length);
+  const cnt = k => logRows.filter(x => k === 'all' || x.kind === k).length;
+  $('#lg-chips').innerHTML = ['all', 'user', 'dev'].map(k => `<button class="chip" type="button" data-lgf="${k}" aria-pressed="${lgf === k}">${esc(t('lg_' + k))} <span class="chip-n">${cnt(k)}</span></button>`).join('');
+  const list = logRows.filter(x => lgf === 'all' || x.kind === lgf);
+  if (!list.length) { $('#log-body').innerHTML = `<p class="empty">${esc(t('log_empty'))}</p>`; return; }
+  let h = '', last = '';
+  for (const x of list) {
+    const k = dayKey(x.at);
+    if (k !== last) { h += `<h2 class="day">${esc(dayTitle(x.at))}</h2>`; last = k; }
+    const who = x.kind === 'dev' ? t('lg_dev_who') : x.actor ? authorName(x.actor) || '—' : t('lg_sys');
+    h += `<div class="lg-row${x.kind === 'dev' ? ' dev' : ''}"><time>${esc(fTime.format(x.at))}</time><span class="lg-t"><b>${esc(who)}</b> ${esc(logLine(x))}</span>${isAdmin() ? `<button type="button" class="lg-del${logDelArmed === String(x.id) ? ' armed' : ''}" data-lg-del="${esc(x.id)}" aria-label="${esc(t('lg_del'))}">${logDelArmed === String(x.id) ? esc(t('lg_del2')) : ic('x', 16, 2.2)}</button>` : ''}</div>`;
+  }
+  $('#log-body').innerHTML = h;
+}
+
+/* ---------- calendar ---------- */
+const DAY = 864e5;
+const midnight = ms => { const d = new Date(ms); return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); };
+const dayDiff = (a, b) => Math.round((midnight(b) - midnight(a)) / DAY);
+const CAL_DOT = ['lay', 'incub', 'hatch', 'fledge', 'tstart', 'tend', 'expo'];
+// points are single events, bars are periods (incubation until hatching, a course of treatment)
+function calItems() {
+  const out = [], byBird = new Map();
+  for (const r of recs) { const k = key(r.bird); if (!byBird.has(k)) byBird.set(k, []); byBird.get(k).push(r); }
+  const nextOf = (r, type, until) => (byBird.get(key(r.bird)) || []).filter(x => x.type === type && x.at > r.at && x.at <= until).sort((a, b) => a.at - b.at)[0];
+  for (const r of recs) {
+    if (CAL_DOT.includes(r.type)) out.push({k: 'd:' + r.id, bar: 0, s: r.at, e: r.at, r, tone: T[r.type].tone, txt: bn(r.bird) + ', ' + t('cl_' + r.type)});
+    if (r.type === 'incub') {
+      const days = r.f.days || incubDays(r.sp);
+      if (!days) continue;
+      const exp = r.at + days * DAY, h = nextOf(r, 'hatch', exp + 21 * DAY), inc2 = nextOf(r, 'incub', exp);
+      const end = h ? h.at : inc2 ? inc2.at : exp;
+      out.push({k: 'i:' + r.id, bar: 1, s: r.at, e: end, r, tone: 'amber', pend: !h && !inc2, txt: bn(r.bird) + ', ' + (h ? t('cl_incub_done') : t('cl_incub_p', fDay.format(exp)))});
+    }
+    if (r.type === 'tstart' && r.f.days) {
+      const exp = r.at + (r.f.days - 1) * DAY, en = nextOf(r, 'tend', exp + 60 * DAY);
+      out.push({k: 't:' + r.id, bar: 1, s: r.at, e: en ? Math.min(en.at, Math.max(exp, r.at)) : exp, r, tone: 'red', pend: !en, txt: bn(r.bird) + ', ' + t('cl_treat_p') + (r.f.drug ? ' · ' + r.f.drug : '')});
+    }
+  }
+  return out;
+}
+function renderCal() {
+  if (!$('#cal-grid')) return;
+  const L = LOCALE[lang], y = calM.getFullYear(), m = calM.getMonth();
+  $('#cal-title').textContent = cap(new Intl.DateTimeFormat(L, {month: 'long', year: 'numeric'}).format(calM));
+  const wd = new Intl.DateTimeFormat(L, {weekday: 'short'});
+  $('#cal-dow').innerHTML = [0, 1, 2, 3, 4, 5, 6].map(i => `<span>${esc(wd.format(new Date(2024, 0, 1 + i)))}</span>`).join('');
+  const first = new Date(y, m, 1), start = new Date(y, m, 1 - (first.getDay() + 6) % 7).getTime();
+  const last = new Date(y, m + 1, 0), weeks = Math.ceil((dayDiff(start, last.getTime()) + 1) / 7);
+  const items = calItems(), dots = items.filter(i => !i.bar), bars = items.filter(i => i.bar), today = midnight(Date.now());
+  let h = '';
+  for (let w = 0; w < weeks; w++) {
+    const ws = new Date(y, m, 1 - (first.getDay() + 6) % 7 + w * 7).getTime();
+    const segs = bars.map(b => ({b, a: dayDiff(ws, b.s), z: dayDiff(ws, b.e)})).filter(g => g.z >= 0 && g.a <= 6).sort((p, q) => p.a - q.a || q.z - p.z);
+    const lanes = [];
+    for (const g of segs) { let l = lanes.findIndex(end => end < Math.max(0, g.a)); if (l < 0) { l = lanes.length; lanes.push(-1); } lanes[l] = Math.min(6, g.z); g.l = l; }
+    const nl = Math.min(lanes.length, 4);
+    let cells = '';
+    for (let i = 0; i < 7; i++) {
+      const dms = new Date(y, m, 1 - (first.getDay() + 6) % 7 + w * 7 + i).getTime(), dd = new Date(dms);
+      const ds = dots.filter(x => midnight(x.s) === dms).sort((p, q) => p.s - q.s);
+      const shown = ds.slice(0, ds.length > 4 ? 3 : 4);
+      cells += `<div class="cd${dd.getMonth() !== m ? ' out' : ''}" style="grid-column:${i + 1};grid-row:1/span ${nl + 2}"></div><div class="cc${dd.getMonth() !== m ? ' out' : ''}${dms === today ? ' now' : ''}" style="grid-column:${i + 1};grid-row:1"><span class="cn">${dd.getDate()}</span><span class="cds">${shown.map(x => `<button type="button" class="cdot k-${x.tone}${calSel === x.k ? ' sel' : ''}" data-ci="${esc(x.k)}" aria-label="${esc(x.txt)}"></button>`).join('')}${ds.length > shown.length ? `<button type="button" class="cmore" data-ci="${esc('m:' + dms)}">${esc(t('cal_more', ds.length - shown.length))}</button>` : ''}</span></div>`;
+    }
+    const barsH = segs.filter(g => g.l < 4).map(g => `<button type="button" class="cbar k-${g.b.tone}${g.b.pend ? ' pend' : ''}${g.a < 0 ? ' cl' : ''}${g.z > 6 ? ' cr' : ''}${calSel === g.b.k ? ' sel' : ''}" data-ci="${esc(g.b.k)}" aria-label="${esc(g.b.txt)}" style="grid-column:${Math.max(0, g.a) + 1}/${Math.min(6, g.z) + 2};grid-row:${g.l + 2}"></button>`).join('');
+    h += `<div class="cw" style="grid-template-rows:minmax(30px,auto)${' 13px'.repeat(nl)} 6px">${cells}${barsH}</div>`;
+  }
+  $('#cal-grid').innerHTML = h;
+  const ms0 = first.getTime(), ms1 = new Date(y, m + 1, 1).getTime();
+  const inMonth = items.filter(x => x.e >= ms0 && x.s < ms1).sort((p, q) => p.s - q.s || p.bar - q.bar);
+  $('#cal-n').textContent = inMonth.length;
+  $('#cal-list').innerHTML = inMonth.length ? inMonth.map(x => `<button class="row cal-row" type="button" data-co="${esc(x.k)}"><span class="cl-d">${esc(fDay.format(x.s))}${x.bar ? ' – ' + esc(fDay.format(x.e)) : ''}</span><span class="${x.bar ? 'cleg' : 'cdot'} k-${x.tone}${x.pend ? ' pend' : ''}"></span><span class="rt"><b>${esc(x.txt)}</b></span><span class="chev">${ic('chev', 18)}</span></button>`).join('') : `<p class="empty">${esc(t('cal_none'))}</p>`;
+  const tip = $('#cal-tip'), sel = calSel && $(`#cal-grid [data-ci="${CSS.escape(calSel)}"]`);
+  if (!sel) { tip.hidden = true; return; }
+  const it = items.find(x => x.k === calSel);
+  const txt = it ? esc(it.txt) : dots.filter(x => 'm:' + midnight(x.s) === calSel).map(x => esc(x.txt)).join('<br>');
+  tip.innerHTML = `<b>${txt}</b>${it ? `<small>${esc(t('cal_tap2'))}</small>` : ''}`;
+  tip.hidden = false;
+  const box = $('.cal-box').getBoundingClientRect(), r = sel.getBoundingClientRect();
+  tip.style.left = Math.max(4, Math.min(box.width - 244, r.left - box.left + r.width / 2 - 120)) + 'px';
+  tip.style.top = (r.bottom - box.top + 6) + 'px';
+}
+// opens the animal card scrolled to the record (or the record itself when the animal has no card)
+function openCalItem(k) {
+  const it = calItems().find(x => x.k === k);
+  if (!it) return;
+  const r = it.r, cb = collByName.get(key(r.bird));
+  calSel = '';
+  if (!cb) { openForm(r.type, null, r); return; }
+  openCard('bird', cb.id);
+  requestAnimationFrame(() => { const el = $(`#bird-body [data-edit="${CSS.escape(r.id)}"]`); if (el) { el.scrollIntoView({block: 'center'}); el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 2400); } });
 }
 
 function renderUsers() {
@@ -738,6 +925,8 @@ function render() {
   renderBirdCard();
   renderEncls();
   renderEnclCard();
+  renderCal();
+  renderLog();
   renderUsers();
   renderAccount();
   paintPhotos();
@@ -768,7 +957,7 @@ function setLang(l) {
   mkFmt(); applyStatic(); render();
 }
 
-const TAB_OF = {species: 'menu', sp: 'menu', coll: 'menu', bird: 'menu', users: 'menu', encls: 'menu', encl: 'menu'};
+const TAB_OF = {species: 'menu', sp: 'menu', coll: 'menu', bird: 'menu', users: 'menu', encls: 'menu', encl: 'menu', log: 'menu'};
 function setTab(v) {
   tab = v;
   const hi = TAB_OF[v] || v;
@@ -811,7 +1000,7 @@ function spSelect(val, p = 'fld') {
 function enclSelect(f, val) {
   const id = f.id || 'fld-' + f.k, v = String(val || '').trim(), cur = v ? enclByName.get(key(v)) : null;
   const groups = treeOrder(encls.filter(x => x.active || x === cur)).map(([x, d]) =>
-    `<option value="${esc(x.name)}"${x === cur ? ' selected' : ''}>${INDENT(d)}${esc(x.name)} · ${esc(t('ek_' + x.kind))}</option>`).join('');
+    `<option value="${esc(x.name)}"${x === cur ? ' selected' : ''}>${INDENT(d)}${esc(dn(x))} · ${esc(t('ek_' + x.kind))}</option>`).join('');
   const unreg = v && !cur ? `<option value="${esc(v)}" selected>${esc(v + t('encl_unreg'))}</option>` : '';
   return `<div class="fld"><label for="${id}">${esc(t(f.l))}${f.req ? '&nbsp;<span class="req" aria-hidden="true">*</span>' : ''}</label><select id="${id}" name="${f.k}" data-encl${f.req ? ' aria-required="true"' : ''}><option value="">${esc(t('encl_none_opt'))}</option>${unreg}${groups}<option value="__new">${esc(t('encl_new_opt'))}</option></select></div>`
     + `<div class="fld" id="${id}-new-wrap" hidden><label for="${id}-new">${esc(t('encl_new_name'))}</label><input id="${id}-new" name="${f.k}_new" type="text" autocomplete="off"></div>`;
@@ -841,6 +1030,11 @@ async function ensureEncl(name) {
   return name.trim();
 }
 
+// "+ add a name" rows: a language picker and the name in that language
+const nameRow = (l, v) => `<div class="nm-row"><select name="nl" aria-label="${esc(t('alt_lang'))}">${LANGS.map(o => `<option value="${o}"${o === l ? ' selected' : ''}>${LANG_NAME[o]}</option>`).join('')}</select><input name="nv" type="text" autocomplete="off" value="${esc(v || '')}" aria-label="${esc(t('alt_name'))}"><button type="button" class="x" data-nm-rm aria-label="${esc(t('alt_rm'))}">${ic('x', 18, 2.2)}</button></div>`;
+const namesEditor = list => `<div class="fld nm-ed"><span class="lbl">${esc(t('alt_names'))}</span><div class="nm-rows">${(list || []).map(n => nameRow(n.l, n.v)).join('')}</div><button type="button" class="mini ghost" data-nm-add>${esc('+ ' + t('alt_add'))}</button><p class="hint">${esc(t('alt_hint'))}</p></div>`;
+const readNames = fd => { const ls = fd.getAll('nl'), vs = fd.getAll('nv'), seen = new Set(); return vs.map((v, i) => ({l: String(ls[i] || ''), v: String(v || '').trim().slice(0, 120)})).filter(n => LANGS.includes(n.l) && n.v && !seen.has(n.l + key(n.v)) && seen.add(n.l + key(n.v))).slice(0, 12); };
+
 function activeDrug(bird) { const b = st && st.birds.get(key(bird)); return b && b.treat ? b.treat.drug : ''; }
 
 function openForm(type, pre, rec) {
@@ -854,12 +1048,14 @@ function openForm(type, pre, rec) {
   const fi = $('#f-icon'); fi.className = 'tile t-' + tp.tone; fi.innerHTML = ic(tp.icon);
   const pre2 = Object.assign({}, pre || {});
   if (!pre2.bird && presetBird) pre2.bird = presetBird;
-  const v = rec ? Object.assign({bird: rec.bird, at: rec.at, note: rec.note, sp: rec.sp}, rec.f) : Object.assign({at: Date.now()}, pre2);
+  if (pre2.bird) pre2.bird = bn(pre2.bird);
+  const v = rec ? Object.assign({bird: bn(rec.bird), at: rec.at, note: rec.note, sp: rec.sp}, rec.f) : Object.assign({at: Date.now()}, pre2);
   if (!rec) {
     for (const f of tp.fields) if (v[f.k] == null && f.def != null) v[f.k] = f.def;
-    if (type === 'tdose' && v.bird && !v.drug) v.drug = activeDrug(v.bird);
+    if (type === 'tdose' && v.bird && !v.drug) v.drug = activeDrug(canonBird(v.bird));
     if (v.bird && !v.sp) v.sp = spOfBird(v.bird);
-    if (type === 'expo' && v.bird && !v.from) { const cb = collByName.get(key(v.bird)); v.from = cb ? placeOf(cb).name : ((st && st.birds.get(key(v.bird))) || {}).encl || ''; }
+    if (type === 'incub' && v.days == null && incubDays(v.sp)) v.days = incubDays(v.sp);
+    if (type === 'expo' && v.bird && !v.from) { const cb = collByName.get(key(canonBird(v.bird))); v.from = cb ? placeOf(cb).name : ((st && st.birds.get(key(v.bird))) || {}).encl || ''; }
   }
   let h = spSelect(v.sp) + field({k:'bird', l:'f_bird', t:'text', req:1, list:'birds'}, v.bird);
   for (const f of tp.fields) h += type === 'expo' ? enclSelect(f, v[f.k]) : field(f, v[f.k]);
@@ -874,15 +1070,18 @@ function openForm(type, pre, rec) {
   const del = $('#f-del'); del.hidden = !rec || !editable; del.textContent = t('del_rec');
   phRec = photoBox('f-ph', 'record', rec ? rec.id : null, editable);
   const bird = $('#fld-bird'), sel = $('#fld-sp'), wrap = $('#fld-newsp-wrap');
-  const syncSp = () => { wrap.hidden = sel.value !== '__new'; fillBirds(sel.value); };
+  const days = type === 'incub' && !rec ? $('#fld-days') : null;
+  if (days) { days.dataset.auto = days.value ? '1' : ''; days.addEventListener('input', () => { days.dataset.auto = ''; }); }
+  const autoDays = () => { if (days && (!days.value || days.dataset.auto) && incubDays(sel.value)) { days.value = incubDays(sel.value); days.dataset.auto = '1'; } };
+  const syncSp = () => { wrap.hidden = sel.value !== '__new'; fillBirds(sel.value); autoDays(); };
   if (!species.length && !rec) sel.value = '__new';
   syncSp();
   sel.addEventListener('change', () => { syncSp(); if (sel.value === '__new') $('#fld-newsp').focus(); });
   bird.addEventListener('change', () => {
     const bs = spOfBird(bird.value);
-    if (bs && (!sel.value || sel.value === '__new')) { sel.value = bs; syncSp(); }
-    if (type === 'tdose') { const d = $('#fld-drug'); if (d && !d.value) d.value = activeDrug(bird.value); }
-    if (type === 'expo') { const fr = $('#fld-from'), cb = collByName.get(key(bird.value)); if (fr && !fr.value && cb) setEnclSel(fr, placeOf(cb).name); }
+    if (bs && (!sel.value || sel.value === '__new')) { sel.value = bs; syncSp(); } else autoDays();
+    if (type === 'tdose') { const d = $('#fld-drug'); if (d && !d.value) d.value = activeDrug(canonBird(bird.value)); }
+    if (type === 'expo') { const fr = $('#fld-from'), cb = collByName.get(key(canonBird(bird.value))); if (fr && !fr.value && cb) setEnclSel(fr, placeOf(cb).name); }
   });
   openSheet('form');
 }
@@ -913,6 +1112,7 @@ const LOADERS = {
   enclosures: async () => { encls = (await fetchAll('enclosures', 'created_at')).map(fromEncl).filter(Boolean); },
   collection: async () => { coll = (await fetchAll('collection', 'created_at')).map(fromBird).filter(Boolean); },
   photos: async () => { photos = (await fetchAll('photos', 'created_at')).map(fromPhoto); },
+  change_log: async () => { logRows = (must(await sb.from('change_log').select('*').order('at', {ascending: false}).limit(1000)) || []).map(x => Object.assign({}, x, {at: ms(x.at)})); },
   profiles: async () => {
     const rows = await fetchAll('profiles', 'created_at');
     profiles = new Map(rows.map(p => [p.id, p]));
@@ -1015,7 +1215,7 @@ $('#form').addEventListener('submit', async e => {
   const spSel = String(fd.get('sp') || ''), newName = String(fd.get('newsp') || '').trim();
   if (!spSel) return err(t('e_pick_sp'));
   if (spSel === '__new' && !newName) return err(t('e_new_sp'));
-  const bird = String(fd.get('bird') || '').trim();
+  const bird = canonBird(String(fd.get('bird') || '').trim());
   if (!bird) return err(t('e_bird'));
   const at = fromInput(fd.get('at'));
   if (!isFinite(at)) return err(t('e_at'));
@@ -1058,7 +1258,7 @@ function openBirdForm(cb) {
   $('#bf-sub').textContent = cb ? t('editing') : t('bf_sub_new');
   const v = cb || {sp: tab === 'sp' ? curSp : '', status: 'active'};
   const opt = (val, cur, label) => `<option value="${val}"${val === (cur || '') ? ' selected' : ''}>${esc(label)}</option>`;
-  $('#bf-fields').innerHTML = field({k: 'name', l: 'bf_name', t: 'text', req: 1, id: 'bf-name'}, v.name) + spSelect(v.sp, 'bf')
+  $('#bf-fields').innerHTML = field({k: 'name', l: 'bf_name', t: 'text', req: 1, id: 'bf-name'}, v.name) + namesEditor(v.names) + spSelect(v.sp, 'bf')
     + `<div class="fld"><label for="bf-sex">${esc(t('fa_sex'))}</label><select id="bf-sex" name="sex">${opt('', v.sex, t('sex_u'))}${opt('f', v.sex, cap(t('sex_f')))}${opt('m', v.sex, cap(t('sex_m')))}</select></div>`
     + field({k: 'ring', l: 'bf_ring', t: 'text', id: 'bf-ring'}, v.ring) + field({k: 'chip', l: 'bf_chip', t: 'text', id: 'bf-chip'}, v.chip)
     + field({k: 'born', l: 'fa_born', t: 'date', id: 'bf-born'}, v.born) + field({k: 'arrived', l: 'bf_arrived', t: 'date', id: 'bf-arrived'}, v.arrived)
@@ -1090,7 +1290,7 @@ $('#bird-form').addEventListener('submit', async e => {
   const date = k => /^\d{4}-\d{2}-\d{2}$/.test(g(k)) ? g(k) : '', now = Date.now(), encl = pe.name, cur = old ? placeOf(old).name : '';
   const b = {name, sp: spSel, sex: g('sex'), ring: g('ring'), chip: g('chip'), born: date('born'), arrived: date('arrived'), origin: g('origin'),
     encl: old && key(cur) === key(encl) ? old.encl : encl,
-    enclAt: old && key(cur) === key(encl) ? old.enclAt : (encl ? Math.floor(now / 60000) * 60000 : 0), status: g('status') === 'out' ? 'out' : 'active', note: g('note')};
+    enclAt: old && key(cur) === key(encl) ? old.enclAt : (encl ? Math.floor(now / 60000) * 60000 : 0), status: g('status') === 'out' ? 'out' : 'active', note: g('note'), names: readNames(fd)};
   await withBusy($('#bf-save'), async () => {
     try {
       if (spSel === '__new') b.sp = await ensureSpecies(newName);
@@ -1124,9 +1324,9 @@ function openEnclForm(x, parentId) {
   const v = x || {kind: par ? ({building: 'room', room: 'enclosure'}[par.kind] || 'enclosure') : ek !== 'all' && ek !== 'off' ? ek : 'enclosure', active: true, parent: par ? par.id : ''};
   const banned = x ? new Set([x.id].concat(descOf(x).map(z => z.id))) : new Set();
   const parOpts = treeOrder(encls.filter(z => !banned.has(z.id) && (z.active || z.id === v.parent))).map(([z, d]) =>
-    `<option value="${esc(z.id)}"${z.id === v.parent ? ' selected' : ''}>${INDENT(d)}${esc(z.name)} · ${esc(t('ek_' + z.kind))}</option>`).join('');
+    `<option value="${esc(z.id)}"${z.id === v.parent ? ' selected' : ''}>${INDENT(d)}${esc(dn(z))} · ${esc(t('ek_' + z.kind))}</option>`).join('');
   const opt = (val, cur, label) => `<option value="${val}"${val === cur ? ' selected' : ''}>${esc(label)}</option>`;
-  $('#ef-fields').innerHTML = field({k: 'name', l: 'ef_name', t: 'text', req: 1, id: 'ef-name', ph: 'ef_name_ph', ac: 'off'}, v.name)
+  $('#ef-fields').innerHTML = field({k: 'name', l: 'ef_name', t: 'text', req: 1, id: 'ef-name', ph: 'ef_name_ph', ac: 'off'}, v.name) + namesEditor(v.names)
     + `<div class="fld"><label for="ef-kind">${esc(t('ef_kind'))}</label><select id="ef-kind" name="kind">${EK.map(k => opt(k, v.kind, t('ek_' + k))).join('')}</select></div>`
     + `<div class="fld"><label for="ef-parent">${esc(t('ef_parent'))}</label><select id="ef-parent" name="parent"><option value="">${esc(t('ef_top'))}</option>${parOpts}</select></div>`
     + field({k: 'area', l: 'ef_area', t: 'text', id: 'ef-area', ph: 'ef_area_ph'}, v.area)
@@ -1148,7 +1348,7 @@ $('#encl-form').addEventListener('submit', async e => {
   if (encls.some(x => key(x.name) === key(name) && (!old || x.id !== old.id))) return err(t('e_edup'));
   if (phEncl && phEncl.busy) return;
   const x = {name, kind: EK.includes(g('kind')) ? g('kind') : 'other', area: g('area'), size: g('size'), cap: Math.min(10000, toN(g('cap'))),
-    active: old ? g('state') !== 'off' : true, note: g('note'), parent: enclMap.has(g('parent')) ? g('parent') : ''};
+    active: old ? g('state') !== 'off' : true, note: g('note'), parent: enclMap.has(g('parent')) ? g('parent') : '', names: readNames(fd)};
   if (old && x.parent && (x.parent === old.id || descOf(old).some(z => z.id === x.parent))) return err(t('e_cycle'));
   await withBusy($('#ef-save'), async () => {
     try {
@@ -1174,7 +1374,7 @@ $('#ef-del').addEventListener('click', async () => {
 
 const SPF = ['name', 'latin', 'pl', 'en'];
 const SIF = [['group', 'select', 'sf_group'], ['iucn', 'select', 'sf_iucn'], ['cites', 'text', 'si_cites'], ['order', 'text', 'sf_order'], ['family', 'text', 'sf_family'],
-  ['syn', 'text', 'si_syn'], ['size', 'text', 'si_size'], ['life', 'text', 'si_life'], ['sex', 'textarea', 'si_sex'],
+  ['syn', 'text', 'si_syn'], ['size', 'text', 'si_size'], ['life', 'text', 'si_life'], ['incub_days', 'number', 'sf_incub_days'], ['sex', 'textarea', 'si_sex'],
   ['range', 'textarea', 'si_range'], ['habitat', 'textarea', 'si_habitat'], ['diet_wild', 'textarea', 'si_diet_wild'], ['behaviour', 'textarea', 'si_behaviour'],
   ['breeding', 'textarea', 'si_breeding'], ['diet_zoo', 'textarea', 'si_diet_zoo'], ['husbandry', 'textarea', 'si_husbandry'], ['health', 'textarea', 'si_health'],
   ['photo.src', 'url', 'sf_photo'], ['photo.credit', 'text', 'sf_photo_credit'], ['photo.page', 'url', 'sf_photo_page']];
@@ -1307,6 +1507,32 @@ document.addEventListener('click', e => {
   if (jp) { const x = $('#' + jp.dataset.jump); if (x) x.scrollIntoView({block: 'start', behavior: 'smooth'}); return; }
   const sgb = e.target.closest('[data-sg]');
   if (sgb) { sg = sgb.dataset.sg; renderSpecies(); return; }
+  const lgfb = e.target.closest('[data-lgf]');
+  if (lgfb) { lgf = lgfb.dataset.lgf; renderLog(); return; }
+  const lgd = e.target.closest('[data-lg-del]');
+  if (lgd) {
+    if (!isAdmin()) return;
+    if (logDelArmed !== lgd.dataset.lgDel) { logDelArmed = lgd.dataset.lgDel; renderLog(); return; }
+    const id = logDelArmed; logDelArmed = '';
+    sb.from('change_log').delete().eq('id', id).then(res => { if (res.error) { toast(errMsg(res.error)); return; } logRows = logRows.filter(x => String(x.id) !== id); renderLog(); toast(t('t_log_del')); });
+    return;
+  }
+  if (logDelArmed) { logDelArmed = ''; renderLog(); }
+  const nma = e.target.closest('[data-nm-add]');
+  if (nma) { const box = nma.parentElement.querySelector('.nm-rows'), used = $$('select[name=nl]', box).map(x => x.value); box.insertAdjacentHTML('beforeend', nameRow(LANGS.find(l => !used.includes(l) && l !== lang) || LANGS.find(l => !used.includes(l)) || lang, '')); box.lastElementChild.querySelector('input').focus(); return; }
+  const nmr = e.target.closest('[data-nm-rm]');
+  if (nmr) { nmr.closest('.nm-row').remove(); return; }
+  const cnav = e.target.closest('[data-cal-nav]');
+  if (cnav) { const n = +cnav.dataset.calNav, d = new Date(); calM = n ? new Date(calM.getFullYear(), calM.getMonth() + n, 1) : new Date(d.getFullYear(), d.getMonth(), 1); calSel = ''; renderCal(); return; }
+  const ci = e.target.closest('[data-ci],[data-co]');
+  if (ci) {
+    if (ci.dataset.co) openCalItem(ci.dataset.co);
+    else if (calSel === ci.dataset.ci && !ci.dataset.ci.startsWith('m:')) openCalItem(ci.dataset.ci);
+    else { calSel = ci.dataset.ci; renderCal(); }
+    return;
+  }
+  if (calSel && e.target.closest('#cal-tip') && !calSel.startsWith('m:')) { openCalItem(calSel); return; }
+  if (calSel && e.target.closest('#view-cal')) { calSel = ''; renderCal(); }
   const ekb = e.target.closest('[data-ek]');
   if (ekb) { ek = ekb.dataset.ek; renderEncls(); return; }
   const ecb = e.target.closest('[data-ec],[data-encl-new],[data-encl-edit]');
@@ -1389,7 +1615,7 @@ function applyRole() {
   document.body.classList.toggle('admin', isAdmin());
 }
 function resetState() {
-  me = null; myProfile = null; recs = []; species = []; coll = []; encls = []; photos = []; profiles = new Map(); urlCache.clear();
+  me = null; myProfile = null; recs = []; species = []; coll = []; encls = []; photos = []; logRows = []; profiles = new Map(); urlCache.clear();
   if (channel && sb) { sb.removeChannel(channel); channel = null; }
   document.body.classList.remove('ro', 'admin');
 }
