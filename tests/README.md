@@ -12,6 +12,7 @@ for t in tests/test_*.py; do python "$t" /tmp/shots || echo "FAIL $t"; done
 
 Если Chromium из Playwright недоступен, укажи свой браузер: `CHROME=/usr/bin/google-chrome`.
 
+- `test_modules.py` — без браузера: список модулей `js/` совпадает в `index.html`, `sw.js` и папке, `docs/codemap.md` актуален.
 - `test_encl.py` — общая настройка (`page()`, `add_encl()`, `add_bird()`, `esc_close()`) и сценарий вольеров/коллекции; остальные тесты берут из него настройку.
 - `test_cal2.py` — календарь (список и сетка); `test_calday.py` — клик по дню календаря; `test_confirm.py` — вопрос «отменить изменения?»; `test_lang2.py` — языки; `test_lock.py` — замки и фото вида; `test_names.py` — альтернативные имена; `test_splash.py` — шторка загрузки и кнопка «назад»; `test_v2.py` — журнал изменений, версия, переводы описаний; `test_guess.py` — предположительные события (выклев, выход из гнезда, оплодотворение) и событие «Роды»; `test_group.py` — необязательное имя и группы животных; `test_kids.py` — список животных в записи, карточка потомства, родители; `test_time.py` — запись без времени; `test_pick.py` — список с поиском; `test_gaps.py` — пропущенные данные; `test_photo_fit.py` — вертикальное фото вида целиком.
 

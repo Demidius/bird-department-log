@@ -19,7 +19,8 @@ def page(b, w, h, pre=None):
     p.route("https://zoo.test/mock.js", lambda r: r.fulfill(status=200, content_type="text/javascript", body=mock + "\n;window.__seed=" + seed + ";"))
     p.route("https://zoo.test/index.html", lambda r: r.fulfill(status=200, content_type="text/html", body=html))
     p.route("https://zoo.test/desktop.css", lambda r: r.fulfill(status=200, content_type="text/css", body=(src / 'desktop.css').read_text()))
-    for fn in ["i18n.js", "i18n-species.js", "pwa.js", "app.js"]:
+    # every local script listed in index.html (i18n, pwa, js/*.js modules)
+    for fn in re.findall(r'<script src="([^":]+\.js)"></script>', html):
         body = (src / fn).read_text()
         p.route("https://zoo.test/" + fn, (lambda bb: (lambda r: r.fulfill(status=200, content_type="text/javascript", body=bb)))(body))
     p.goto("https://zoo.test/index.html"); p.wait_for_timeout(400)
