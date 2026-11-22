@@ -129,13 +129,16 @@ Object.assign(DICT.en, {
 
 // protected (locked) texts and species photos
 Object.assign(DICT.ru, {lk_l: 'Защитить от ИИ', lk_t: 'Защищено: нейросеть это не изменит, менять может только администратор', lk_ro: 'Защищено — менять может только администратор',
-  lk_hint: 'Галочка «Защитить от ИИ» у поля значит: этот текст никто, кроме администратора, не изменит — ни нейросеть, ни другие сотрудники.',
+  lk_hint: 'Замок справа в поле защищает только это поле (например, только кормление). Защищённый текст не изменит никто, кроме администратора, — ни нейросеть, ни другие сотрудники. Поля с описанием вида — в разделе «Справочная информация».',
+  lk_all: 'Защитить всю карточку от ИИ', lk_one: 'Защитить это поле от ИИ',
   ph_main: 'Сделать главным', ph_is_main: 'Главное фото', ph_wiki: 'Википедия', ph_all: 'Фотографии', ph_wiki_rm: 'Убрать фото из Википедии'});
 Object.assign(DICT.pl, {lk_l: 'Chroń przed AI', lk_t: 'Chronione: AI tego nie zmieni, zmienić może tylko administrator', lk_ro: 'Chronione — zmienić może tylko administrator',
-  lk_hint: 'Zaznaczenie „Chroń przed AI” oznacza, że tego tekstu nie zmieni nikt poza administratorem — ani AI, ani inni pracownicy.',
+  lk_hint: 'Kłódka po prawej w polu chroni tylko to pole (np. tylko karmienie). Chronionego tekstu nie zmieni nikt poza administratorem — ani AI, ani inni pracownicy. Pola z opisem gatunku są w sekcji „Informacje o gatunku”.',
+  lk_all: 'Chroń całą kartę przed AI', lk_one: 'Chroń to pole przed AI',
   ph_main: 'Ustaw jako główne', ph_is_main: 'Główne zdjęcie', ph_wiki: 'Wikipedia', ph_all: 'Zdjęcia', ph_wiki_rm: 'Usuń zdjęcie z Wikipedii'});
 Object.assign(DICT.en, {lk_l: 'Protect from AI', lk_t: 'Protected: AI will not change this, only an admin can', lk_ro: 'Protected — only an admin can change this',
-  lk_hint: '“Protect from AI” means nobody but an admin can change this text — neither AI nor other staff.',
+  lk_hint: 'The lock on the right of a field protects just that field (for example only feeding). Nobody but an admin can change protected text — neither AI nor other staff. Species description fields are under “Species information”.',
+  lk_all: 'Protect the whole card from AI', lk_one: 'Protect this field from AI',
   ph_main: 'Make main', ph_is_main: 'Main photo', ph_wiki: 'Wikipedia', ph_all: 'Photos', ph_wiki_rm: 'Remove the Wikipedia photo'});
 
 /* ---------- housing places: screens added to the page ---------- */
@@ -234,6 +237,7 @@ const I = {
   calgrid:'<rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/><circle cx="8" cy="14" r="1"/><path d="M11 17.5h7"/>',
   chevl:'<path d="m15 6-6 6 6 6"/>',
   star:'<path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9z"/>',
+  unlock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/>',
   lock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
   drop:'<path d="M12 3s-6.5 7-6.5 11.5a6.5 6.5 0 0 0 13 0C18.5 10 12 3 12 3z"/>',
   paw:'<circle cx="5.5" cy="10" r="2"/><circle cx="9.5" cy="5.5" r="2"/><circle cx="14.5" cy="5.5" r="2"/><circle cx="18.5" cy="10" r="2"/><path d="M12 12c-3 0-5.5 3.5-5.5 6 0 1.7 1.3 3 3 3 1 0 1.7-.5 2.5-.5s1.5.5 2.5.5c1.7 0 3-1.3 3-3 0-2.5-2.5-6-5.5-6z"/>'
@@ -685,7 +689,7 @@ function renderSpCard() {
     : `<figure class="sp-photo sp-photo-empty"><span>${ic(grp === 'mammal' ? 'paw' : 'bird', 44, 1.6)}</span><figcaption>${esc(t('si_no_photo'))}</figcaption></figure>`;
   const jump = [wild && 'si-wild', zoo && 'si-zoo', 'si-dept'].filter(Boolean);
   box.innerHTML = backBtn('sp') + `<div class="sp-head">${photo}<div class="sp-id">
-<h1>${esc(main)}</h1>${s.latin && s.latin !== main ? `<p class="latin" lang="la">${esc(s.latin)}</p>` : ''}${txt(inf.syn) ? `<p class="sp-syn">${esc(t('si_syn'))}: <i lang="la">${esc(txt(inf.syn))}</i></p>` : ''}
+<h1>${esc(main)}${lockMark(lk.includes('*'))}</h1>${s.latin && s.latin !== main ? `<p class="latin" lang="la">${esc(s.latin)}</p>` : ''}${txt(inf.syn) ? `<p class="sp-syn">${esc(t('si_syn'))}: <i lang="la">${esc(txt(inf.syn))}</i></p>` : ''}
 ${names.length ? `<dl class="sp-names">${names.map(([c, v, l]) => `<div><dt>${c}</dt><dd lang="${l}">${esc(v)}</dd></div>`).join('')}</dl>` : ''}
 <div class="sp-badges">${iucnBadge(inf.iucn, true)}<span class="pill p-grey">${esc(t('sg_' + grp))}</span>${txt(inf.cites) ? `<span class="pill p-blue">${esc(t('si_cites') + ' ' + txt(inf.cites))}</span>` : ''}</div>
 ${facts.length ? `<dl class="sp-facts">${facts.map(([l, v, i]) => `<div><dt>${ic(i, 15)}${esc(t(l))}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>` : ''}
@@ -1424,7 +1428,9 @@ const sifId = k => 'sfi-' + k.replace('.', '-');
 const dPhotoCount = () => phSp ? phSp.keep.length + phSp.added.length : 0;
 const lockKey = k => k.startsWith('photo.') ? 'photo' : k;
 // the "protect from AI" checkbox under a field; only an admin can tick or untick it or edit a protected field
-const lockBox = (k, locked) => `<label class="lk"><input type="checkbox" name="lk" value="${esc(k)}"${locked.includes(k) ? ' checked' : ''}${isAdmin() ? '' : ' disabled'}>${ic('lock', 14, 2.2)}<span>${esc(t(isAdmin() || !locked.includes(k) ? 'lk_l' : 'lk_ro'))}</span></label>`;
+const lockBox = (k, locked) => { const tt = esc(t(isAdmin() || !locked.includes(k) ? 'lk_one' : 'lk_ro')); return `<label class="lk" title="${tt}"><input class="vh" type="checkbox" name="lk" value="${esc(k)}" aria-label="${tt}"${locked.includes(k) ? ' checked' : ''}${isAdmin() ? '' : ' disabled'}>${ic('unlock', 18, 2.2)}${ic('lock', 18, 2.2)}</label>`; };
+// the species name fields are columns, protected under these keys
+const SP_LOCK = {latin: 'latin', name: 'name_ru', pl: 'name_pl', en: 'name_en'};
 function infoFields(inf) {
   const opt = (val, cur, label) => `<option value="${val}"${val === (cur || '') ? ' selected' : ''}>${esc(label)}</option>`;
   const ph = inf.photo || {}, locked = Array.isArray(inf.locked) ? inf.locked : [];
@@ -1435,7 +1441,7 @@ function infoFields(inf) {
     else if (k === 'iucn') h = `<div class="fld"><label for="${id}">${esc(t(l))}</label><select id="${id}">${opt('', v, t('sf_iucn_none'))}${IUCN.map(c => opt(c, v, c + ' — ' + t('iucn_' + c))).join('')}</select></div>`;
     else h = field({k, l, t: tp, id, dis: !isAdmin() && locked.includes(lockKey(k))}, v == null ? '' : String(v));
     if (!isAdmin() && locked.includes(lockKey(k))) h = h.replace(/<(select|textarea) id=/, '<$1 disabled id=');
-    return k.startsWith('photo.') && k !== 'photo.src' ? h : h.replace(/<\/div>$/, lockBox(lockKey(k), locked) + '</div>');
+    return k.startsWith('photo.') && k !== 'photo.src' ? h : h.replace(/^<div class="fld">/, '<div class="fld has-lk">').replace(/<\/div>$/, lockBox(lockKey(k), locked) + '</div>');
   }).join('');
 }
 function readInfo(base) {
@@ -1460,12 +1466,18 @@ function openSpForm(s) {
   $('#sp-note').value = s ? s.note : '';
   const inf0 = s ? s.info || {} : {}, locked = Array.isArray(inf0.locked) ? inf0.locked : [];
   $('#sp-info-fields').innerHTML = infoFields(inf0);
-  const noteF = $('#sp-note').closest('.fld');
-  $$('.lk', noteF).forEach(x => x.remove());
-  noteF.insertAdjacentHTML('beforeend', lockBox('note', locked));
-  $('#sp-note').disabled = !isAdmin() && locked.includes('note');
-  const hint = $('#sp-lk-hint') || (() => { $('#sp-more').insertAdjacentHTML('beforebegin', '<p class="hint" id="sp-lk-hint"></p>'); return $('#sp-lk-hint'); })();
-  hint.textContent = t('lk_hint');
+  // a lock inside each name field and the notes, plus "protect the whole card" at the top
+  for (const [id, k] of Object.entries(Object.assign({note: 'note'}, SP_LOCK))) {
+    const inp = $('#sp-' + id), f = inp.closest('.fld');
+    $$('.lk', f).forEach(x => x.remove());
+    f.classList.add('has-lk'); f.insertAdjacentHTML('beforeend', lockBox(k, locked));
+    inp.disabled = !isAdmin() && locked.includes(k);
+  }
+  $$('#sp-form .lk-all-box').forEach(x => x.remove());
+  $('#sp-form').insertAdjacentHTML('afterbegin', `<div class="lk-all-box"><label class="lk-all"><input type="checkbox" name="lk" value="*"${locked.includes('*') ? ' checked' : ''}${isAdmin() ? '' : ' disabled'}>${ic('lock', 16, 2.2)}<span>${esc(t('lk_all'))}</span></label><p class="hint">${esc(t('lk_hint'))}</p></div>`);
+  const lkAll = $('#sp-form input[name=lk][value="*"]'), lkOne = () => $$('#sp-form input[name=lk]').filter(x => x !== lkAll);
+  lkAll.addEventListener('change', () => lkOne().forEach(x => { x.checked = lkAll.checked; }));
+  lkOne().forEach(x => x.addEventListener('change', () => { lkAll.checked = lkOne().every(y => y.checked); }));
   $('#sp-more').open = !s;
   $('#sp-err').textContent = '';
   const d = $('#sp-del'); d.hidden = !s || !isAdmin(); d.textContent = t('del_sp');
