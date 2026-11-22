@@ -165,6 +165,10 @@ Object.assign(DICT.en, {lg_user: 'Users', lg_ai: 'AI: data', lg_dev: 'AI: develo
   tr_from: l => 'Machine-translated ' + {pl: 'from Polish', en: 'from English', ru: 'from Russian'}[l], tr_orig: l => 'Only available ' + {pl: 'in Polish', en: 'in English', ru: 'in Russian'}[l],
   tr_busy: 'Translating descriptions…', tr_fail: 'Machine translation is unavailable right now — the text was saved untranslated',
   lk_hint_g: 'The lock on the right of a field protects just that field. Nobody but an administrator can change a protected field — neither AI nor other staff.'});
+// leaving the app with the phone's Back button
+Object.assign(DICT.ru, {cf_exit: 'Выйти из приложения?', cf_exit_p: 'Вы на главном экране. Ещё раз «Назад» закроет приложение.', cf_exit_ok: 'Выйти'});
+Object.assign(DICT.pl, {cf_exit: 'Zamknąć aplikację?', cf_exit_p: 'Jesteś na ekranie głównym. Kolejne „Wstecz” zamknie aplikację.', cf_exit_ok: 'Zamknij'});
+Object.assign(DICT.en, {cf_exit: 'Leave the app?', cf_exit_p: 'This is the home screen. Going back again closes the app.', cf_exit_ok: 'Leave'});
 // confirmations before signing out and before closing a card with unsaved changes
 Object.assign(DICT.ru, {cf_logout: 'Выйти из аккаунта?', cf_logout_p: 'Чтобы снова работать с журналом, нужно будет войти заново.',
   cf_leave: 'Закрыть без сохранения?', cf_leave_p: 'Изменения в этой карточке не сохранятся.', cf_leave_ok: 'Закрыть без сохранения', cf_stay: 'Остаться', cf_cancel: 'Отмена'});
@@ -1118,8 +1122,19 @@ function setLang(l) {
 }
 
 const TAB_OF = {species: 'menu', sp: 'menu', coll: 'menu', bird: 'menu', users: 'menu', encls: 'menu', encl: 'menu', log: 'menu'};
-function setTab(v) {
+// the phone's Back button moves through screens: every screen change is a history entry
+let navOn = false;
+const navState = () => ({app: 1, v: tab, id: tab === 'sp' ? curSp : tab === 'bird' ? curBird : tab === 'encl' ? curEncl : null});
+function navStart() {
+  if (navOn) return;
+  navOn = true;
+  history.replaceState({app: 1, root: 1}, '');
+  history.pushState(navState(), '');
+}
+function setTab(v, fromBack) {
+  const prev = navOn && history.state ? history.state : null;
   tab = v;
+  if (navOn && !fromBack) { const ns = navState(); if (!prev || prev.root || prev.v !== ns.v || prev.id !== ns.id) history.pushState(ns, ''); }
   const hi = TAB_OF[v] || v;
   $$('.view').forEach(x => { x.hidden = x.id !== 'view-' + v; });
   $$('.tab').forEach(b => { const on = b.dataset.tab === hi; b.classList.toggle('on', on); if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
@@ -1127,6 +1142,28 @@ function setTab(v) {
   if (v === 'cal' && calMode === 'grid') { calFrom = null; renderCal(); setTimeout(() => { calObsOn = true; }, 400); }
 }
 
+window.addEventListener('popstate', e => {
+  if (!navOn) return;
+  const st0 = e.state;
+  // a window or picture on top: Back closes it and the screen stays
+  if (askDone || !$('#lightbox').hidden || $('.sheet.open')) {
+    history.pushState(navState(), '');
+    if (askDone) askDone(false); else if (!$('#lightbox').hidden) closeLightbox(); else requestClose();
+    return;
+  }
+  // on the first entry: one more Back leaves the app, so ask; "stay" restores the screen
+  if (!st0 || !st0.app || st0.root) {
+    ask(t('cf_exit'), t('cf_exit_p'), t('cf_exit_ok'), t('cf_cancel')).then(ok => {
+      if (!ok) { history.pushState(navState(), ''); return; }
+      navOn = false; history.back(); setTimeout(() => { try { window.close(); } catch (x) {} }, 300);
+    });
+    return;
+  }
+  const v = st0.v || 'add';
+  if (v === 'sp') curSp = st0.id; else if (v === 'bird') curBird = st0.id; else if (v === 'encl') curEncl = st0.id;
+  if (v === 'sp') renderSpCard(); else if (v === 'bird') renderBirdCard(); else if (v === 'encl') renderEnclCard();
+  setTab(v, true);
+});
 function hideSheet(s) { s.classList.remove('open'); s.setAttribute('aria-hidden', 'true'); s.setAttribute('inert', ''); }
 function openSheet(name) {
   const s = $('#sheet-' + name);
@@ -1893,7 +1930,15 @@ $('#btn-copy').addEventListener('click', async () => {
 });
 
 /* ---------- sign-in gate ---------- */
+// the loading curtain with circling birds (drawn by desktop.css) stays until the first screen is ready
+const splashT0 = performance.now();
+function splash(on) {
+  clearTimeout(splash.t);
+  if (on) { document.body.classList.remove('ready'); return; }
+  splash.t = setTimeout(() => document.body.classList.add('ready'), Math.max(0, 700 - (performance.now() - splashT0)));
+}
 function gate(mode, msgKey) {
+  splash(mode === 'loading' && !msgKey);
   gateKey = msgKey || (mode === 'login' ? 'app_title' : mode === 'noacc' ? 'noacc_p' : 'loading');
   $('#gate').hidden = mode === 'off';
   $('#login-form').hidden = mode !== 'login';
@@ -1907,6 +1952,7 @@ function applyRole() {
   document.body.classList.toggle('admin', isAdmin());
 }
 function resetState() {
+  navOn = false;
   me = null; myProfile = null; recs = []; species = []; coll = []; encls = []; photos = []; logRows = []; profiles = new Map(); urlCache.clear();
   if (channel && sb) { sb.removeChannel(channel); channel = null; }
   document.body.classList.remove('ro', 'admin');
@@ -1960,6 +2006,7 @@ async function boot() {
     await loadAll();
     if (!myProfile || !myProfile.active) return;
     setTab('add');
+    navStart();
     render();
     gate('off');
     subscribe();
