@@ -2087,6 +2087,11 @@ document.addEventListener('click', e => {
   else if (d.goto) { setTab('now'); const s = $('#' + d.goto); if (s) s.scrollIntoView({block: 'start'}); }
   else if (d.f) { filt = d.f; $$('#view-logs .chip').forEach(c => c.setAttribute('aria-pressed', String(c === el))); renderLogs(); paintPhotos(); }
 });
+/* ---------- tall photos are shown whole (fit by height) instead of cropped ---------- */
+const fitPhoto = img => { if (img.naturalWidth) img.classList.toggle('tall', img.naturalHeight > img.naturalWidth); };
+document.addEventListener('load', e => { const img = e.target; if (img.tagName === 'IMG' && img.closest('.sp-photo')) fitPhoto(img); }, true);
+new MutationObserver(() => $$('.sp-photo img').forEach(img => { if (img.complete) fitPhoto(img); })).observe(document.body, {childList: true, subtree: true});
+
 /* ---------- searchable list for long selects ---------- */
 // a select with many options opens a list with a search box; the keyboard only shows up when the box is tapped
 const PICK_MIN = 6;
