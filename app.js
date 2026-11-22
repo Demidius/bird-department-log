@@ -399,10 +399,14 @@ const toSp = s => ({name_ru: s.name || '', name_pl: s.pl || '', name_en: s.en ||
 function fromBird(d) {
   if (!d) return null;
   return {id: d.id, name: d.name, sp: d.species_id || '', sex: d.sex || '', ring: d.ring || '', chip: d.chip || '', born: d.born || '', arrived: d.arrived || '',
-    origin: d.origin || '', encl: d.encl || '', enclAt: ms(d.encl_at), status: d.status === 'out' ? 'out' : 'active', note: d.note || '', names: Array.isArray(d.names) ? d.names : [], locked: Array.isArray(d.locked) ? d.locked : [], by: d.created_by || null};
+    origin: d.origin || '', encl: d.encl || '', enclAt: ms(d.encl_at), status: d.status === 'out' ? 'out' : 'active', note: d.note || '', names: Array.isArray(d.names) ? d.names : [], locked: Array.isArray(d.locked) ? d.locked : [], by: d.created_by || null,
+    grp: d.grp && typeof d.grp === 'object' ? {m: toN(d.grp.m) || 0, f: toN(d.grp.f) || 0, u: toN(d.grp.u) || 0, j: toN(d.grp.j) || 0} : null};
 }
+// a group of animals kept together: adults by sex (m.f.u, as in zoo records) and juveniles
+const grpTotal = g => g ? g.m + g.f + g.u + g.j : 0;
+const grpText = g => '♂ ' + g.m + ' · ♀ ' + g.f + (g.u ? ' · ? ' + g.u : '') + (g.j ? ' · ' + t('juv') + ' ' + g.j : '') + ' (' + g.m + '.' + g.f + '.' + g.u + ', ' + t('grp_total', grpTotal(g)) + ')';
 const toBird = b => ({name: b.name, species_id: b.sp || null, sex: b.sex || '', ring: b.ring || '', chip: b.chip || '', born: b.born || null, arrived: b.arrived || null,
-  origin: b.origin || '', encl: b.encl || '', encl_at: b.enclAt ? new Date(b.enclAt).toISOString() : null, status: b.status, note: b.note || '', names: b.names || [], locked: b.locked || []});
+  origin: b.origin || '', encl: b.encl || '', encl_at: b.enclAt ? new Date(b.enclAt).toISOString() : null, status: b.status, note: b.note || '', names: b.names || [], locked: b.locked || [], grp: b.grp || null});
 const EK = ['building', 'aviary', 'enclosure', 'cage', 'incubator', 'brooder', 'room', 'quarantine', 'pond', 'other'];
 const EK_IC = {building: ['building', 'blue'], aviary: ['tree', 'green'], enclosure: ['home', 'green'], cage: ['cage', 'blue'], incubator: ['egg', 'amber'], brooder: ['chick', 'amber'],
   room: ['home', 'grey'], quarantine: ['cross', 'red'], pond: ['drop', 'blue'], other: ['tag', 'grey']};
@@ -813,10 +817,10 @@ function renderColl() {
     if (g !== last) { h += `<h2 class="day">${esc(g)}</h2>`; last = g; }
     const sb2 = st.birds.get(key(b.name)) || {};
     const encl = placeOf(b).name;
-    const sub = [sexText(b.sex), b.ring ? t('ring_n', b.ring) : '', enDn(encl)].filter(Boolean).join(' · ');
+    const sub = [b.grp ? cap(t('grp_w')) + ': ' + grpText(b.grp) : sexText(b.sex), b.ring ? t('ring_n', b.ring) : '', enDn(encl)].filter(Boolean).join(' · ');
     const flags = [b.status === 'out' ? t('st_out') : '', sb2.treat ? t('c_treat') : '', sb2.inc ? t('st_inc') : '', sb2.chicks ? sb2.chicks + ' ' + pw(sb2.chicks, 'chick') : ''].filter(Boolean).join(' · ');
     const ph = photosOf('bird', b.id)[0];
-    const tile = ph ? `<span class="tile t-green" style="overflow:hidden">${thumbImg(ph).replace('<img', '<img style="width:100%;height:100%;object-fit:cover"')}</span>` : `<span class="tile t-green">${ic('bird')}</span>`;
+    const tile = ph ? `<span class="tile t-green" style="overflow:hidden">${thumbImg(ph).replace('<img', '<img style="width:100%;height:100%;object-fit:cover"')}</span>` : `<span class="tile t-green">${ic(b.grp ? 'users' : 'bird')}</span>`;
     h += `<button class="row" type="button" data-bc="${esc(b.id)}" style="margin-bottom:8px">${tile}<span class="rt"><b>${esc(dn(b))}</b>${sub ? `<small>${esc(sub)}</small>` : ''}${flags ? `<small>${esc(flags)}</small>` : ''}</span><span class="chev">${ic('chev', 20)}</span></button>`;
   }
   $('#coll-body').innerHTML = h;
@@ -840,7 +844,7 @@ function renderBirdCard() {
   box.innerHTML = backBtn('bird') + `<h1>${esc(dn(cb))}</h1>${other ? `<p class="sp-meta">${esc(other)}</p>` : ''}${s ? `<button class="linkish" type="button" data-sp="${esc(s.id)}">${esc(main)}${s.latin && s.latin !== main ? ' · ' + esc(s.latin) : ''}</button>` : `<p class="sp-meta">${esc(t('no_sp'))}</p>`}
 ${pills ? `<div class="pills">${pills}</div>` : ''}
 ${gallery(photosOf('bird', cb.id))}
-<dl class="facts">${fact('fa_sex', cap(sexText(cb.sex)))}${fact('fa_ring', cb.ring)}${fact('fa_chip', cb.chip)}${fact('fa_encl', enclDd, 1)}${fact('fa_born', cb.born ? fDate.format(ymd(cb.born)) + age(cb.born) : '')}${fact('fa_arrived', cb.arrived ? fDate.format(ymd(cb.arrived)) : '')}${fact('fa_origin', cb.origin)}</dl>
+<dl class="facts">${fact('fa_grp', cb.grp ? grpText(cb.grp) : '')}${fact('fa_sex', cap(sexText(cb.sex)))}${fact('fa_ring', cb.ring)}${fact('fa_chip', cb.chip)}${fact('fa_encl', enclDd, 1)}${fact('fa_born', cb.born ? fDate.format(ymd(cb.born)) + age(cb.born) : '')}${fact('fa_arrived', cb.arrived ? fDate.format(ymd(cb.arrived)) : '')}${fact('fa_origin', cb.origin)}</dl>
 ${cb.note ? `<p class="sp-note">${esc(cb.note)}</p>` : ''}
 <div class="top-acts w-only"><button class="btn sec" type="button" data-bird-edit>${esc(t('edit_card'))}</button></div>
 <section class="nsec w-only"><h2 class="nh">${esc(t('add_title'))}</h2><div class="na">
@@ -1535,9 +1539,12 @@ function openBirdForm(cb) {
   $('#bf-sub').textContent = cb ? t('editing') : t('bf_sub_new');
   const v = cb || {sp: tab === 'sp' ? curSp : '', status: 'active'};
   const opt = (val, cur, label) => `<option value="${val}"${val === (cur || '') ? ' selected' : ''}>${esc(label)}</option>`;
-  $('#bf-fields').innerHTML = field({k: 'name', l: 'bf_name', t: 'text', req: 1, id: 'bf-name'}, v.name) + namesEditor(v.names) + spSelect(v.sp, 'bf')
-    + `<div class="fld"><label for="bf-sex">${esc(t('fa_sex'))}</label><select id="bf-sex" name="sex">${opt('', v.sex, t('sex_u'))}${opt('f', v.sex, cap(t('sex_f')))}${opt('m', v.sex, cap(t('sex_m')))}</select></div>`
-    + field({k: 'ring', l: 'bf_ring', t: 'text', id: 'bf-ring'}, v.ring) + field({k: 'chip', l: 'bf_chip', t: 'text', id: 'bf-chip'}, v.chip)
+  const gv = v.grp || {}, gIn = k => `<label class="gnum"><span>${esc(t('g_' + k))}</span><input id="bf-g${k}" name="g_${k}" type="number" min="0" inputmode="numeric" value="${gv[k] || ''}"></label>`;
+  $('#bf-fields').innerHTML = `<div class="fld"><label for="bf-kind">${esc(t('bf_kind'))}</label><select id="bf-kind" name="kind">${opt('one', v.grp ? 'group' : 'one', t('bf_one'))}${opt('group', v.grp ? 'group' : 'one', t('bf_group'))}</select></div>`
+    + field({k: 'name', l: 'bf_name', t: 'text', id: 'bf-name', ph: 'bf_name_ph'}, v.name) + namesEditor(v.names) + spSelect(v.sp, 'bf')
+    + `<div class="fld bf-grp"><span class="lbl">${esc(t('bf_grp'))}</span><div class="gnums">${['m', 'f', 'u', 'j'].map(gIn).join('')}</div></div>`
+    + `<div class="fld bf-one"><label for="bf-sex">${esc(t('fa_sex'))}</label><select id="bf-sex" name="sex">${opt('', v.sex, t('sex_u'))}${opt('f', v.sex, cap(t('sex_f')))}${opt('m', v.sex, cap(t('sex_m')))}</select></div>`
+    + field({k: 'ring', l: 'bf_ring', t: 'text', id: 'bf-ring'}, v.ring).replace('class="fld"', 'class="fld bf-one"') + field({k: 'chip', l: 'bf_chip', t: 'text', id: 'bf-chip'}, v.chip).replace('class="fld"', 'class="fld bf-one"')
     + field({k: 'born', l: 'fa_born', t: 'date', id: 'bf-born'}, v.born) + field({k: 'arrived', l: 'bf_arrived', t: 'date', id: 'bf-arrived'}, v.arrived)
     + field({k: 'origin', l: 'fa_origin', t: 'text', id: 'bf-origin', ph: 'bf_origin_ph'}, v.origin)
     + enclSelect({k: 'encl', l: 'fa_encl', id: 'bf-encl'}, cb ? placeOf(cb).name : (tab === 'encl' && enclMap.get(curEncl) ? enclMap.get(curEncl).name : ''))
@@ -1552,21 +1559,33 @@ function openBirdForm(cb) {
   const d = $('#bf-del'); d.hidden = !cb || !isAdmin(); d.textContent = t('del_card');
   phBird = photoBox('bf-ph', 'bird', cb ? cb.id : null, true);
   addLocks($('#bird-form'), BIRD_LOCK, cb ? cb.locked || [] : [], 'lk_hint_g');
+  const gl = cb && !isAdmin() && ((cb.locked || []).includes('grp') || (cb.locked || []).includes('*'));
+  $$('.gnums input', $('#bird-form')).forEach(x => { x.disabled = !!gl; });
+  const kind = $('#bf-kind'), kSync = () => { const g = kind.value === 'group'; $$('#bf-fields .bf-one').forEach(x => { x.hidden = g; }); $('#bf-fields .bf-grp').hidden = !g; };
+  kind.addEventListener('change', kSync); kSync();
   openSheet('bird');
 }
 $('#bird-form').addEventListener('submit', async e => {
   e.preventDefault();
   const fd = formData(e.target), err = m => { $('#bf-err').textContent = m; }, g = k => String(fd.get(k) || '').trim();
-  const name = g('name'), spSel = g('sp'), newName = g('newsp'), old = editingBird;
-  if (!name) return err(t('e_bname'));
+  const spSel = g('sp'), newName = g('newsp'), old = editingBird, isGrp = g('kind') === 'group';
   if (!spSel) return err(t('e_pick_sp'));
   if (spSel === '__new' && !newName) return err(t('e_new_sp'));
+  const gn = k => Math.max(0, Math.floor(toN(g('g_' + k)) || 0)), grp = isGrp ? {m: gn('m'), f: gn('f'), u: gn('u'), j: gn('j')} : null;
+  if (isGrp && !grpTotal(grp)) return err(t('e_grp'));
+  // no name typed: species name (+ ring, or "group"), numbered if already taken
+  let name = g('name');
+  if (!name) {
+    const base = (spSel === '__new' ? newName : spName(spById(spSel))) || t('no_sp'), free = n => !coll.some(x => key(x.name) === key(n) && (!old || x.id !== old.id));
+    name = base + (isGrp ? ' — ' + t('grp_w') : g('ring') ? ' ' + g('ring') : '');
+    for (let i = 2; !free(name); i++) name = base + (isGrp ? ' — ' + t('grp_w') : '') + ' ' + i;
+  }
   if (coll.some(x => key(x.name) === key(name) && (!old || x.id !== old.id))) return err(t('e_bdup'));
   if (phBird && phBird.busy) return;
   const pe = readEncl(fd, 'encl');
   if (pe.err) return err(pe.err);
   const date = k => /^\d{4}-\d{2}-\d{2}$/.test(g(k)) ? g(k) : '', now = Date.now(), encl = pe.name, cur = old ? placeOf(old).name : '';
-  const b = {name, sp: spSel, sex: g('sex'), ring: g('ring'), chip: g('chip'), born: date('born'), arrived: date('arrived'), origin: g('origin'),
+  const b = {name, sp: spSel, grp, sex: isGrp ? '' : g('sex'), ring: isGrp ? '' : g('ring'), chip: isGrp ? '' : g('chip'), born: date('born'), arrived: date('arrived'), origin: g('origin'),
     encl: old && key(cur) === key(encl) ? old.encl : encl,
     enclAt: old && key(cur) === key(encl) ? old.enclAt : (encl ? Math.floor(now / 60000) * 60000 : 0), status: g('status') === 'out' ? 'out' : 'active', note: g('note'), names: readNames(fd), locked: lockList(e.target, BIRD_LOCK)};
   await withBusy($('#bf-save'), async () => {
@@ -1682,7 +1701,7 @@ function addLocks(form, map, locked, hint) {
 const lockList = form => { const l = $$('input[name=lk]:checked', form).map(x => x.value); if (l.includes('encl')) l.push('encl_at'); return l; };
 // FormData skips disabled (protected) fields, so put their shown values back
 const formData = f => { const fd = new FormData(f); $$('[disabled][name]', f).forEach(x => { if (x.name !== 'lk') fd.set(x.name, x.value); }); return fd; };
-const BIRD_LOCK = {name: 'name', sp: 'species_id', sex: 'sex', ring: 'ring', chip: 'chip', born: 'born', arrived: 'arrived', origin: 'origin', encl: 'encl', status: 'status', note: 'note'};
+const BIRD_LOCK = {name: 'name', sp: 'species_id', g_m: 'grp', sex: 'sex', ring: 'ring', chip: 'chip', born: 'born', arrived: 'arrived', origin: 'origin', encl: 'encl', status: 'status', note: 'note'};
 const ENCL_LOCK = {name: 'name', kind: 'kind', parent: 'parent_id', area: 'area', size: 'size', cap: 'capacity', state: 'active', note: 'note'};
 function infoFields(inf) {
   const opt = (val, cur, label) => `<option value="${val}"${val === (cur || '') ? ' selected' : ''}>${esc(label)}</option>`;

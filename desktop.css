@@ -161,3 +161,9 @@ button.cn:hover{background:var(--green-soft)}
 .cc.now button.cn{background:var(--accent);color:var(--on-accent)}
 button.cn:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 #sheet-day .nsec{margin:0 0 16px}#sheet-day .nsec:last-child{margin-bottom:0}
+
+/* group of animals in the bird form: four counters */
+.gnums{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:6px}
+.gnum{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
+.gnum input{width:100%}
+.bf-grp[hidden],.bf-one[hidden]{display:none!important}
