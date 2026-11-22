@@ -25,7 +25,7 @@ with sync_playwright() as pw:
         print(tag, "empty day 20 sub:", p.inner_text("#dy-sub"), "| periods:", p.locator("#dy-body [data-co]").count())
         p.screenshot(path=f"{out}/cd_{tag}_day20.png", full_page=False)
         p.click("#dy-body [data-new=obs]"); p.wait_for_timeout(400)
-        print(tag, "form time:", p.input_value("#fld-at")[:10], "| expected day 20:", p.evaluate(f"(() => {{ const d = new Date({day20}); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-20'; }})()"))
+        print(tag, "form time:", p.input_value("#fld-date"), "| expected day 20:", p.evaluate(f"(() => {{ const d = new Date({day20}); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-20'; }})()"))
         p.select_option("#fld-birdsel", value="__other"); p.fill("#fld-bird", "Тукан"); p.fill("#fld-note", "Проверка дня"); p.select_option("#fld-sp", index=1); p.click("#f-save"); p.wait_for_timeout(600)
         print(tag, "saved | records on 20 in db:", p.evaluate(f"__mock.db.records.filter(r => new Date(r.event_at).getDate() === 20).length"))
         p.locator(f"{cur} button.cn[data-day='{day20}']").click(); p.wait_for_timeout(400)

@@ -340,7 +340,9 @@ const dayKey = ms => { const d = new Date(ms); return d.getFullYear() + '-' + d.
 const isToday = ms => dayKey(ms) === dayKey(Date.now());
 const isYest = ms => dayKey(ms) === dayKey(Date.now() - 864e5);
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
-const when = ms => (isToday(ms) ? t('today_l') : isYest(ms) ? t('yest_l') : fDay.format(ms)) + ', ' + fTime.format(ms);
+const when = (ms, noTime) => (isToday(ms) ? t('today_l') : isYest(ms) ? t('yest_l') : fDay.format(ms)) + (noTime ? '' : ', ' + fTime.format(ms));
+// records entered without a time of day keep f.nt and are stored at noon
+const recTime = r => r.f && r.f.nt ? '' : fTime.format(r.at);
 const dayTitle = ms => isToday(ms) ? t('today_t') : isYest(ms) ? t('yest_t') : cap(fLong.format(ms));
 const toInput = ms => { const d = new Date(ms), p = n => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`; };
 const fromInput = s => s ? new Date(s).getTime() : NaN;
@@ -387,6 +389,7 @@ function fromRec(d) {
   const src = d.f && typeof d.f === 'object' ? d.f : {}, f = {};
   for (const k of ['from','to','reason','drug','result']) if (src[k] != null && src[k] !== '') f[k] = String(src[k]).slice(0, 300);
   for (const k of ['n','days']) if (src[k] != null && src[k] !== '') f[k] = toN(src[k]);
+  if (src.nt) f.nt = 1;
   return {id: d.id, type: d.type, sp: d.species_id || '', bird: String(d.bird || ''), at: ms(d.event_at), f, note: String(d.note || ''), by: d.created_by || null, created: ms(d.created_at)};
 }
 const toRec = r => ({type: r.type, species_id: r.sp || null, bird: r.bird, event_at: new Date(r.at).toISOString(), f: r.f, note: r.note});
@@ -539,7 +542,7 @@ function compute() {
     const n = r.f.n || 1;
     switch (r.type) {
       case 'tstart': b.treat = {since: r.at, drug: r.f.drug || '', reason: r.f.reason || '', last: null}; break;
-      case 'tdose': if (b.treat) b.treat.last = r.at; break;
+      case 'tdose': if (b.treat) { b.treat.last = r.at; b.treat.lastNt = !!r.f.nt; } break;
       case 'tend': b.treat = null; break;
       case 'expo': if (r.f.to) { b.encl = r.f.to; b.enclAt = r.at; } break;
       case 'lay': b.eggs += n; break;
@@ -703,14 +706,14 @@ async function dropPhotosOf(type, id) {
 /* ---------- render ---------- */
 const card = (r, full) => {
   const tp = T[r.type], d = details(r), s = spById(r.sp), au = r.by ? authorName(r.by) : '';
-  return `<button class="rec" type="button" data-edit="${esc(r.id)}"><span class="tile sm t-${tp.tone}">${ic(tp.icon, 18)}</span><span class="rb"><span class="rh"><b>${esc(evLabel(r.type))}</b><time>${full ? when(r.at) : fTime.format(r.at)}</time></span><span class="bird">${esc(bn(r.bird))}${s ? ` <span class="spn">· ${esc(spName(s))}</span>` : ''}</span>${d ? `<span class="det">${esc(d)}</span>` : ''}${r.note ? `<span class="note">${esc(r.note)}</span>` : ''}${thumbs(photosOf('record', r.id))}${au ? `<span class="by">${esc(t('author') + au)}</span>` : ''}</span></button>`;
+  return `<button class="rec" type="button" data-edit="${esc(r.id)}"><span class="tile sm t-${tp.tone}">${ic(tp.icon, 18)}</span><span class="rb"><span class="rh"><b>${esc(evLabel(r.type))}</b><time>${full ? when(r.at, r.f && r.f.nt) : recTime(r)}</time></span><span class="bird">${esc(bn(r.bird))}${s ? ` <span class="spn">· ${esc(spName(s))}</span>` : ''}</span>${d ? `<span class="det">${esc(d)}</span>` : ''}${r.note ? `<span class="note">${esc(r.note)}</span>` : ''}${thumbs(photosOf('record', r.id))}${au ? `<span class="by">${esc(t('author') + au)}</span>` : ''}</span></button>`;
 };
 
 function renderNow() {
   const sec = (id, tone, icon, title, items, empty) =>
     `<section class="nsec" id="${id}"><h2 class="nh"><span class="tile sm t-${tone}">${ic(icon, 18)}</span>${esc(title)}<span class="nc">${items.length}</span></h2>${items.length ? items.join('') : `<p class="empty">${esc(empty)}</p>`}</section>`;
   const b2 = (type, b, txt, ghost) => `<button class="mini w-only${ghost ? ' ghost' : ''}" type="button" data-new="${type}" data-bird="${esc(b.name)}">${esc(txt)}</button>`;
-  const treat = st.treat.map(b => `<div class="ncard"><div class="nl">${nm(b)}${spLink(b)}<small>${esc([t('since', fDay.format(b.treat.since)), b.treat.drug].filter(Boolean).join(' · '))}</small><small>${esc(b.treat.last ? t('last_dose', when(b.treat.last)) : t('no_dose'))}</small></div><div class="na">${b2('tdose', b, t('b_dose'))}${b2('tend', b, t('b_end'), 1)}</div></div>`);
+  const treat = st.treat.map(b => `<div class="ncard"><div class="nl">${nm(b)}${spLink(b)}<small>${esc([t('since', fDay.format(b.treat.since)), b.treat.drug].filter(Boolean).join(' · '))}</small><small>${esc(b.treat.last ? t('last_dose', when(b.treat.last, b.treat.lastNt)) : t('no_dose'))}</small></div><div class="na">${b2('tdose', b, t('b_dose'))}${b2('tend', b, t('b_end'), 1)}</div></div>`);
   const inc = st.inc.map(b => `<div class="ncard"><div class="nl">${nm(b)}${spLink(b)}<small>${esc(t('since', fDay.format(b.inc.since)) + (b.eggs ? ' · ' + t('eggs_n', b.eggs) : ''))}</small></div><div class="na">${b2('hatch', b, evLabel('hatch'))}</div></div>`);
   const ch = st.chickBirds.map(b => `<div class="ncard"><div class="nl">${nm(b)}${spLink(b)}<small>${esc(t('in_nest', b.chicks))}</small></div><div class="na">${b2('fledge', b, evLabel('fledge'))}</div></div>`);
   const today = recs.filter(r => isToday(r.at)).sort((a, b) => b.at - a.at).map(r => card(r));
@@ -1349,7 +1352,11 @@ function openForm(type, pre, rec) {
   }
   let h = spSelect(v.sp) + `<div class="fld"><label for="fld-birdsel">${esc(t('f_bird'))}&nbsp;<span class="req" aria-hidden="true">*</span></label><select id="fld-birdsel"></select></div>` + field({k:'bird', l:'f_bird_other', t:'text', list:'birds'}, v.bird);
   for (const f of tp.fields) h += type === 'expo' ? enclSelect(f, v[f.k]) : field(f, v[f.k]);
-  h += field({k:'at', l:'f_at', t:'datetime-local', req:1}, toInput(v.at));
+  // the date is enough; the time of day only when asked for
+  const showT = rec ? !(rec.f && rec.f.nt) : false, ti = toInput(v.at);
+  h += `<div class="fld"><label for="fld-date">${esc(t('f_at'))}&nbsp;<span class="req" aria-hidden="true">*</span></label><input id="fld-date" name="date" type="date" aria-required="true" value="${ti.slice(0, 10)}"></div>`
+    + `<div class="fld" id="fld-time-wrap"${showT ? '' : ' hidden'}><label for="fld-time">${esc(t('f_time'))}</label><input id="fld-time" name="time" type="time" value="${showT ? ti.slice(11, 16) : ''}"></div>`
+    + `<button type="button" class="mini ghost time-tg" id="fld-time-tg" aria-expanded="${showT}">${esc(showT ? t('time_rm') : '+ ' + t('time_add'))}</button>`;
   h += field({k:'note', l:tp.noteLabel || 'f_note', t:'textarea', req:tp.noteReq}, v.note);
   $('#f-fields').innerHTML = h;
   wireEnclSelects($('#f-fields'));
@@ -1367,6 +1374,14 @@ function openForm(type, pre, rec) {
   if (!species.length && !rec) sel.value = '__new';
   syncSp();
   sel.addEventListener('change', () => { syncSp(); if (sel.value === '__new') $('#fld-newsp').focus(); });
+  const tg = $('#fld-time-tg');
+  tg.addEventListener('click', () => {
+    const w = $('#fld-time-wrap'), on = w.hidden;
+    w.hidden = !on; tg.setAttribute('aria-expanded', String(on)); tg.textContent = on ? t('time_rm') : '+ ' + t('time_add');
+    const ti2 = $('#fld-time');
+    if (on) { if (!ti2.value) { const n = new Date(); ti2.value = String(n.getHours()).padStart(2, '0') + ':' + String(n.getMinutes()).padStart(2, '0'); } ti2.focus(); } else ti2.value = '';
+    formDirty = true;
+  });
   const ps = $('#fld-birdsel');
   ps.addEventListener('change', () => {
     const o = ps.value === '__other';
@@ -1514,9 +1529,11 @@ $('#form').addEventListener('submit', async e => {
   if (spSel === '__new' && !newName) return err(t('e_new_sp'));
   const bird = canonBird(String(fd.get('bird') || '').trim());
   if (!bird) return err(t('e_bird'));
-  const at = fromInput(fd.get('at'));
+  const dt = String(fd.get('date') || ''), tm = $('#fld-time-wrap').hidden ? '' : String(fd.get('time') || '');
+  const at = /^\d{4}-\d{2}-\d{2}$/.test(dt) ? fromInput(dt + 'T' + (/^\d{2}:\d{2}/.test(tm) ? tm.slice(0, 5) : '12:00')) : NaN;
   if (!isFinite(at)) return err(t('e_at'));
   const f = {}, fresh = [];
+  if (!/^\d{2}:\d{2}/.test(tm)) f.nt = 1;
   for (const x of tp.fields) {
     let val = String(fd.get(x.k) || '').trim();
     if (curType === 'expo') { const pe = readEncl(fd, x.k); if (pe.err) return err(pe.err); val = pe.name; if (pe.fresh) fresh.push(x.k); }
@@ -2022,7 +2039,7 @@ function csv() {
   const rows = [t('csv_h')];
   [...recs].sort((a, b) => a.at - b.at).forEach(r => {
     const s = spById(r.sp);
-    rows.push([new Date(r.at).toLocaleDateString(LOCALE[lang]), fTime.format(r.at), t('g_' + T[r.type].g), evLabel(r.type), spName(s), s ? s.latin : '', r.bird, details(r), r.note, r.by ? authorName(r.by) : '', photosOf('record', r.id).length || '']);
+    rows.push([new Date(r.at).toLocaleDateString(LOCALE[lang]), recTime(r), t('g_' + T[r.type].g), evLabel(r.type), spName(s), s ? s.latin : '', r.bird, details(r), r.note, r.by ? authorName(r.by) : '', photosOf('record', r.id).length || '']);
   });
   return rows.map(r => r.map(c => '"' + String(c ?? '').replace(/"/g, '""') + '"').join(';')).join('\r\n');
 }

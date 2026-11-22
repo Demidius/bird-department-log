@@ -174,3 +174,4 @@ button.cn:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .pa-row .x{flex:none}
 .pa-ed>.lk,.bf-grp>.lk{top:-8px;bottom:auto}
 .has-lk.pa-ed select{padding-right:40px;background-position:right 14px center}.has-lk.bf-grp input{padding-right:14px}
+.time-tg{align-self:flex-start;margin-top:-6px}
