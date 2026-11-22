@@ -141,6 +141,14 @@ Object.assign(DICT.en, {lk_l: 'Protect from AI', lk_t: 'Protected: AI will not c
   lk_all: 'Protect the whole card from AI', lk_one: 'Protect this field from AI',
   ph_main: 'Make main', ph_is_main: 'Main photo', ph_wiki: 'Wikipedia', ph_all: 'Photos', ph_wiki_rm: 'Remove the Wikipedia photo'});
 
+// confirmations before signing out and before closing a card with unsaved changes
+Object.assign(DICT.ru, {cf_logout: 'Выйти из аккаунта?', cf_logout_p: 'Чтобы снова работать с журналом, нужно будет войти заново.',
+  cf_leave: 'Закрыть без сохранения?', cf_leave_p: 'Изменения в этой карточке не сохранятся.', cf_leave_ok: 'Закрыть без сохранения', cf_stay: 'Остаться', cf_cancel: 'Отмена'});
+Object.assign(DICT.pl, {cf_logout: 'Wylogować się?', cf_logout_p: 'Aby znów pracować z dziennikiem, trzeba będzie zalogować się ponownie.',
+  cf_leave: 'Zamknąć bez zapisywania?', cf_leave_p: 'Zmiany w tej karcie nie zostaną zapisane.', cf_leave_ok: 'Zamknij bez zapisywania', cf_stay: 'Zostań', cf_cancel: 'Anuluj'});
+Object.assign(DICT.en, {cf_logout: 'Sign out?', cf_logout_p: 'You will need to sign in again to use the log.',
+  cf_leave: 'Close without saving?', cf_leave_p: 'Changes to this card will not be saved.', cf_leave_ok: 'Close without saving', cf_stay: 'Stay', cf_cancel: 'Cancel'});
+
 /* ---------- housing places: screens added to the page ---------- */
 {
   const add = (sel, where, html) => { const el = document.querySelector(sel); if (el) el.insertAdjacentHTML(where, html); };
@@ -178,6 +186,7 @@ Object.assign(DICT.en, {lk_l: 'Protect from AI', lk_t: 'Protected: AI will not c
 <div id="encl-body"></div>
 </section>
 `);
+  document.body.insertAdjacentHTML('beforeend', `<div class="cfm" id="cfm" role="alertdialog" aria-modal="true" aria-labelledby="cfm-t" aria-describedby="cfm-p" hidden><div class="cfm-box"><h2 id="cfm-t"></h2><p id="cfm-p"></p><div class="cfm-acts"><button class="btn sec" type="button" id="cfm-no"></button><button class="btn pri" type="button" id="cfm-ok"></button></div></div></div>`);
   add('#sheet-user', 'beforebegin', `<section class="sheet" id="sheet-encl" role="dialog" aria-modal="true" aria-labelledby="ef-title" tabindex="-1" aria-hidden="true" inert>
 <div class="grip" aria-hidden="true"></div>
 <div class="sh"><span class="tile t-amber" data-ic="home"></span><div><h2 id="ef-title"></h2><p id="ef-sub"></p></div><button class="x" type="button" data-close data-ta="close"><span data-ic="x" data-s="20" data-w="2.2"></span></button></div>
@@ -1018,10 +1027,39 @@ function openSheet(name) {
   if (!$('.sheet.open')) lastFocus = document.activeElement;
   $$('.sheet.open').forEach(x => { if (x !== s) hideSheet(x); });
   $('#overlay').classList.add('on');
+  formDirty = false;
   s.removeAttribute('inert'); s.setAttribute('aria-hidden', 'false'); s.classList.add('open'); s.scrollTop = 0;
   setTimeout(() => s.focus({preventScroll: true}), 40);
 }
+// asks a yes/no question in a small window; resolves true when confirmed
+let askDone = null;
+function ask(title, text, okText, noText, danger) {
+  if (askDone) askDone(false);
+  const box = $('#cfm'), back = document.activeElement;
+  $('#cfm-t').textContent = title; $('#cfm-p').textContent = text;
+  $('#cfm-ok').textContent = okText; $('#cfm-no').textContent = noText;
+  $('#cfm-ok').classList.toggle('danger', !!danger);
+  box.hidden = false;
+  setTimeout(() => $('#cfm-no').focus({preventScroll: true}), 30);
+  return new Promise(res => { askDone = v => { askDone = null; box.hidden = true; if (back && document.contains(back)) back.focus({preventScroll: true}); res(v); }; });
+}
+$('#cfm-ok').addEventListener('click', () => askDone && askDone(true));
+$('#cfm-no').addEventListener('click', () => askDone && askDone(false));
+$('#cfm').addEventListener('click', e => { if (e.target.id === 'cfm' && askDone) askDone(false); });
+// a form counts as changed once the person types, picks, ticks or touches its photos
+let formDirty = false;
+const markDirty = e => { if (e.target.closest && e.target.closest('.sheet.open form')) formDirty = true; };
+document.addEventListener('input', markDirty, true);
+document.addEventListener('change', markDirty, true);
+document.addEventListener('click', e => { if (e.target.closest('.sheet.open form [data-star],.sheet.open form [data-rmw],.sheet.open form [data-rmk],.sheet.open form [data-rma],.sheet.open form [data-nm-add],.sheet.open form [data-nm-rm]')) formDirty = true; }, true);
+window.addEventListener('beforeunload', e => { if (formDirty && $('.sheet.open')) { e.preventDefault(); e.returnValue = ''; } });
+// closing on request (cross, overlay, Back, Escape): asks first when there are unsaved changes
+async function requestClose() {
+  if (formDirty && $('.sheet.open form') && !await ask(t('cf_leave'), t('cf_leave_p'), t('cf_leave_ok'), t('cf_stay'), true)) return;
+  closeSheets();
+}
 function closeSheets() {
+  formDirty = false;
   presetBird = null;
   $$('.sheet.open').forEach(hideSheet);
   $('#overlay').classList.remove('on');
@@ -1622,7 +1660,7 @@ document.addEventListener('click', e => {
   if (!el) return;
   const d = el.dataset;
   if (d.lang) setLang(d.lang);
-  else if (d.logout !== undefined) { closeSheets(); sb && sb.auth.signOut(); }
+  else if (d.logout !== undefined) ask(t('cf_logout'), t('cf_logout_p'), t('logout'), t('cf_cancel'), true).then(ok => { if (ok) { closeSheets(); sb && sb.auth.signOut(); } });
   else if (d.pass !== undefined) { $('#pf-err').textContent = ''; openSheet('pass'); }
   else if (d.userNew !== undefined) openUserForm(null);
   else if (d.user) openUserForm(profiles.get(d.user));
@@ -1638,13 +1676,13 @@ document.addEventListener('click', e => {
   else if (d.sheet) { if (!canWrite()) return; presetBird = d.preset || null; openSheet(d.sheet); }
   else if (d.tab) setTab(d.tab);
   else if (d.edit) { const r = recs.find(x => x.id === d.edit); if (r) openForm(r.type, null, r); }
-  else if (d.close !== undefined) closeSheets();
+  else if (d.close !== undefined) requestClose();
   else if (d.goto) { setTab('now'); const s = $('#' + d.goto); if (s) s.scrollIntoView({block: 'start'}); }
   else if (d.f) { filt = d.f; $$('#view-logs .chip').forEach(c => c.setAttribute('aria-pressed', String(c === el))); renderLogs(); paintPhotos(); }
 });
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
-  if (!$('#lightbox').hidden) closeLightbox(); else if ($('.sheet.open')) closeSheets();
+  if (askDone) askDone(false); else if (!$('#lightbox').hidden) closeLightbox(); else if ($('.sheet.open')) requestClose();
 });
 [['#form', '#f-err'], ['#encl-form', '#ef-err'], ['#sp-form', '#sp-err'], ['#bird-form', '#bf-err'], ['#user-form', '#uf-err'], ['#pass-form', '#pf-err'], ['#login-form', '#lg-err']]
   .forEach(([f, er]) => $(f).addEventListener('input', () => { $(er).textContent = ''; }));
