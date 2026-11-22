@@ -42,6 +42,21 @@ button.cdot::before,.cbar::before{content:"";position:absolute;inset:-6px}
 .lg-row{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;margin-bottom:6px;background:var(--card);border:1px solid var(--line);border-radius:12px;font-size:14px;line-height:1.4}
 .lg-row time{flex:none;min-width:42px;color:var(--muted);font-weight:600}.lg-t{flex:1;min-width:0;overflow-wrap:anywhere}
 .lg-row.dev{border-left:4px solid var(--blue)}
+.lg-row.ai{border-left:4px solid var(--green,#2e7d32)}
+.lg-n,.lg-ver{display:inline-block;margin-right:6px;padding:0 6px;border-radius:6px;background:var(--bg,#f3f4f6);color:var(--muted);font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
+.lg-ver{background:var(--blue);color:#fff}
+.app-ver{margin-top:10px}
+/* species texts in three languages */
+.tr-note{display:flex;align-items:center;gap:5px;margin-top:8px;color:var(--muted);font-size:12px;font-style:italic}
+.tr-note svg{flex:none}
+.fld .tr-note.fld-tr{margin-top:4px}
+.tr-switch{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin:10px 0 4px}
+.tr-switch .tr-l{font-weight:700;font-size:14px}
+.tr-switch .seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.tr-switch .seg button{min-width:48px;min-height:40px;padding:0 12px;border:0;background:var(--card);color:inherit;font:inherit;font-weight:700;cursor:pointer}
+.tr-switch .seg button+button{border-left:1px solid var(--line)}
+.tr-switch .seg button[aria-pressed=true]{background:var(--blue);color:#fff}
+.tr-switch .hint{flex-basis:100%;margin:0}
 .lg-del{flex:none;border:0;background:none;color:var(--muted);padding:2px 4px;border-radius:8px;min-width:28px;min-height:28px}.lg-del.armed{background:var(--red-soft);color:var(--red);font-weight:700;font-size:13px}
 #log-body{max-width:900px}
 /* protected texts and species photos */
