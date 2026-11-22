@@ -127,6 +127,17 @@ Object.assign(DICT.en, {
   en_no_kids: 'Nothing inside yet.', del_encl_kids: n => n + ' ' + pw(n, 'w_place') + ' inside will become separate. Delete?', e_cycle: 'A place cannot be inside itself.'
 });
 
+// protected (locked) texts and species photos
+Object.assign(DICT.ru, {lk_l: 'Защитить от ИИ', lk_t: 'Защищено: нейросеть это не изменит, менять может только администратор', lk_ro: 'Защищено — менять может только администратор',
+  lk_hint: 'Галочка «Защитить от ИИ» у поля значит: этот текст никто, кроме администратора, не изменит — ни нейросеть, ни другие сотрудники.',
+  ph_main: 'Сделать главным', ph_is_main: 'Главное фото', ph_wiki: 'Википедия', ph_all: 'Фотографии', ph_wiki_rm: 'Убрать фото из Википедии'});
+Object.assign(DICT.pl, {lk_l: 'Chroń przed AI', lk_t: 'Chronione: AI tego nie zmieni, zmienić może tylko administrator', lk_ro: 'Chronione — zmienić może tylko administrator',
+  lk_hint: 'Zaznaczenie „Chroń przed AI” oznacza, że tego tekstu nie zmieni nikt poza administratorem — ani AI, ani inni pracownicy.',
+  ph_main: 'Ustaw jako główne', ph_is_main: 'Główne zdjęcie', ph_wiki: 'Wikipedia', ph_all: 'Zdjęcia', ph_wiki_rm: 'Usuń zdjęcie z Wikipedii'});
+Object.assign(DICT.en, {lk_l: 'Protect from AI', lk_t: 'Protected: AI will not change this, only an admin can', lk_ro: 'Protected — only an admin can change this',
+  lk_hint: '“Protect from AI” means nobody but an admin can change this text — neither AI nor other staff.',
+  ph_main: 'Make main', ph_is_main: 'Main photo', ph_wiki: 'Wikipedia', ph_all: 'Photos', ph_wiki_rm: 'Remove the Wikipedia photo'});
+
 /* ---------- housing places: screens added to the page ---------- */
 {
   const add = (sel, where, html) => { const el = document.querySelector(sel); if (el) el.insertAdjacentHTML(where, html); };
@@ -222,6 +233,8 @@ const I = {
   building:'<path d="M4 21V7l8-4 8 4v14"/><path d="M2 21h20M9 21v-4h6v4M8 10h2M14 10h2M8 14h2M14 14h2"/>',
   calgrid:'<rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/><circle cx="8" cy="14" r="1"/><path d="M11 17.5h7"/>',
   chevl:'<path d="m15 6-6 6 6 6"/>',
+  star:'<path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9z"/>',
+  lock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
   drop:'<path d="M12 3s-6.5 7-6.5 11.5a6.5 6.5 0 0 0 13 0C18.5 10 12 3 12 3z"/>',
   paw:'<circle cx="5.5" cy="10" r="2"/><circle cx="9.5" cy="5.5" r="2"/><circle cx="14.5" cy="5.5" r="2"/><circle cx="18.5" cy="10" r="2"/><path d="M12 12c-3 0-5.5 3.5-5.5 6 0 1.7 1.3 3 3 3 1 0 1.7-.5 2.5-.5s1.5.5 2.5.5c1.7 0 3-1.3 3-3 0-2.5-2.5-6-5.5-6z"/>'
 };
@@ -348,6 +361,13 @@ const toEncl = x => ({name: x.name, kind: x.kind, area: x.area || '', size: x.si
 const fromPhoto = d => ({id: d.id, ownerType: d.owner_type, ownerId: d.owner_id, path: d.path, w: d.width, h: d.height, by: d.created_by || null, created: ms(d.created_at)});
 const thumbOf = p => p.replace(/\.jpg$/, '_t.jpg');
 const photosOf = (type, id) => photosByOwner.get(type + ':' + id) || [];
+// which photo is the main one: the chosen one if it still exists, else Wikipedia, else the first uploaded
+function mainOf(st2, wk) {
+  const ids = st2.keep.map(p => p.id).concat(st2.added.map(a => a.id));
+  if (st2.main === 'wiki' && wk) return 'wiki';
+  if (st2.main && ids.includes(st2.main)) return st2.main;
+  return wk ? 'wiki' : ids[0] || '';
+}
 
 // names in several languages: the main name is the stable key, the others are shown when the app is in that language
 const LANGS = ['ru', 'pl', 'en'], LANG_NAME = {ru: 'Русский', pl: 'Polski', en: 'English'};
@@ -374,6 +394,15 @@ const IUCN = ['LC', 'NT', 'VU', 'EN', 'CR', 'EW', 'DD'];
 const spInfo = s => (s && s.info) || {};
 const spGroup = s => spInfo(s).group === 'mammal' ? 'mammal' : 'bird';
 const spPhoto = s => { const p = spInfo(s).photo; return p && /^https:\/\//.test(p.src || '') ? p : null; };
+const spLocked = s => { const l = spInfo(s).locked; return Array.isArray(l) ? l : []; };
+const lockMark = on => on ? `<span class="lk-i" title="${esc(t('lk_t'))}" aria-label="${esc(t('lk_t'))}">${ic('lock', 14, 2.2)}</span>` : '';
+// the main photo of a species: {wiki} or {dept: photo row}, chosen with info.main
+function spMain(s) {
+  const wk = spPhoto(s), dp = photosOf('species', s.id), m = spInfo(s).main;
+  if (m && m !== 'wiki') { const p = dp.find(x => x.id === m); if (p) return {dept: p}; }
+  if (wk) return {wiki: wk};
+  return dp[0] ? {dept: dp[0]} : null;
+}
 const iucnBadge = (c, long) => IUCN.includes(c) ? `<span class="iucn iucn-${c}" title="${esc(t('iucn_t') + ' ' + c + ' — ' + t('iucn_' + c))}"><b>${c}</b>${long ? `<span>${esc(t('iucn_' + c))}</span>` : ''}</span>` : '';
 const SI_WILD = [['range', 'globe'], ['habitat', 'tree'], ['diet_wild', 'leaf'], ['behaviour', 'eye'], ['breeding', 'egg']];
 const SI_ZOO = [['diet_zoo', 'bowl'], ['husbandry', 'home'], ['health', 'heart'], ['sex', 'sex']];
@@ -499,23 +528,34 @@ async function shrink(file, max, quality) {
 }
 
 // a photo field inside a form: existing photos, new ones waiting to be uploaded, removals
-function photoBox(boxId, ownerType, ownerId, editable) {
-  const box = $('#' + boxId);
-  const st2 = {ownerType, ownerId, keep: ownerId ? photosOf(ownerType, ownerId).slice() : [], removed: [], added: [], busy: 0};
+// opts (species only): main = id of the main photo or 'wiki'; wiki() = current Wikipedia photo; onWikiRm(); lockMain() = main photo is protected
+function photoBox(boxId, ownerType, ownerId, editable, opts) {
+  const box = $('#' + boxId), o = opts || null;
+  const st2 = {ownerType, ownerId, keep: ownerId ? photosOf(ownerType, ownerId).slice() : [], removed: [], added: [], busy: 0, main: o ? o.main || '' : ''};
+  const star = id => {
+    if (!o) return '';
+    const on = mainOf(st2, o.wiki()) === id, can = editable && !o.lockMain();
+    return on ? `<span class="ph-star on" title="${esc(t('ph_is_main'))}">${ic('star', 16, 2.2)}</span>`
+      : can ? `<button type="button" class="ph-star" data-star="${esc(id)}" aria-label="${esc(t('ph_main'))}" title="${esc(t('ph_main'))}">${ic('star', 16, 2.2)}</button>` : '';
+  };
   const draw = () => {
-    const show = editable || st2.keep.length;
+    const wk = o && o.wiki(), show = editable || st2.keep.length || wk;
     box.hidden = !show;
     if (!show) { box.innerHTML = ''; return; }
-    box.innerHTML = `<span class="lbl">${esc(t('photos'))}</span><div class="pgrid">`
-      + st2.keep.map(p => `<div class="ph"><button type="button" class="ph-open" data-lb="${esc(p.path)}" aria-label="${esc(t('open_photo'))}">${thumbImg(p)}</button>${editable && canRmPhoto(p) ? `<button type="button" class="ph-x" data-rmk="${esc(p.id)}" aria-label="${esc(t('rm_photo'))}">${ic('x', 18, 2.4)}</button>` : ''}</div>`).join('')
-      + st2.added.map(a => `<div class="ph"><img src="${a.url}" alt=""><button type="button" class="ph-x" data-rma="${a.key}" aria-label="${esc(t('rm_photo'))}">${ic('x', 18, 2.4)}</button></div>`).join('')
+    box.innerHTML = `<span class="lbl">${esc(o ? t('ph_all') : t('photos'))}</span><div class="pgrid">`
+      + (wk ? `<div class="ph"><button type="button" class="ph-open" data-lbu="${esc(wk.src)}" aria-label="${esc(t('open_photo'))}"><img src="${esc(wk.thumb || wk.src)}" alt=""></button><span class="ph-tag">${esc(t('ph_wiki'))}</span>${star('wiki')}${editable && !o.lockMain() ? `<button type="button" class="ph-x" data-rmw aria-label="${esc(t('ph_wiki_rm'))}">${ic('x', 18, 2.4)}</button>` : ''}</div>` : '')
+      + st2.keep.map(p => `<div class="ph"><button type="button" class="ph-open" data-lb="${esc(p.path)}" aria-label="${esc(t('open_photo'))}">${thumbImg(p)}</button>${star(p.id)}${editable && canRmPhoto(p) && !(o && o.lockMain() && mainOf(st2, wk) === p.id) ? `<button type="button" class="ph-x" data-rmk="${esc(p.id)}" aria-label="${esc(t('rm_photo'))}">${ic('x', 18, 2.4)}</button>` : ''}</div>`).join('')
+      + st2.added.map(a => `<div class="ph"><img src="${a.url}" alt="">${star(a.id)}<button type="button" class="ph-x" data-rma="${a.key}" aria-label="${esc(t('rm_photo'))}">${ic('x', 18, 2.4)}</button></div>`).join('')
       + (editable ? `<label class="ph-add"><input class="vh" type="file" accept="image/*" multiple>${ic('plus', 22, 2.2)}<span>${esc(t('add_photo'))}</span></label>` : '')
       + `</div>`;
     paintPhotos(box);
   };
+  st2.redraw = draw;
   box.onclick = e => {
-    const k = e.target.closest('[data-rmk]'), a = e.target.closest('[data-rma]');
-    if (k) { const i = st2.keep.findIndex(p => p.id === k.dataset.rmk); if (i >= 0) st2.removed.push(st2.keep.splice(i, 1)[0]); draw(); }
+    const k = e.target.closest('[data-rmk]'), a = e.target.closest('[data-rma]'), sr = e.target.closest('[data-star]'), rw = e.target.closest('[data-rmw]');
+    if (sr) { e.preventDefault(); st2.main = sr.dataset.star; draw(); }
+    else if (rw) { if (st2.main === 'wiki') st2.main = ''; o.onWikiRm(); draw(); }
+    else if (k) { const i = st2.keep.findIndex(p => p.id === k.dataset.rmk); if (i >= 0) st2.removed.push(st2.keep.splice(i, 1)[0]); draw(); }
     else if (a) { const i = st2.added.findIndex(x => x.key === a.dataset.rma); if (i >= 0) { URL.revokeObjectURL(st2.added[i].url); st2.added.splice(i, 1); } draw(); }
   };
   box.onchange = async e => {
@@ -526,7 +566,7 @@ function photoBox(boxId, ownerType, ownerId, editable) {
       st2.busy++;
       try {
         const full = await shrink(f, 1600, 0.82), th = await shrink(full.blob, 360, 0.78);
-        st2.added.push({key: uuid(), full: full.blob, thumb: th.blob, w: full.w, h: full.h, url: URL.createObjectURL(th.blob)});
+        st2.added.push({key: uuid(), id: uuid(), full: full.blob, thumb: th.blob, w: full.w, h: full.h, url: URL.createObjectURL(th.blob)});
       } catch (x) { toast(t('e_photo_read')); }
       finally { st2.busy--; }
     }
@@ -544,7 +584,7 @@ async function commitPhotos(st2, ownerId) {
   }
   for (const a of st2.added) {
     try {
-      const id = uuid(), path = me + '/' + id + '.jpg';
+      const id = a.id || uuid(), path = me + '/' + id + '.jpg';
       must(await sb.storage.from(BUCKET).upload(path, a.full, {contentType: 'image/jpeg', upsert: false}));
       must(await sb.storage.from(BUCKET).upload(thumbOf(path), a.thumb, {contentType: 'image/jpeg', upsert: false}));
       const row = must(await sb.from('photos').insert({id, owner_type: st2.ownerType, owner_id: ownerId, path, width: a.w, height: a.h, created_by: me}).select().single());
@@ -611,8 +651,8 @@ function renderSpecies() {
   const list = species.filter(s => (sg === 'all' || spGroup(s) === sg)
     && (!sq || spNames(s).concat(spInfo(s).syn || []).some(v => key(v).includes(sq)))).sort(bySp);
   $('#species-body').innerHTML = list.length ? list.map(s => {
-    const nb = coll.filter(b => b.sp === s.id && b.status !== 'out').length, main = spName(s), ph = spPhoto(s);
-    const th = ph ? `<img src="${esc(ph.thumb || ph.src)}" alt="" loading="lazy">` : ic(spGroup(s) === 'mammal' ? 'paw' : 'bird', 26);
+    const nb = coll.filter(b => b.sp === s.id && b.status !== 'out').length, main = spName(s), mp = spMain(s);
+    const th = mp && mp.wiki ? `<img src="${esc(mp.wiki.thumb || mp.wiki.src)}" alt="" loading="lazy">` : mp ? thumbImg(mp.dept) : ic(spGroup(s) === 'mammal' ? 'paw' : 'bird', 26);
     return `<button class="row sp-row" type="button" data-sp="${esc(s.id)}"><span class="sp-thumb">${th}</span><span class="rt"><b>${esc(main)}</b>${s.latin && s.latin !== main ? `<small class="lat" lang="la">${esc(s.latin)}</small>` : ''}<small>${esc(nb ? t('in_coll', nb) : t('not_in_coll'))}</small></span>${iucnBadge(spInfo(s).iucn)}<span class="chev">${ic('chev', 20)}</span></button>`;
   }).join('') : `<p class="empty">${esc(n ? t('none_found') : t('sp_none'))}</p>`;
 }
@@ -631,16 +671,21 @@ function renderSpCard() {
   const bItems = cbs.map(cb => `<div class="ncard"><div class="nl"><button class="namelink" type="button" data-bc="${esc(cb.id)}">${esc(dn(cb))}</button><small>${esc([cb.status === 'out' ? t('st_out') : '', stat(st.birds.get(key(cb.name)) || {})].filter(Boolean).join(' · '))}</small></div></div>`)
     .concat(others.map(b => `<div class="ncard"><div class="nl"><b>${esc(b.name)}</b><small>${esc(stat(b) + ' · ' + t('not_in_coll_b'))}</small></div></div>`));
   const main = spName(s), txt = v => typeof v === 'string' ? v.trim() : '';
-  const secCard = (k, icn, tone) => txt(inf[k]) ? `<article class="si-card"><h3><span class="tile sm t-${tone}">${ic(icn, 18)}</span>${esc(t('si_' + k))}</h3><p>${esc(txt(inf[k]))}</p></article>` : '';
+  const lk = spLocked(s), secCard = (k, icn, tone) => txt(inf[k]) ? `<article class="si-card"><h3><span class="tile sm t-${tone}">${ic(icn, 18)}</span>${esc(t('si_' + k))}${lockMark(lk.includes(k))}</h3><p>${esc(txt(inf[k]))}</p></article>` : '';
   const wild = SI_WILD.map(([k, i]) => secCard(k, i, 'green')).join('');
   const zoo = SI_ZOO.map(([k, i]) => secCard(k, i, k === 'health' ? 'red' : 'amber')).join('');
   const facts = [['si_tax', [txt(inf.order), txt(inf.family)].filter(Boolean).join(' · '), 'tag'], ['si_size', txt(inf.size), 'ruler'], ['si_life', txt(inf.life), 'clock'], ['si_incub', toN(inf.incub_days) ? t('si_incub_v', toN(inf.incub_days)) : '', 'egg']].filter(f => f[1]);
   const names = [['RU', s.name, 'ru'], ['PL', s.pl, 'pl'], ['EN', s.en, 'en']].filter(v => v[1]);
-  const photo = ph
-    ? `<figure class="sp-photo"><button type="button" class="ph-open" data-lbu="${esc(ph.src)}" aria-label="${esc(t('open_photo'))}"><img src="${esc(ph.src)}" alt="${esc(main)}"></button>${ph.credit || ph.page ? `<figcaption>${esc(t('si_photo_by') + (ph.credit || ''))}${ph.page ? ` · <a href="${esc(ph.page)}" target="_blank" rel="noopener">Wikimedia Commons</a>` : ''}</figcaption>` : ''}</figure>`
+  const mp = spMain(s), dPhotos = photosOf('species', s.id);
+  const wikiCap = ph && (ph.credit || ph.page) ? `<figcaption>${esc(t('si_photo_by') + (ph.credit || ''))}${ph.page ? ` · <a href="${esc(ph.page)}" target="_blank" rel="noopener">Wikimedia Commons</a>` : ''}</figcaption>` : '';
+  const strip = (mp && mp.wiki ? [] : ph ? [`<button type="button" class="ph-open" data-lbu="${esc(ph.src)}" aria-label="${esc(t('open_photo'))}"><img src="${esc(ph.thumb || ph.src)}" alt=""></button>`] : [])
+    .concat(dPhotos.filter(p => !(mp && mp.dept === p)).map(p => `<button type="button" class="ph-open" data-lb="${esc(p.path)}" aria-label="${esc(t('open_photo'))}">${thumbImg(p)}</button>`));
+  const stripH = strip.length ? `<div class="sp-strip">${strip.join('')}</div>` : '';
+  const photo = mp && mp.wiki
+    ? `<figure class="sp-photo"><button type="button" class="ph-open" data-lbu="${esc(ph.src)}" aria-label="${esc(t('open_photo'))}"><img src="${esc(ph.src)}" alt="${esc(main)}"></button>${lockMark(lk.includes('photo'))}${wikiCap}${stripH}</figure>`
+    : mp ? `<figure class="sp-photo"><button type="button" class="ph-open" data-lb="${esc(mp.dept.path)}" aria-label="${esc(t('open_photo'))}"><img data-path="${esc(mp.dept.path)}" alt="${esc(main)}"></button>${lockMark(lk.includes('photo'))}${stripH}</figure>`
     : `<figure class="sp-photo sp-photo-empty"><span>${ic(grp === 'mammal' ? 'paw' : 'bird', 44, 1.6)}</span><figcaption>${esc(t('si_no_photo'))}</figcaption></figure>`;
   const jump = [wild && 'si-wild', zoo && 'si-zoo', 'si-dept'].filter(Boolean);
-  const dPhotos = photosOf('species', s.id);
   box.innerHTML = backBtn('sp') + `<div class="sp-head">${photo}<div class="sp-id">
 <h1>${esc(main)}</h1>${s.latin && s.latin !== main ? `<p class="latin" lang="la">${esc(s.latin)}</p>` : ''}${txt(inf.syn) ? `<p class="sp-syn">${esc(t('si_syn'))}: <i lang="la">${esc(txt(inf.syn))}</i></p>` : ''}
 ${names.length ? `<dl class="sp-names">${names.map(([c, v, l]) => `<div><dt>${c}</dt><dd lang="${l}">${esc(v)}</dd></div>`).join('')}</dl>` : ''}
@@ -654,8 +699,7 @@ ${zoo ? `<section class="si-group si-zoo" id="si-zoo"><h2 class="si-gh">${esc(t(
 <section class="si-group si-dept" id="si-dept"><h2 class="si-gh">${esc(t('si_dept'))}</h2>
 <div class="stats"><div class="stat c-red"><b>${nt}</b><span class="l">${esc(t('c_treat'))}</span></div><div class="stat c-amber"><b>${ni}</b><span class="l">${esc(t('c_inc'))}</span></div><div class="stat c-blue"><b>${nc}</b><span class="l">${esc(pw(nc, 'chick'))}</span></div></div>
 <div class="top-acts w-only"><button class="btn sec" type="button" data-sp-edit>${esc(t('edit_card'))}</button><button class="btn sec" type="button" data-bird-new>${esc(t('add_bird'))}</button></div>
-${s.note ? `<article class="si-card si-notes"><h3><span class="tile sm t-blue">${ic('book', 18)}</span>${esc(t('si_notes'))}</h3><p>${esc(s.note)}</p></article>` : ''}
-${dPhotos.length ? `<div class="nsec"><h2 class="nh">${esc(t('si_photos_dept'))}<span class="nc">${dPhotos.length}</span></h2>${gallery(dPhotos)}</div>` : ''}
+${s.note ? `<article class="si-card si-notes"><h3><span class="tile sm t-blue">${ic('book', 18)}</span>${esc(t('si_notes'))}${lockMark(lk.includes('note'))}</h3><p>${esc(s.note)}</p></article>` : ''}
 <section class="nsec"><h2 class="nh">${esc(t('birds_pairs'))}<span class="nc">${bItems.length}</span></h2>${bItems.length ? bItems.join('') : `<p class="empty">${esc(t('no_birds_sp'))}</p>`}</section>
 <section class="nsec"><h2 class="nh">${esc(t('records'))}<span class="nc">${rs.length}</span></h2>${rs.length ? rs.slice(0, 50).map(r => card(r, true)).join('') : `<p class="empty">${esc(t('no_records'))}</p>`}</section>
 </section>`;
@@ -1379,14 +1423,21 @@ const SIF = [['group', 'select', 'sf_group'], ['iucn', 'select', 'sf_iucn'], ['c
   ['breeding', 'textarea', 'si_breeding'], ['diet_zoo', 'textarea', 'si_diet_zoo'], ['husbandry', 'textarea', 'si_husbandry'], ['health', 'textarea', 'si_health'],
   ['photo.src', 'url', 'sf_photo'], ['photo.credit', 'text', 'sf_photo_credit'], ['photo.page', 'url', 'sf_photo_page']];
 const sifId = k => 'sfi-' + k.replace('.', '-');
+const dPhotoCount = () => phSp ? phSp.keep.length + phSp.added.length : 0;
+const lockKey = k => k.startsWith('photo.') ? 'photo' : k;
+// the "protect from AI" checkbox under a field; only an admin can tick or untick it or edit a protected field
+const lockBox = (k, locked) => `<label class="lk"><input type="checkbox" name="lk" value="${esc(k)}"${locked.includes(k) ? ' checked' : ''}${isAdmin() ? '' : ' disabled'}>${ic('lock', 14, 2.2)}<span>${esc(t(isAdmin() || !locked.includes(k) ? 'lk_l' : 'lk_ro'))}</span></label>`;
 function infoFields(inf) {
   const opt = (val, cur, label) => `<option value="${val}"${val === (cur || '') ? ' selected' : ''}>${esc(label)}</option>`;
-  const ph = inf.photo || {};
+  const ph = inf.photo || {}, locked = Array.isArray(inf.locked) ? inf.locked : [];
   return SIF.map(([k, tp, l]) => {
     const id = sifId(k), v = k.startsWith('photo.') ? ph[k.slice(6)] : inf[k];
-    if (k === 'group') return `<div class="fld"><label for="${id}">${esc(t(l))}</label><select id="${id}">${opt('bird', v || 'bird', t('sg_bird'))}${opt('mammal', v, t('sg_mammal'))}</select></div>`;
-    if (k === 'iucn') return `<div class="fld"><label for="${id}">${esc(t(l))}</label><select id="${id}">${opt('', v, t('sf_iucn_none'))}${IUCN.map(c => opt(c, v, c + ' — ' + t('iucn_' + c))).join('')}</select></div>`;
-    return field({k, l, t: tp, id}, typeof v === 'string' ? v : '');
+    let h;
+    if (k === 'group') h = `<div class="fld"><label for="${id}">${esc(t(l))}</label><select id="${id}">${opt('bird', v || 'bird', t('sg_bird'))}${opt('mammal', v, t('sg_mammal'))}</select></div>`;
+    else if (k === 'iucn') h = `<div class="fld"><label for="${id}">${esc(t(l))}</label><select id="${id}">${opt('', v, t('sf_iucn_none'))}${IUCN.map(c => opt(c, v, c + ' — ' + t('iucn_' + c))).join('')}</select></div>`;
+    else h = field({k, l, t: tp, id, dis: !isAdmin() && locked.includes(lockKey(k))}, v == null ? '' : String(v));
+    if (!isAdmin() && locked.includes(lockKey(k))) h = h.replace(/<(select|textarea) id=/, '<$1 disabled id=');
+    return k.startsWith('photo.') && k !== 'photo.src' ? h : h.replace(/<\/div>$/, lockBox(lockKey(k), locked) + '</div>');
   }).join('');
 }
 function readInfo(base) {
@@ -1397,6 +1448,9 @@ function readInfo(base) {
     else if (v) inf[k] = v; else delete inf[k];
   }
   if (ph.src && /^https:\/\//.test(ph.src)) inf.photo = ph; else delete inf.photo;
+  const lk = $$('#sp-form input[name=lk]:checked').map(x => x.value);
+  if (lk.length) inf.locked = lk; else delete inf.locked;
+  if (phSp) { const m = mainOf(phSp, inf.photo); if (m && (m !== 'wiki' || dPhotoCount() > 0)) inf.main = m; else delete inf.main; }
   return inf;
 }
 function openSpForm(s) {
@@ -1406,11 +1460,22 @@ function openSpForm(s) {
   $('#sp-f-sub').textContent = s ? t('editing') : t('spf_sub_new');
   for (const k of SPF) $('#sp-' + k).value = s ? s[k] : '';
   $('#sp-note').value = s ? s.note : '';
-  $('#sp-info-fields').innerHTML = infoFields(s ? s.info || {} : {});
+  const inf0 = s ? s.info || {} : {}, locked = Array.isArray(inf0.locked) ? inf0.locked : [];
+  $('#sp-info-fields').innerHTML = infoFields(inf0);
+  const noteF = $('#sp-note').closest('.fld');
+  $$('.lk', noteF).forEach(x => x.remove());
+  noteF.insertAdjacentHTML('beforeend', lockBox('note', locked));
+  $('#sp-note').disabled = !isAdmin() && locked.includes('note');
+  const hint = $('#sp-lk-hint') || (() => { $('#sp-more').insertAdjacentHTML('beforebegin', '<p class="hint" id="sp-lk-hint"></p>'); return $('#sp-lk-hint'); })();
+  hint.textContent = t('lk_hint');
   $('#sp-more').open = !s;
   $('#sp-err').textContent = '';
   const d = $('#sp-del'); d.hidden = !s || !isAdmin(); d.textContent = t('del_sp');
-  phSp = photoBox('sp-ph', 'species', s ? s.id : null, true);
+  const wikiNow = () => { const src = ($('#sfi-photo-src').value || '').trim(); return /^https:\/\//.test(src) ? {src, thumb: src === ((inf0.photo || {}).src) ? inf0.photo.thumb : ''} : null; };
+  phSp = photoBox('sp-ph', 'species', s ? s.id : null, true, {main: inf0.main || '', wiki: wikiNow,
+    onWikiRm: () => ['photo-src', 'photo-credit', 'photo-page'].forEach(k => { $('#sfi-' + k).value = ''; }),
+    lockMain: () => !isAdmin() && locked.includes('photo')});
+  $('#sfi-photo-src').addEventListener('change', () => phSp.redraw());
   openSheet('sp');
 }
 $('#sp-form').addEventListener('submit', async e => {
