@@ -3,7 +3,7 @@
 // the cached copy is used only when there is no connection.
 // 'no-cache' asks the server every time (a cheap 304 when nothing changed),
 // otherwise the browser keeps GitHub Pages files for up to 10 minutes after a release.
-const CACHE = 'zoo-log-v3';
+const CACHE = 'zoo-log-v4';
 const SHELL = ['./', 'index.html', 'desktop.css', 'i18n.js', 'i18n-species.js', 'pwa.js', 'js/texts.js', 'js/screens.js', 'js/core.js', 'js/data.js', 'js/photos.js', 'js/render.js', 'js/changelog.js', 'js/calendar.js', 'js/ui.js', 'js/server.js', 'js/forms.js', 'js/places.js', 'js/locks.js', 'js/gaps.js', 'js/species-form.js', 'js/users.js', 'js/clicks.js', 'js/pick.js', 'js/gate.js', 'js/start.js', 'manifest.webmanifest', 'icon.svg'];
 
 self.addEventListener('install', e => {

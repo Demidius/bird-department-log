@@ -23,8 +23,8 @@
 **changelog.js** (2 КБ) — change log screen
 `logLine`, `renderLog`
 
-**calendar.js** (15 КБ) — calendar: list and month grid, expected dates, day sheet
-`DAY`, `midnight`, `dayDiff`, `CAL_DOT`, `GUESS_IC`, `calIc`, `calItems`, `mIdx`, `weeksHTML`, `renderCal`, `calJump`, `openCalItem`, `calDay`, `renderDay`, `openDay`, `renderUsers`, `renderAccount`, `openCard`, `index`, `render`
+**calendar.js** (16 КБ) — calendar: list and month grid, expected dates, day sheet
+`DAY`, `midnight`, `dayDiff`, `CAL_DOT`, `GUESS_IC`, `calIc`, `realNick`, `calWho`, `calLab`, `calItems`, `mIdx`, `weeksHTML`, `renderCal`, `calJump`, `openCalItem`, `calDay`, `renderDay`, `openDay`, `renderUsers`, `renderAccount`, `openCard`, `index`, `render`
 
 **ui.js** (16 КБ) — tabs, sheets, Back button history, confirmations, place picker, alt-name rows
 `toastT`, `toast`, `setStatus`, `applyStatic`, `setLang`, `TAB_OF`, `navOn`, `navState`, `navStart`, `setTab`, `hideSheet`, `openSheet`, `askDone`, `ask`, `formDirty`, `markDirty`, `requestClose`, `closeSheets`, `field`, `spSelect`, `enclSelect`, `wireEnclSelects`, `setEnclSel`, `readEncl`, `ensureEncl`, `nameRow`, `namesEditor`, `readNames`, `activeDrug`, `openForm`

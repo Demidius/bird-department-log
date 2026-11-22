@@ -8,12 +8,25 @@ const CAL_DOT = ['lay', 'incub', 'hatch', 'fledge', 'birth', 'tstart', 'tend', '
 // events show their own icon in the calendar; expected dates get the icon of the event they predict, in a dashed frame
 const GUESS_IC = {hatch: 'crack', fledge: 'out', fert: 'heart', incub: 'sit'};
 const calIc = (x, sz) => ic(x.icon || 'egg', sz, 2.2);
+// a nickname that is only dots/dashes or just repeats the species name is not shown
+const realNick = (nick, spId) => { const v = String(nick || '').trim(); if (!v || !/[\p{L}\p{N}]/u.test(v)) return ''; const s = spById(spId); return s && [s.name, s.pl, s.en, s.latin].some(n => n && key(n) === key(v)) ? '' : v; };
+// who an event is about: place (at that date), species, nickname
+function calWho(r, byBird) {
+  const cb = collByName.get(key(canonBird(r.bird)));
+  const ex = r.type === 'expo' ? r : (byBird.get(key(r.bird)) || []).filter(x => x.type === 'expo' && x.f.to && x.at <= r.at).sort((a, b) => b.at - a.at)[0];
+  const place = ex && ex.f.to ? ex.f.to : cb ? cb.encl : '';
+  const spId = r.sp || (cb && cb.sp) || spOfBird(r.bird);
+  return [place && enDn(place), spName(spById(spId)), realNick(bn(r.bird), spId)].filter(Boolean).join(' · ');
+}
+// two-part label: who (small, coloured) and what happened (bold)
+const calLab = (x, tag = 'b') => `${x.who ? `<span class="ci-who">${esc(x.who)}</span>` : ''}<${tag} class="ci-what">${esc(x.what)}</${tag}>`;
 function calItems() {
   const out = [], byBird = new Map();
   for (const r of recs) { const k = key(r.bird); if (!byBird.has(k)) byBird.set(k, []); byBird.get(k).push(r); }
   const nextOf = (r, type, until) => (byBird.get(key(r.bird)) || []).filter(x => x.type === type && x.at > r.at && x.at <= until).sort((a, b) => a.at - b.at)[0];
+  const wc = new Map(), lab = (r, what) => { if (!wc.has(r.id)) wc.set(r.id, calWho(r, byBird)); const who = wc.get(r.id); return {who, what, txt: (who ? who + ': ' : '') + what}; };
   // expected dates are calculated from species timings and vanish once the real event is recorded
-  const guess = (r, kind, at) => out.push({k: 'g' + kind + ':' + r.id, bar: 0, guess: 1, icon: GUESS_IC[kind], s: at, e: at, r, tone: 'amber', txt: bn(r.bird) + ', ' + t('cl_p_' + kind)});
+  const guess = (r, kind, at) => out.push({k: 'g' + kind + ':' + r.id, bar: 0, guess: 1, icon: GUESS_IC[kind], s: at, e: at, r, tone: 'amber', ...lab(r, t('cl_p_' + kind))});
   const fledgeGuess = (r, from) => { const fd = fledgeDays(r.sp); if (!fd) return; const at = from + fd * DAY; if (!nextOf(r, 'fledge', at + 30 * DAY)) guess(r, 'fledge', at); };
   for (const r of recs) {
     if (r.type === 'hatch') {
@@ -23,18 +36,18 @@ function calItems() {
       if (id && !(byBird.get(key(r.bird)) || []).some(x => x.type === 'incub' && x.at < r.at && x.at >= r.at - (id + 21) * DAY)) guess(r, 'incub', r.at - id * DAY);
     }
     if (r.type === 'birth') { const gd = gestDays(r.sp); if (gd) guess(r, 'fert', r.at - gd * DAY); }
-    if (CAL_DOT.includes(r.type)) out.push({k: 'd:' + r.id, bar: 0, icon: T[r.type].icon, s: r.at, e: r.at, r, tone: T[r.type].tone, txt: bn(r.bird) + ', ' + t('cl_' + r.type)});
+    if (CAL_DOT.includes(r.type)) out.push({k: 'd:' + r.id, bar: 0, icon: T[r.type].icon, s: r.at, e: r.at, r, tone: T[r.type].tone, ...lab(r, t('cl_' + r.type))});
     if (r.type === 'incub') {
       const days = r.f.days || incubDays(r.sp);
       if (!days) continue;
       const exp = r.at + days * DAY, h = nextOf(r, 'hatch', exp + 21 * DAY), inc2 = nextOf(r, 'incub', exp);
       const end = h ? h.at : inc2 ? inc2.at : exp;
-      out.push({k: 'i:' + r.id, bar: 1, s: r.at, e: end, r, tone: 'amber', pend: !h && !inc2, txt: bn(r.bird) + ', ' + (h ? t('cl_incub_done') : t('cl_incub_p', fDay.format(exp)))});
+      out.push({k: 'i:' + r.id, bar: 1, s: r.at, e: end, r, tone: 'amber', pend: !h && !inc2, ...lab(r, h ? t('cl_incub_done') : t('cl_incub_p', fDay.format(exp)))});
       if (!h && !inc2) { guess(r, 'hatch', exp); fledgeGuess(r, exp); }
     }
     if (r.type === 'tstart' && r.f.days) {
       const exp = r.at + (r.f.days - 1) * DAY, en = nextOf(r, 'tend', exp + 60 * DAY);
-      out.push({k: 't:' + r.id, bar: 1, s: r.at, e: en ? Math.min(en.at, Math.max(exp, r.at)) : exp, r, tone: 'red', pend: !en, txt: bn(r.bird) + ', ' + t('cl_treat_p') + (r.f.drug ? ' · ' + r.f.drug : '')});
+      out.push({k: 't:' + r.id, bar: 1, s: r.at, e: en ? Math.min(en.at, Math.max(exp, r.at)) : exp, r, tone: 'red', pend: !en, ...lab(r, t('cl_treat_p') + (r.f.drug ? ' · ' + r.f.drug : ''))});
     }
   }
   return out;
@@ -103,12 +116,12 @@ function renderCal() {
   const y = calM.getFullYear(), m = calM.getMonth(), ms0 = new Date(y, m, 1).getTime(), ms1 = new Date(y, m + 1, 1).getTime();
   const inMonth = grid ? [] : items.filter(x => x.e >= ms0 && x.s < ms1).sort((p, q) => p.s - q.s || p.bar - q.bar);
   $('#cal-n').textContent = inMonth.length;
-  $('#cal-list').innerHTML = inMonth.length ? inMonth.map(x => `<button class="row cal-row" type="button" data-co="${esc(x.k)}"><span class="cl-d">${esc(fDay.format(x.s))}${x.bar ? ' – ' + esc(fDay.format(x.e)) : ''}</span>${x.bar ? `<span class="cleg k-${x.tone}${x.pend ? ' pend' : ''}"></span>` : `<span class="cdot cic t-${x.tone}${x.guess ? ' guess' : ''}">${calIc(x, 16)}</span>`}<span class="rt"><b>${esc(x.txt)}</b></span><span class="chev">${ic('chev', 18)}</span></button>`).join('') : `<p class="empty">${esc(t('cal_none'))}</p>`;
+  $('#cal-list').innerHTML = inMonth.length ? inMonth.map(x => `<button class="row cal-row" type="button" data-co="${esc(x.k)}"><span class="cl-d">${esc(fDay.format(x.s))}${x.bar ? ' – ' + esc(fDay.format(x.e)) : ''}</span>${x.bar ? `<span class="cleg k-${x.tone}${x.pend ? ' pend' : ''}"></span>` : `<span class="cdot cic t-${x.tone}${x.guess ? ' guess' : ''}">${calIc(x, 16)}</span>`}<span class="rt">${calLab(x)}</span><span class="chev">${ic('chev', 18)}</span></button>`).join('') : `<p class="empty">${esc(t('cal_none'))}</p>`;
   const tip = $('#cal-tip'), sel = grid && calSel && $(`#cal-months [data-ci="${CSS.escape(calSel)}"]`);
   if (!sel) { tip.hidden = true; return; }
   const it = items.find(x => x.k === calSel);
-  const txt = it ? esc(it.txt) : dots.filter(x => 'm:' + midnight(x.s) === calSel).map(x => esc(x.txt)).join('<br>');
-  tip.innerHTML = `<b>${txt}</b>${it ? `<small>${esc(t('cal_tap2'))}</small>` : ''}`;
+  const lines = it ? [it] : dots.filter(x => 'm:' + midnight(x.s) === calSel);
+  tip.innerHTML = lines.map(x => `<div class="ci-l">${calLab(x)}</div>`).join('') + (it ? `<small>${esc(t('cal_tap2'))}</small>` : '');
   tip.hidden = false;
   const box = $('.cal-wrap').getBoundingClientRect(), r = sel.getBoundingClientRect();
   tip.style.left = Math.max(4, Math.min(box.width - 244, r.left - box.left + r.width / 2 - 120)) + 'px';
@@ -144,8 +157,8 @@ function renderDay() {
   $('#dy-sub').textContent = rs.length ? t('cal_day_recs') + ': ' + rs.length : t('cal_day_none');
   let h = '';
   if (rs.length) h += `<section class="nsec"><h2 class="nh">${esc(t('cal_day_recs'))}<span class="nc">${rs.length}</span></h2>${rs.map(r => card(r)).join('')}</section>`;
-  if (per.length) h += `<section class="nsec"><h2 class="nh">${esc(t('cal_day_per'))}<span class="nc">${per.length}</span></h2>${per.map(x => `<button class="row cal-row" type="button" data-co="${esc(x.k)}"><span class="cl-d">${esc(fDay.format(x.s))} – ${esc(fDay.format(x.e))}</span><span class="cleg k-${x.tone}${x.pend ? ' pend' : ''}"></span><span class="rt"><b>${esc(x.txt)}</b></span><span class="chev">${ic('chev', 18)}</span></button>`).join('')}</section>`;
-  if (exp.length) h += `<section class="nsec"><h2 class="nh">${esc(t('cal_day_exp'))}<span class="nc">${exp.length}</span></h2>${exp.map(x => `<button class="row cal-row" type="button" data-co="${esc(x.k)}"><span class="cl-d">≈ ${esc(fDay.format(x.s))}</span><span class="cdot cic t-${x.tone} guess">${calIc(x, 16)}</span><span class="rt"><b>${esc(x.txt)}</b></span><span class="chev">${ic('chev', 18)}</span></button>`).join('')}</section>`;
+  if (per.length) h += `<section class="nsec"><h2 class="nh">${esc(t('cal_day_per'))}<span class="nc">${per.length}</span></h2>${per.map(x => `<button class="row cal-row" type="button" data-co="${esc(x.k)}"><span class="cl-d">${esc(fDay.format(x.s))} – ${esc(fDay.format(x.e))}</span><span class="cleg k-${x.tone}${x.pend ? ' pend' : ''}"></span><span class="rt">${calLab(x)}</span><span class="chev">${ic('chev', 18)}</span></button>`).join('')}</section>`;
+  if (exp.length) h += `<section class="nsec"><h2 class="nh">${esc(t('cal_day_exp'))}<span class="nc">${exp.length}</span></h2>${exp.map(x => `<button class="row cal-row" type="button" data-co="${esc(x.k)}"><span class="cl-d">≈ ${esc(fDay.format(x.s))}</span><span class="cdot cic t-${x.tone} guess">${calIc(x, 16)}</span><span class="rt">${calLab(x)}</span><span class="chev">${ic('chev', 18)}</span></button>`).join('')}</section>`;
   if (!rs.length && !per.length && !exp.length && !canWrite()) h += `<p class="empty">${esc(t('cal_day_none'))}</p>`;
   if (canWrite()) {
     // the new record gets this date and the current time of day
