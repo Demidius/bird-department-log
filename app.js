@@ -221,6 +221,7 @@ Object.assign(DICT.en, {cf_logout: 'Sign out?', cf_logout_p: 'You will need to s
 <div id="encl-body"></div>
 </section>
 `);
+  document.body.insertAdjacentHTML('beforeend', `<div class="pick" id="pick" role="dialog" aria-modal="true" aria-labelledby="pick-t" hidden><div class="pick-box" tabindex="-1"><div class="pick-h"><h2 id="pick-t"></h2><button class="x" type="button" id="pick-x" data-ta="close"><span data-ic="x" data-s="20" data-w="2.2"></span></button></div><input id="pick-q" type="search" autocomplete="off" enterkeyhint="search"><div class="pick-list" id="pick-list" role="listbox"></div></div></div>`);
   document.body.insertAdjacentHTML('beforeend', `<div class="cfm" id="cfm" role="alertdialog" aria-modal="true" aria-labelledby="cfm-t" aria-describedby="cfm-p" hidden><div class="cfm-box"><h2 id="cfm-t"></h2><p id="cfm-p"></p><div class="cfm-acts"><button class="btn sec" type="button" id="cfm-no"></button><button class="btn pri" type="button" id="cfm-ok"></button></div></div></div>`);
   add('#sheet-user', 'beforebegin', `<section class="sheet" id="sheet-day" role="dialog" aria-modal="true" aria-labelledby="dy-title" tabindex="-1" aria-hidden="true" inert>
 <div class="grip" aria-hidden="true"></div>
@@ -1217,6 +1218,7 @@ window.addEventListener('popstate', e => {
   if (!navOn) return;
   const st0 = e.state;
   // a window or picture on top: Back closes it and the screen stays
+  if (pickSel) { history.pushState(navState(), ''); closePick(true); return; }
   if (askDone || !$('#lightbox').hidden || $('.sheet.open')) {
     history.pushState(navState(), '');
     if (askDone) askDone(false); else if (!$('#lightbox').hidden) closeLightbox(); else requestClose();
@@ -1289,7 +1291,7 @@ function field(f, val) {
 }
 
 function spSelect(val, p = 'fld') {
-  const opts = species.slice().sort(bySp).map(s => `<option value="${esc(s.id)}"${s.id === val ? ' selected' : ''}>${esc(spName(s))}</option>`).join('');
+  const opts = species.slice().sort(bySp).map(s => `<option value="${esc(s.id)}" data-s="${esc(spNames(s).join(' '))}"${s.id === val ? ' selected' : ''}>${esc(spName(s))}</option>`).join('');
   return `<div class="fld"><label for="${p}-sp">${esc(t('f_species'))}&nbsp;<span class="req" aria-hidden="true">*</span></label><select id="${p}-sp" name="sp" aria-required="true"><option value="">${esc(t('f_pick_sp'))}</option>${opts}<option value="__new">${esc(t('f_new_sp'))}</option></select></div>`
     + `<div class="fld" id="${p}-newsp-wrap" hidden><label for="${p}-newsp">${esc(t('f_new_sp_name'))}</label><input id="${p}-newsp" name="newsp" type="text" autocomplete="off"></div>`;
 }
@@ -2028,8 +2030,53 @@ document.addEventListener('click', e => {
   else if (d.goto) { setTab('now'); const s = $('#' + d.goto); if (s) s.scrollIntoView({block: 'start'}); }
   else if (d.f) { filt = d.f; $$('#view-logs .chip').forEach(c => c.setAttribute('aria-pressed', String(c === el))); renderLogs(); paintPhotos(); }
 });
+/* ---------- searchable list for long selects ---------- */
+// a select with many options opens a list with a search box; the keyboard only shows up when the box is tapped
+const PICK_MIN = 6;
+let pickSel = null;
+const pickable = s => s && s.tagName === 'SELECT' && !s.disabled && s.options.length > PICK_MIN;
+const pickNorm = v => key(v).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ł/g, 'l');
+function pickRender() {
+  const q = pickNorm($('#pick-q').value), sel = pickSel;
+  // "choose", "new species", "other" stay visible while searching
+  const rows = [...sel.options].map((o, i) => ({o, i})).filter(({o}) => !o.disabled && (!q || !o.value || o.value.startsWith('__') || pickNorm(o.textContent + ' ' + (o.dataset.s || '')).includes(q)));
+  const real = rows.filter(({o}) => o.value && !o.value.startsWith('__')).length;
+  $('#pick-list').innerHTML = rows.map(({o, i}) => `<button type="button" class="pick-o${o.selected ? ' on' : ''}${!o.value || o.value.startsWith('__') ? ' sp' : ''}" role="option" aria-selected="${o.selected}" data-pi="${i}">${esc(o.textContent)}</button>`).join('')
+    + (q && !real ? `<p class="empty">${esc(t('none_found'))}</p>` : '');
+}
+function openPick(sel) {
+  pickSel = sel;
+  const lab = sel.id && $(`label[for="${CSS.escape(sel.id)}"]`), q = $('#pick-q');
+  $('#pick-t').textContent = ((lab ? lab.textContent : sel.getAttribute('aria-label')) || '').replace(/[\s\u00a0]*\*$/, '');
+  q.value = ''; q.placeholder = t('pick_ph');
+  pickRender();
+  $('#pick').hidden = false;
+  $('#pick .pick-box').focus({preventScroll: true});
+  const on = $('#pick-list .on'); if (on) on.scrollIntoView({block: 'center'});
+}
+function closePick(back) { if (!pickSel) return; const s = pickSel; pickSel = null; $('#pick').hidden = true; if (back) s.focus({preventScroll: true}); }
+$('#pick-q').addEventListener('input', pickRender);
+$('#pick-list').addEventListener('click', e => {
+  const b = e.target.closest('[data-pi]'); if (!b || !pickSel) return;
+  const s = pickSel; s.selectedIndex = +b.dataset.pi; closePick(true);
+  s.dispatchEvent(new Event('input', {bubbles: true})); s.dispatchEvent(new Event('change', {bubbles: true}));
+});
+$('#pick-x').addEventListener('click', () => closePick(true));
+$('#pick').addEventListener('click', e => { if (e.target.id === 'pick') closePick(true); });
+// a tap (not a scroll) on a long select opens the list instead of the system one
+let pickTouch = null;
+document.addEventListener('touchstart', e => { const s = e.target.closest && e.target.closest('select'); pickTouch = pickable(s) ? {s, x: e.touches[0].clientX, y: e.touches[0].clientY} : null; }, {passive: true, capture: true});
+document.addEventListener('touchend', e => {
+  const p = pickTouch; pickTouch = null; if (!p) return;
+  const c = e.changedTouches[0]; if (Math.abs(c.clientX - p.x) > 10 || Math.abs(c.clientY - p.y) > 10) return;
+  e.preventDefault(); openPick(p.s);
+}, {capture: true});
+document.addEventListener('mousedown', e => { const s = e.target.closest && e.target.closest('select'); if (pickable(s)) { e.preventDefault(); openPick(s); } }, true);
+document.addEventListener('keydown', e => { const s = e.target; if (pickable(s) && (e.key === 'Enter' || e.key === ' ' || (e.altKey && e.key === 'ArrowDown'))) { e.preventDefault(); openPick(s); } }, true);
+
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
+  if (pickSel) { e.stopPropagation(); closePick(true); return; }
   if (askDone) askDone(false); else if (!$('#lightbox').hidden) closeLightbox(); else if ($('.sheet.open')) requestClose();
 });
 [['#form', '#f-err'], ['#encl-form', '#ef-err'], ['#sp-form', '#sp-err'], ['#bird-form', '#bf-err'], ['#user-form', '#uf-err'], ['#pass-form', '#pf-err'], ['#login-form', '#lg-err']]

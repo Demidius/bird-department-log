@@ -175,3 +175,11 @@ button.cn:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .pa-ed>.lk,.bf-grp>.lk{top:-8px;bottom:auto}
 .has-lk.pa-ed select{padding-right:40px;background-position:right 14px center}.has-lk.bf-grp input{padding-right:14px}
 .time-tg{align-self:flex-start;margin-top:-6px}
+/* searchable list for long selects */
+.pick{position:fixed;inset:0;z-index:95;display:flex;align-items:flex-end;justify-content:center;background:rgba(8,16,13,.55)}.pick[hidden]{display:none}
+.pick-box{width:min(480px,100%);height:75vh;height:min(75dvh,640px);display:flex;flex-direction:column;gap:10px;padding:14px 16px 16px;background:var(--card);border-radius:24px 24px 0 0;box-shadow:0 -8px 32px rgba(0,0,0,.25);outline:none}
+.pick-h{display:flex;align-items:center;justify-content:space-between;gap:10px}.pick-h h2{margin:0;font:700 18px/1.3 Manrope,sans-serif}
+.pick-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;min-height:120px;overscroll-behavior:contain}
+.pick-o{text-align:left;min-height:50px;padding:12px;border:0;border-bottom:1px solid var(--line);background:none;font-size:16px;color:var(--ink);cursor:pointer}
+.pick-o.on{color:var(--accent);font-weight:700}.pick-o.sp{color:var(--muted)}.pick-o:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+@media (min-width:700px){.pick{align-items:center}.pick-box{border-radius:18px}}
