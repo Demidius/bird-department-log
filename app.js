@@ -244,13 +244,11 @@ const paintIcons = root => $$('[data-ic]', root).forEach(e => { e.innerHTML = ic
 /* ---------- i18n ---------- */
 const LOCALE = {ru: 'ru-RU', pl: 'pl-PL', en: 'en-GB'};
 const LANG_FIELD = {ru: 'name', pl: 'pl', en: 'en'};
-let lang = 'ru';
-try {
-  const saved = localStorage.getItem('zoo-log-lang');
-  if (DICT[saved]) lang = saved;
-  else { const nl = String(navigator.language || '').slice(0, 2).toLowerCase(); if (DICT[nl]) lang = nl; }
-} catch (x) {}
-const t = (k, ...a) => { let v = DICT[lang][k]; if (v === undefined) v = DICT.ru[k]; if (v === undefined) return k; return typeof v === 'function' ? v(...a) : v; };
+// Polish is the main language, English the second, Russian the third
+const LANG_ORDER = ['pl', 'en', 'ru'];
+let lang = 'pl';
+try { const saved = localStorage.getItem('zoo-log-lang2'); if (DICT[saved]) lang = saved; } catch (x) {}
+const t = (k, ...a) => { let v = DICT[lang][k]; for (const l of LANG_ORDER) if (v === undefined) v = DICT[l][k]; if (v === undefined) return k; return typeof v === 'function' ? v(...a) : v; };
 const pIdx = n => {
   const m = n % 10, h = n % 100;
   if (lang === 'en') return n === 1 ? 0 : 1;
@@ -370,7 +368,7 @@ function mainOf(st2, wk) {
 }
 
 // names in several languages: the main name is the stable key, the others are shown when the app is in that language
-const LANGS = ['ru', 'pl', 'en'], LANG_NAME = {ru: 'Русский', pl: 'Polski', en: 'English'};
+const LANGS = ['pl', 'en', 'ru'], LANG_NAME = {ru: 'Русский', pl: 'Polski', en: 'English'};
 const altNames = x => (x && Array.isArray(x.names) ? x.names : []).filter(n => n && LANGS.includes(n.l) && String(n.v || '').trim());
 const dn = x => { if (!x) return ''; const a = altNames(x).find(n => n.l === lang); return a ? a.v : x.name; };
 const allNames = x => [x.name].concat(altNames(x).map(n => n.v));
@@ -379,9 +377,9 @@ const bn = name => { const cb = collByName.get(key(name)); return cb ? dn(cb) : 
 const enDn = name => { const x = name && enclByName.get(key(name)); return x ? dn(x) : (name || ''); };
 const canonBird = v => { if (collByName.has(key(v))) return v; const cb = coll.find(x => altNames(x).some(n => key(n.v) === key(v))); return cb ? cb.name : v; };
 const spById = id => (id && spMap.get(id)) || null;
-const spName = s => !s ? '' : s[LANG_FIELD[lang]] || s.latin || s.name || s.pl || s.en;
+const spName = s => !s ? '' : s[LANG_FIELD[lang]] || s.pl || s.en || s.name || s.latin;
 const spNames = s => [s.name, s.latin, s.pl, s.en].filter(Boolean);
-const spOther = s => { const main = spName(s); return [['RU', s.name], ['PL', s.pl], ['EN', s.en]].filter(([, v]) => v && v !== main).map(([c, v]) => c + ' ' + v).join(' · '); };
+const spOther = s => { const main = spName(s); return [['PL', s.pl], ['EN', s.en], ['RU', s.name]].filter(([, v]) => v && v !== main).map(([c, v]) => c + ' ' + v).join(' · '); };
 const bySp = (a, b) => spName(a).localeCompare(spName(b), LOCALE[lang]);
 const byName = (a, b) => a.name.localeCompare(b.name, LOCALE[lang]);
 const findSpByAnyName = n => species.find(x => spNames(x).some(v => key(v) === key(n)));
@@ -675,7 +673,7 @@ function renderSpCard() {
   const wild = SI_WILD.map(([k, i]) => secCard(k, i, 'green')).join('');
   const zoo = SI_ZOO.map(([k, i]) => secCard(k, i, k === 'health' ? 'red' : 'amber')).join('');
   const facts = [['si_tax', [txt(inf.order), txt(inf.family)].filter(Boolean).join(' · '), 'tag'], ['si_size', txt(inf.size), 'ruler'], ['si_life', txt(inf.life), 'clock'], ['si_incub', toN(inf.incub_days) ? t('si_incub_v', toN(inf.incub_days)) : '', 'egg']].filter(f => f[1]);
-  const names = [['RU', s.name, 'ru'], ['PL', s.pl, 'pl'], ['EN', s.en, 'en']].filter(v => v[1]);
+  const names = [['PL', s.pl, 'pl'], ['EN', s.en, 'en'], ['RU', s.name, 'ru']].filter(v => v[1]);
   const mp = spMain(s), dPhotos = photosOf('species', s.id);
   const wikiCap = ph && (ph.credit || ph.page) ? `<figcaption>${esc(t('si_photo_by') + (ph.credit || ''))}${ph.page ? ` · <a href="${esc(ph.page)}" target="_blank" rel="noopener">Wikimedia Commons</a>` : ''}</figcaption>` : '';
   const strip = (mp && mp.wiki ? [] : ph ? [`<button type="button" class="ph-open" data-lbu="${esc(ph.src)}" aria-label="${esc(t('open_photo'))}"><img src="${esc(ph.thumb || ph.src)}" alt=""></button>`] : [])
@@ -996,7 +994,7 @@ function applyStatic() {
 function setLang(l) {
   if (!DICT[l] || l === lang) return;
   lang = l;
-  try { localStorage.setItem('zoo-log-lang', l); } catch (x) {}
+  try { localStorage.setItem('zoo-log-lang2', l); } catch (x) {}
   $('#lg-err').textContent = ''; $('#claim-err').textContent = '';
   mkFmt(); applyStatic(); render();
 }
@@ -1751,6 +1749,9 @@ document.addEventListener('visibilitychange', () => {
 });
 
 /* ---------- start ---------- */
+// language buttons and species name fields in the order Polish, English, Russian
+[...new Set($$('[data-lang]').map(b => b.parentElement))].forEach(box => LANG_ORDER.forEach(l => { const b = $(`[data-lang=${l}]`, box); if (b) box.appendChild(b); }));
+{ const f = id => $('#' + id) && $('#' + id).closest('.fld'), ru = f('sp-name'); if (ru) { ru.before(f('sp-pl')); ru.before(f('sp-en')); } }
 paintIcons(document);
 $('#today').textContent = new Date().getDate();
 applyStatic();
