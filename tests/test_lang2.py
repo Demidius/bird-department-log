@@ -1,0 +1,18 @@
+import re, pathlib, sys
+exec(open(pathlib.Path(__file__).resolve().parent / 'test_encl.py').read().split("def page(")[0])
+exec("def page(" + open(pathlib.Path(__file__).resolve().parent / 'test_encl.py').read().split("def page(")[1].split("def add_encl")[0])
+with sync_playwright() as pw:
+    b = pw.chromium.launch(**CHROME, args=["--no-sandbox"])
+    p = page(b, 390, 844)
+    print("html lang:", p.evaluate("document.documentElement.lang"), "| tab:", p.inner_text(".tab[data-tab=add]"))
+    p.click(".tab[data-tab=menu]"); p.wait_for_timeout(100)
+    print("menu lang order:", p.eval_on_selector_all("#view-menu [data-lang]", "e => e.map(x => x.dataset.lang)"))
+    p.click("[data-view=species]"); p.wait_for_timeout(100)
+    print("first species:", p.inner_text("#species-body .sp-row b"))
+    p.click("#species-body .sp-row"); p.wait_for_timeout(100)
+    print("names order:", p.eval_on_selector_all("#sp-body .sp-names dt", "e => e.map(x => x.innerText)"))
+    p.click("#sp-body [data-sp-edit]"); p.wait_for_timeout(150)
+    print("form order:", p.eval_on_selector_all("#sp-form > .fld input[id^=sp-]", "e => e.map(x => x.id)"))
+    p.screenshot(path=str(out)+"/pl_form.png")
+    b.close()
+print("ERRORS:", errors)
