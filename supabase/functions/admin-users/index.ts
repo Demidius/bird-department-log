@@ -1,0 +1,97 @@
+// Account management for the bird department journal.
+// Only an active admin (checked against public.profiles) may call it.
+import { createClient } from "npm:@supabase/supabase-js@2.119.0";
+
+const LOGIN_DOMAIN = "zoo-log.invalid";
+const ROLES = ["admin", "staff", "viewer"];
+const cors = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), { status, headers: { ...cors, "Content-Type": "application/json" } });
+const clean = (s: unknown, n: number) => String(s ?? "").trim().slice(0, n);
+
+Deno.serve(async (req: Request) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
+  if (req.method !== "POST") return json({ error: "method" }, 405);
+  try {
+    const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const jwt = (req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
+    if (!jwt) return json({ error: "unauthorized" }, 401);
+    const { data: who, error: whoErr } = await admin.auth.getUser(jwt);
+    if (whoErr || !who?.user) return json({ error: "unauthorized" }, 401);
+    const callerId = who.user.id;
+    const { data: caller } = await admin.from("profiles").select("role, active").eq("id", callerId).maybeSingle();
+    if (!caller || !caller.active || caller.role !== "admin") return json({ error: "forbidden" }, 403);
+
+    const body = await req.json().catch(() => ({})) as Record<string, unknown>;
+
+    if (body.action === "create") {
+      const login = clean(body.login, 32).toLowerCase();
+      if (!/^[a-z0-9._-]{2,32}$/.test(login)) return json({ error: "bad_login" }, 400);
+      const password = String(body.password ?? "");
+      if (password.length < 8) return json({ error: "short_password" }, 400);
+      const role = ROLES.includes(String(body.role)) ? String(body.role) : "staff";
+      const { data: taken } = await admin.from("profiles").select("id").eq("login", login).maybeSingle();
+      if (taken) return json({ error: "login_taken" }, 409);
+      const { data: created, error: createErr } = await admin.auth.admin.createUser({
+        email: `${login}@${LOGIN_DOMAIN}`,
+        password,
+        email_confirm: true,
+        user_metadata: { login },
+      });
+      if (createErr || !created?.user) return json({ error: "create_failed", detail: createErr?.message ?? "" }, 400);
+      const { error: profErr } = await admin.from("profiles").insert({
+        id: created.user.id,
+        login,
+        display_name: clean(body.display_name, 80) || login,
+        role,
+        active: true,
+      });
+      if (profErr) {
+        await admin.auth.admin.deleteUser(created.user.id);
+        return json({ error: "create_failed", detail: profErr.message }, 400);
+      }
+      return json({ ok: true, id: created.user.id });
+    }
+
+    if (body.action === "update") {
+      const id = clean(body.id, 64);
+      const { data: target } = await admin.from("profiles").select("id, role, active").eq("id", id).maybeSingle();
+      if (!target) return json({ error: "not_found" }, 404);
+      const patch: Record<string, unknown> = {};
+      if (body.display_name !== undefined) patch.display_name = clean(body.display_name, 80);
+      if (body.role !== undefined) {
+        if (!ROLES.includes(String(body.role))) return json({ error: "bad_role" }, 400);
+        patch.role = String(body.role);
+      }
+      if (body.active !== undefined) patch.active = Boolean(body.active);
+      if (id === callerId && ((patch.role !== undefined && patch.role !== "admin") || patch.active === false)) {
+        return json({ error: "self_lock" }, 400);
+      }
+      if (body.password) {
+        const password = String(body.password);
+        if (password.length < 8) return json({ error: "short_password" }, 400);
+        const { error } = await admin.auth.admin.updateUserById(id, { password });
+        if (error) return json({ error: "update_failed", detail: error.message }, 400);
+      }
+      if (patch.active !== undefined && patch.active !== target.active) {
+        const { error } = await admin.auth.admin.updateUserById(id, { ban_duration: patch.active ? "none" : "876000h" });
+        if (error) return json({ error: "update_failed", detail: error.message }, 400);
+      }
+      if (Object.keys(patch).length) {
+        const { error } = await admin.from("profiles").update(patch).eq("id", id);
+        if (error) return json({ error: "update_failed", detail: error.message }, 400);
+      }
+      return json({ ok: true });
+    }
+
+    return json({ error: "bad_action" }, 400);
+  } catch (e) {
+    return json({ error: "server", detail: String(e) }, 500);
+  }
+});

@@ -1,0 +1,50 @@
+# Заполнение данных (виды, вольеры, животные)
+
+Код сайта не трогать. Всё делается одним SQL-вызовом через Supabase MCP `execute_sql`, проект `nszeqgopzonpplfznaat`.
+
+## Порядок
+1. Что уже есть: `select app.ai_ls('species')` (или `enclosures`, `collection`, `gaps` — чего не хватает у видов).
+2. Записать: `select app.ai_species('[...]')` / `app.ai_enclosures('[...]')` / `app.ai_collection('[...]')`.
+   Проверка без записи: второй аргумент `true`: `app.ai_species('[...]', true)`.
+3. Прочитать отчёт: `added`, `updated` (`set` — что заполнено, `kept` — не тронуто, т. к. уже заполнено, `locked` — под замком), `same`, `errors`, `saved`.
+   **Если есть хоть одна ошибка — ничего не сохранено** (`saved:false`). Исправь ошибочные пункты и отправь весь список снова.
+4. Сообщить владельцу: что добавлено, что пропущено/под замком, что не нашлось в источниках.
+
+Повторный запуск безопасен: дубли не создаются, существующим записям **заполняются только пустые поля**. Перезаписать заполненное — `"replace": true` в пункте (только если владелец просил). Замки не обходятся никогда.
+
+## Форматы
+**Вид** (ключ — `latin`):
+```json
+{"latin":"Goura cristata","pl":"Koroniec siodłaty","en":"Western crowned pigeon","ru":"Венценосный голубь (непроверено)",
+ "group":"bird","iucn":"VU","incub_days":28,"fledge_days":30,"incub_range":"28–30","cites":"II","syn":"…",
+ "order":{"pl":"…","en":"…","ru":"…"},"range":"tekst po polsku","photo":{"file":"Goura cristata.jpg","credit":"Autor"}}
+```
+- Тексты (`size life order family range habitat diet_wild behaviour breeding diet_zoo husbandry health sex`): строка (= польский) или `{"pl","en","ru"}`. Пиши все три языка.
+- `group`: `bird` (по умолчанию) | `mammal`. `iucn`: LC NT VU EN CR EW DD. Дни (`incub_days`, `fledge_days`, `gest_days`) — целые 1–400, при диапазоне — нижняя граница, диапазон строкой в `incub_range`.
+- `photo`: имя файла Commons (строка) или `{"file","credit"}` — ссылки строятся сами. Только файлы, реально найденные на commons.wikimedia.org.
+- Любой другой ключ = ошибка (защита от опечаток).
+
+**Место содержания** (ключ — `name`, уникально во всей базе):
+```json
+{"name":"Woliera 5","kind":"aviary","parent":"Ptaszarnia","area":"…","size":"4×3 м","capacity":6,"note":"…","names":{"en":"Aviary 5"},"active":true}
+```
+`kind`: building aviary enclosure cage incubator brooder room quarantine pond other. `parent` — имя существующего места или места выше в этом же списке (сначала здание, потом вольеры).
+Одинаковые названия в разных зданиях невозможны (животные ссылаются на место по имени) — делай «Klatka 1 (Hala A)».
+
+**Животное / группа** (ключ — `name`; без `name` имя создаётся из польского названия вида, как в приложении):
+```json
+{"species":"Goura cristata","name":"Koroniec 1","sex":"m","ring":"PL 123","chip":"…","born":"2024-05-01","arrived":"2025-01-10",
+ "origin":"ZOO Wrocław","encl":"Woliera 5","status":"active","note":"…","parents":["Koroniec 2"]}
+{"species":"Goura cristata","grp":{"m":2,"f":3,"u":0,"j":1},"encl":"Woliera 5"}
+```
+`species` — латынь вида, который уже есть. `encl` — существующее место. У группы нет `sex/ring/chip`.
+
+## Правила по данным
+- **Не выдумывать.** Нет источника — поле не передавать, владельцу сообщить. Не подставлять значения «по роду/семейству».
+- Источники: сайты зоопарков, IUCN/BirdLife, статьи, Wikimedia Commons. Спорное — перечислить в отчёте с источником.
+- Русские названия, подобранные агентом, — пометить в отчёте как непроверенные.
+- Заметки о найденном/ненайденном по видам — `docs/species-notes.md` (дописывать).
+- Записи событий (`records`) агент не создаёт без прямой просьбы.
+
+## Если функции не хватает
+Нужно поле/таблица, которых нет в форматах выше, — не писать сырой `insert/update` в обход: расширь функцию миграцией (`supabase/migrations/`, см. `docs/db.md`). Исключение — разовые правки по просьбе владельца; тогда шаблон с замками из `docs/db.md`.
