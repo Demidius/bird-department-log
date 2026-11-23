@@ -3,8 +3,8 @@
 // the cached copy is used only when there is no connection.
 // 'no-cache' asks the server every time (a cheap 304 when nothing changed),
 // otherwise the browser keeps GitHub Pages files for up to 10 minutes after a release.
-const CACHE = 'zoo-log-v12';
-const SHELL = ['./', 'index.html', 'v2/', 'v2/index.html', 'v2/app.css', 'v2/js/ds.js', 'v2/js/base.js', 'v2/js/model.js', 'v2/js/views.js', 'v2/js/forms.js', 'v2/js/breed.js', 'v2/js/temp.js', 'v2/js/weather.js', 'v2/js/groups.js', 'v2/js/avatars.js', 'v2/js/sync.js', 'v2/js/main.js', 'manifest.webmanifest', 'icon.svg'];
+const CACHE = 'zoo-log-v13';
+const SHELL = ['./', 'index.html', 'v2/', 'v2/index.html', 'v2/app.css', 'v2/js/ds.js', 'v2/js/base.js', 'v2/js/model.js', 'v2/js/views.js', 'v2/js/forms.js', 'v2/js/breed.js', 'v2/js/temp.js', 'v2/js/weather.js', 'v2/js/groups.js', 'v2/js/avatars.js', 'v2/js/dept.js', 'v2/js/picker.js', 'v2/js/polish.js', 'v2/js/sync.js', 'v2/js/main.js', 'manifest.webmanifest', 'icon.svg'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL.map(u => new Request(u, {cache: 'reload'})))).then(() => self.skipWaiting()));

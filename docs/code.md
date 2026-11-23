@@ -20,10 +20,13 @@ v2/js/temp.js       расширение: температура вольера 
 v2/js/weather.js    расширение: «Погода» в свободной записи (запись отдела, f.kind=5: t, sky, prec[], wind, phen[])
 v2/js/groups.js     расширение: группа без точной численности (grp.unk, grp.about) — переключатель в поступлении и правке карточки
 v2/js/avatars.js    расширение: в круглых аватарах животного/вольера — новейшее фото из карточки вместо букв (после render, по data-ani/data-plc строки)
+v2/js/dept.js       расширение: свои поля у каждого вида свободной записи (f.kind 0 gwork[] gwhere gby[]; 1 rway[] rprep rn rsign[] rwhere; 2 swhat[] sfrom sqty sstate[] sby[]; 3 awhat[] awhere aurg astat ato; 4 — только описание, по умолчанию)
+v2/js/picker.js     расширение: выбор животного — сортировка (вольер / название / избранные), вольер в строке, звёздочка «избранное» (на устройстве, store v2fav-<id>)
+v2/js/polish.js     расширение: вид цветом в журнале, значок типа ×1,5, нижняя панель «Назад» в добавлении, кнопки «Вернуться»/«Закрыть» в вопросе об отмене
 v2/js/sync.js       свежесть данных: живые обновления (realtime), проверка версии сервера при возврате в приложение/сети/раз в минуту, кнопка «обновить» рядом с аккаунтом (подсвечена, если новые данные не загрузились)
 v2/js/main.js       render(), клики (делегирование data-*), «назад» телефона, вход, тема, язык — грузится последним
 supabase/           схема (SCHEMA.md), миграции, код Edge Function admin-users
-tests/test_newui.py браузерный тест v2 (Playwright + tests/mock_supabase.js, данные tests/seed_v2.json)
+tests/test_newui.py браузерный тест v2 (Playwright + tests/mock_supabase.js, данные tests/seed_v2.json); test_tiles.py, test_batch2.py — отдельные экраны, берут его помощники
 ```
 **Старая версия (не используется, к удалению):** `js/*.js`, `i18n*.js`, `desktop.css`, `pwa.js`, `docs/codemap.md`, `tools/codemap.py`, остальные `tests/test_*.py`. Не править.
 
