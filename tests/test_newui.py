@@ -221,5 +221,21 @@ with sync_playwright() as pw:
     print("unknown again:", p5.evaluate("__mock.db.collection.find(x => x.name === 'Owocożer wspaniały - grupa').grp"))
     click(p5, "[data-back]"); p5.fill("#q", "wspaniały - grupa") if p5.locator("#q").count() else None; p5.wait_for_timeout(300)
     print("list row:", [t.replace(chr(10), ' ') for t in p5.locator(".scroll [data-ani]").all_inner_texts() if 'grup' in t][:2])
+    # 20. avatars: the newest card photo replaces the letters (animal lists, card hero, place tree); no photo — letters stay
+    p6 = page(b)
+    p6.evaluate("""(() => { const db = __mock.db, me = __mock.users[0].id, A = db.collection, P = db.enclosures;
+      const img = c => 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"><rect width="8" height="8" fill="' + c + '"/></svg>');
+      const add = (t, id, c) => { const path = me + '/' + crypto.randomUUID() + '.jpg'; db.photos.push({id: crypto.randomUUID(), owner_type: t, owner_id: id, path, created_by: me, created_at: new Date().toISOString()}); __mock.files.set(path.replace('.jpg', '_t.jpg'), img(c)); };
+      add('bird', A[34].id, 'red'); add('bird', A[34].id, 'blue'); add('encl', P[2].id, 'green');
+      return LOAD.photos().then(render); })()""")
+    p6.wait_for_timeout(600)
+    a34 = p6.evaluate("__mock.db.collection[34].id"); a33 = p6.evaluate("__mock.db.collection[33].id")
+    click(p6, "[data-scr=more]"); click(p6, "[data-scr=animals]"); p6.wait_for_timeout(300)
+    print("list photo:", p6.locator(f'.scroll [data-ani="{a34}"] .bl-av img').count(), "| no photo keeps letters:", p6.inner_text(f'.scroll [data-ani="{a33}"] .bl-av'))
+    print("newest:", 'blue' in (p6.get_attribute(f'.scroll [data-ani="{a34}"] .bl-av img', 'src') or ''))
+    click(p6, f'.scroll [data-ani="{a34}"]'); print("hero photo:", p6.locator('.ahero .bl-av img').count())
+    click(p6, "[data-scr=more]"); click(p6, "[data-scr=places]"); pid = p6.evaluate("__mock.db.enclosures[2].id")
+    print("place row photo:", p6.locator(f'[data-plc="{pid}"] .bl-av img').count(), "| other place icon:", p6.locator('.trow .bl-av svg').count() > 0)
+    shot(p6, "n29_avatars")
     print("ERRORS:", errors)
     b.close()
