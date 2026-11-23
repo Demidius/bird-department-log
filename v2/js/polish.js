@@ -2,6 +2,7 @@
 // Journal: the species name in the second line is coloured; the kind icon is 1.5× bigger.
 // Add flow: a bottom bar with a full-width «Back» button (same step as the arrow on top; no step back — closes); the sheet reaches the bottom.
 // «Discard changes?» after the add form: buttons «Back» and «Close».
+// Species card: the «In the zoo» tab comes first and opens first.
 const _recHTMLP = recHTML;
 recHTML = function (r) {
   const h = _recHTMLP(r), a = r.k === 'dept' || r.f.place ? null : anByName(r.bird); if (!a) return h;
@@ -14,7 +15,14 @@ addSheet = function () {
   const bar = `<div class="shfoot"><button class="shback" ${attr}>${ic('back', 18)}<span>${L('Wstecz', 'Назад', 'Back')}</span></button></div>`;
   const i = h.lastIndexOf('</div>'); return h.slice(0, i) + bar + h.slice(i);
 };
-addEventListener('DOMContentLoaded', () => { // confirmBox comes from main.js, which loads last
+const _speciesCardP = speciesCard;
+speciesCard = function () {
+  const h = _speciesCardP(), m = h.match(/(<button data-sptab="wild"[^>]*>[\s\S]*?<\/button>)(<button data-sptab="zoo"[^>]*>[\s\S]*?<\/button>)/);
+  return m ? h.replace(m[0], m[2] + m[1]) : h;
+};
+addEventListener('DOMContentLoaded', () => { // confirmBox and go come from main.js, which loads last
+  const _goP = go;
+  go = function (o) { if (o && o.scr === 'scard' && o.spTab === 'wild') o = Object.assign({}, o, {spTab: 'zoo'}); return _goP(o); };
   const _confirmBoxP = confirmBox;
   confirmBox = function () {
     const h = _confirmBoxP(); if (st.cf !== 'add') return h;
