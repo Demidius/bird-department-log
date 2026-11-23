@@ -14,6 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="app.css">
+<style>.mrow[data-old]{display:none}</style>
 </head>
 <body>
 <div id="shell"><div id="app"></div><div id="toast" class="toast" role="status" aria-live="polite"></div></div>
@@ -24,5 +25,6 @@
 <script src="js/views.js"></script>
 <script src="js/forms.js"></script>
 <script src="js/main.js"></script>
+<script>if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('../sw.js').catch(() => {}));</script>
 </body>
 </html>
