@@ -18,3 +18,12 @@
 ## Под вопросом
 - МСОП: Ducula aenea (поставлено NT), Polyplectron malacense (поставлено EN).
 - Насиживание иволги 15–18 дней.
+
+
+## Ptaszarnia - uzupełnienie z 23.11.2026
+- `Acridotheres melanopterus`: szpak czarnoskrzydły / black-winged myna; status EN wg IUCN 2021 (https://doi.org/10.2305/IUCN.UK.2021-3.RLTS.T22710909A201845082.en). Jawa i Bali potwierdzone w publikacji https://academic.oup.com/condor/article/124/2/duac004/6526420 . Okres inkubacji i pobyt piskląt w gnieździe: brak pewnych danych gatunkowych, pola puste.
+- `Rhynchocyon petersi`: sorkonos czarno-rdzawy; gatunek potwierdzony w warszawskim ZOO: https://www.pap.pl/aktualnosci/mini-slon-nowym-mieszkancem-stolecznego-zoo . Zoo Basel podaje ciążę ok. 40 dni: https://www.zoobasel.ch/de/tiere/tierlexikon/tierbeschreibung/560/ruesselhuendchen/ . Animal Diversity Web opisuje siedlisko i dietę: https://animaldiversity.org/accounts/Rhynchocyon_petersi/ . Niektóre wiadomości medialne podają ok. 50 dni - rozbieżność; w bazie 40 dni wg zoo i literatury naukowej.
+- `Himantopus himantopus`: szczudłak, inkubacja 22-25 dni wg Perth Zoo https://perthzoo.wa.gov.au/animal/black-winged-stilt (RSPB podaje 22-26 dni). Czas opuszczenia gniazda pozostawiony pusty.
+- `Streptopelia turtur`: turkawka zwyczajna; BTO podaje inkubację 14-16 i okres do wylotu z gniazda zazwyczaj 18-19 dni: https://www.bto.org/learn/about-birds/birdfacts/turtle-dove . Animal Diversity Web podaje krótszy wiek opuszczenia gniazda, dlatego za źródło liczb przyjęto BTO.
+- Do wyjaśnienia: „senegalski ziemny gołąb” (woliera 7) - nieustalona nazwa łacińska; „stepówki” (woliera 19) - nieustalony gatunek; „obżuchy” (woliera 4) - nieczytelne z dyktowania. Nie dodano tych zwierząt do kolekcji.
+- `Treron waalia` w wolierze 5 i `Calidris pugnax` w wolierze 15: liczebność nieznana; odnotowane w uwagach wolier, nie dodano sztucznej liczebności grup.
