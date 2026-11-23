@@ -1,5 +1,5 @@
 // avatars.js — v2: the round avatar of an animal / enclosure shows its newest card photo instead of the letters
-// (animal: photos added on the animal card; enclosure: photos of the enclosure). No photo — letters / icon stay.
+// (animal: photos added on the animal card, else the species photo; enclosure: photos of the enclosure). No photo — letters / icon stay.
 // Works on the rendered screen, so every list, card, picker and form row gets it without touching their markup.
 const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/g;
 function avPhoto(type, id) {
@@ -10,16 +10,17 @@ function avPhoto(type, id) {
 }
 const avAnimal = a => a ? avPhoto('bird', a.id) : '';
 const avPlace = p => p ? avPhoto('encl', p.id) : '';
+const avPic = a => a ? (avAnimal(a) || avSpecies(a.species_id)) : ''; // no photo on the animal card — the species photo
 function avFor(av) {
   const f = typeof F === 'function' ? F() : null;
-  if (av.closest('.avs')) { const l = f && typeof tgt === 'function' ? tgt() : []; return avAnimal(l[[...av.parentNode.children].indexOf(av)]); }
-  let h = av.closest('[data-ani]'); if (h) return avAnimal(anById(h.dataset.ani));
+  if (av.closest('.avs')) { const l = f && typeof tgt === 'function' ? tgt() : []; return avPic(l[[...av.parentNode.children].indexOf(av)]); }
+  let h = av.closest('[data-ani]'); if (h) return avPic(anById(h.dataset.ani));
   h = av.closest('[data-plc],[data-pickplc]'); if (h) return avPlace(plById(h.dataset.plc || h.dataset.pickplc));
   h = av.closest('[data-mvto]'); if (h) return avPlace(plByName(h.dataset.mvto));
   h = av.closest('.inj, .wrow');
-  if (h) { for (const id of h.outerHTML.match(UUID_RE) || []) { const a = anById(id); if (a) return avAnimal(a); } return ''; }
-  if (av.closest('.ahero')) return st.scr === 'card' ? avAnimal(anById(st.ani)) : st.scr === 'pcard' ? avPlace(plById(st.plc)) : '';
-  if (av.closest('.bl-whochip') && f) return f.target === 'animal' ? avAnimal((typeof tgt === 'function' ? tgt() : [])[0]) : f.target === 'place' ? avPlace(plById(f.plc)) : '';
+  if (h) { for (const id of h.outerHTML.match(UUID_RE) || []) { const a = anById(id); if (a) return avPic(a); } return ''; }
+  if (av.closest('.ahero')) return st.scr === 'card' ? avPic(anById(st.ani)) : st.scr === 'pcard' ? avPlace(plById(st.plc)) : '';
+  if (av.closest('.bl-whochip') && f) return f.target === 'animal' ? avPic((typeof tgt === 'function' ? tgt() : [])[0]) : f.target === 'place' ? avPlace(plById(f.plc)) : '';
   return '';
 }
 function fillAvatars() {

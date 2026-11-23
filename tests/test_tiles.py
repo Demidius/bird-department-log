@@ -23,5 +23,11 @@ with sync_playwright() as pw:
     print("journal photo:", p.locator(f'[data-rec="{rid}"] .bl-badge.phb img').count(), "| corner icon:", p.locator(f'[data-rec="{rid}"] .bl-badge .kb svg').count())
     print("journal badge px:", p.evaluate("document.querySelector('.bl-rec > .bl-badge').getBoundingClientRect().width"))
     shot(p, "t2_journal_photos")
+    # an animal without its own photo shows the species photo in its avatar
+    p.evaluate("""(() => { const db = __mock.db, me = __mock.users[0].id, a = db.collection.find(x => x.species_id !== db.collection[34].species_id && !db.photos.some(f => f.owner_id === x.id));
+      const path = me + '/' + crypto.randomUUID() + '.jpg'; db.photos.push({id: crypto.randomUUID(), owner_type: 'species', owner_id: a.species_id, path, created_by: me, created_at: new Date().toISOString()});
+      __mock.files.set(path.replace('.jpg', '_t.jpg'), 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"><rect width="8" height="8" fill="blue"/></svg>')); window.__noPh = a.id; return LOAD.photos().then(render); })()""")
+    p.wait_for_timeout(400); click(p, "[data-scr=more]"); click(p, "[data-scr=animals]"); p.wait_for_timeout(300)
+    print("species photo as avatar:", 'blue' in (p.locator(f'.scroll [data-ani="{p.evaluate("window.__noPh")}"] .bl-av img').get_attribute('src') or ''))
     print("ERRORS:", [e for e in errors if 'fetching the script' not in e])
     b.close()
