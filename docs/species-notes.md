@@ -27,3 +27,10 @@
 - `Streptopelia turtur`: turkawka zwyczajna; BTO podaje inkubację 14-16 i okres do wylotu z gniazda zazwyczaj 18-19 dni: https://www.bto.org/learn/about-birds/birdfacts/turtle-dove . Animal Diversity Web podaje krótszy wiek opuszczenia gniazda, dlatego za źródło liczb przyjęto BTO.
 - Do wyjaśnienia: „senegalski ziemny gołąb” (woliera 7) - nieustalona nazwa łacińska; „stepówki” (woliera 19) - nieustalony gatunek; „obżuchy” (woliera 4) - nieczytelne z dyktowania. Nie dodano tych zwierząt do kolekcji.
 - `Treron waalia` w wolierze 5 i `Calidris pugnax` w wolierze 15: liczebność nieznana; odnotowane w uwagach wolier, nie dodano sztucznej liczebności grup.
+
+
+## Korekty po potwierdzeniu właściciela (23.11.2026)
+- Woliera 7 (Ptaszarnia): „senegalski gołąb naziemny” z dyktowania oznacza `Starnoenas cyanocephala`, w kolekcji `Modrogłowik`. Pięć osobników: samiec, samica, trzy osobniki o nieustalonej płci.
+- Woliera 19 (Ptaszarnia): „stepówki” oznacza `Pterocles alchata` (stepówka białobrzucha, белобрюхий рябок), 6 osobników o nieustalonej płci. Nazewnictwo: https://mto-kr.pl/dmdocuments/polskienazewnictwoptakowswiata.pdf oraz https://www.egir.ru/bird/132.html . LC w BirdLife https://datazone.birdlife.org/species/factsheet/pin-tailed-sandgrouse-pterocles-alchata . Inkubacja 20-22 dni i zdolność do lotu około 25 dni: https://www.zootier-lexikon.org/voegel-aves/tauben-und-flughuehner/flughuehner/spiessflughuhn-pterocles-alchata . Pisklęta opuszczają gniazdo niedługo po wykluciu; z tego powodu pole `fledge_days` pozostawiono puste (różnica między opuszczeniem gniazda a uzyskaniem zdolności do lotu). Informacje o siedlisku, diecie i lęgach: https://seo.org/ave/ganga-iberica/ . Zdjęcie Commons: https://commons.wikimedia.org/wiki/File:Pin-tailed_sandgrouse.jpg , autor Ubm007, CC BY-SA 4.0.
+- Woliera 4: „obżuchy” z dyktowania odnosi się do `Gallicolumba crinigera` (`Wyspiarek płowobrzuchy`, минданаосский куриный голубь); osobniki już były w kolekcji, nie dodano duplikatów.
+- Woliera 15: właściciel potwierdził 15 osobników `Calidris pugnax` (batalion); utworzono grupę 15 i zastąpiono poprzednią uwagę o nieznanej liczebności.
