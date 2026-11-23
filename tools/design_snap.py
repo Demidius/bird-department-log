@@ -122,6 +122,54 @@ S = [  # file, title, section, steps
     ('AnimalDark', 'Карточка животного — тёмная', 4, lambda p: (dark(p), card(p, 34))),
     ('WeatherDark', 'Погода — тёмная', 4, lambda p: (dark(p), weather(p))),
 ]
+# Prototype: tap areas laid over each artboard (<a href> to another artboard), so Play walks through the app like on the phone.
+# [selector, target]; only the topmost visible element under its centre gets one (sheets cover the screen behind).
+NAV = [['[data-scr=now]', 'Main'], ['[data-scr=logs]', 'Journal'], ['[data-scr=cal]', 'Calendar'], ['[data-scr=more]', 'More'], ['[data-fab]', 'AddMenu']]
+SAVE = lambda t: [['[data-save]', t], ['[data-close]', t], ['[data-edsave]', t]]
+LINKS = {
+    'Main': [['[data-tmenu]', 'TreatmentMenu'], ['[data-ani]', 'AnimalCard'], ['[data-rec]', 'RecordCard']],
+    'Journal': [['[data-rec]', 'RecordCard']],
+    'Calendar': [['[data-rec]', 'RecordCard']],
+    'More': [['[data-scr=animals]', 'Animals'], ['[data-scr=places]', 'Places'], ['[data-scr=species]', 'SpeciesCard'], ['[data-thm=dark]', 'NowDark']],
+    'Animals': [['[data-back]', 'More'], ['[data-arrive]', 'Arrival'], ['.scroll [data-ani*="-"]', 'AnimalCard']],
+    'Places': [['[data-back]', 'More'], ['[data-plc]', 'PlaceCard']],
+    'AnimalCard': [['[data-back]', 'Animals'], ['[data-add=an]', 'WhatAnimal'], ['[data-edform=an]', 'EditAnimal'], ['[data-rec]', 'RecordCard'], ['[data-ani]', 'AnimalCard']],
+    'GroupCard': [['[data-back]', 'Animals'], ['[data-add=an]', 'WhatAnimal'], ['[data-rec]', 'RecordCard']],
+    'PlaceCard': [['[data-back]', 'Places'], ['[data-add=pl]', 'WhatPlace'], ['[data-tadd]', 'Temperature'], ['[data-ani]', 'AnimalCard'], ['[data-rec]', 'RecordCard']],
+    'SpeciesCard': [['[data-back]', 'More'], ['[data-ani]', 'AnimalCard']],
+    'RecordCard': [['[data-back]', 'Journal'], ['[data-ani]', 'AnimalCard']],
+    'AddMenu': [['[data-menu=animal]', 'WhoPicker'], ['[data-menu=places]', 'Places'], ['[data-menu=free]', 'FreeNote'], ['[data-close]', 'Main']],
+    'WhoPicker': [['[data-gomulti]', 'Injury'], ['[data-close]', 'Main'], ['[data-step]', 'AddMenu']],
+    'WhatAnimal': [['[data-kind=injury]', 'Injury'], ['[data-kind=tstart]', 'Medication'], ['[data-kind=expo]', 'Transfer'], ['[data-kind=birth]', 'Birth'], ['[data-kind=hatch]', 'Birth'], ['[data-close]', 'AnimalCard'], ['[data-step]', 'AnimalCard']],
+    'WhatPlace': [['[data-kind=temp]', 'Temperature'], ['[data-close]', 'PlaceCard'], ['[data-step]', 'PlaceCard']],
+    'TreatmentMenu': [['[data-close]', 'Main']],
+    'Injury': SAVE('Main') + [['[data-step]', 'WhoPicker']],
+    'Medication': SAVE('AnimalCard') + [['[data-step]', 'WhatAnimal']],
+    'Transfer': SAVE('AnimalCard') + [['[data-step]', 'WhatAnimal']],
+    'Birth': SAVE('AnimalCard') + [['[data-step]', 'WhatAnimal']],
+    'Temperature': SAVE('PlaceCard') + [['[data-step]', 'WhatPlace']],
+    'Weather': SAVE('Journal') + [['[data-fv=kind]:not([data-i="5"])', 'FreeNote']],
+    'FreeNote': SAVE('Journal') + [['[data-fv=kind][data-i="5"]', 'Weather']],
+    'Arrival': SAVE('AnimalCard') + [['[data-fv=cnt][data-i="4"]', 'ArrivalGroup']],
+    'ArrivalGroup': SAVE('GroupCard') + [['[data-fv=cnt]:not([data-i="4"])', 'Arrival']],
+    'EditAnimal': SAVE('AnimalCard'),
+    'NowDark': [['[data-ani]', 'AnimalDark'], ['[data-fab]', 'WeatherDark'], ['[data-scr=more]', 'More']],
+    'AnimalDark': [['[data-back]', 'NowDark']],
+    'WeatherDark': SAVE('NowDark'),
+}
+LINK_JS = r"""(L => {
+  const sh = document.getElementById('shell').getBoundingClientRect(), seen = new Set(), out = [];
+  const ea = s => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+  for (const [sel, to] of L) for (const el of document.querySelectorAll(sel)) {
+    const r = el.getBoundingClientRect(); if (r.width < 4 || r.height < 4) continue;
+    const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+    if (!hit || !(el === hit || el.contains(hit)) || seen.has(el)) continue; seen.add(el);
+    const lab = (el.getAttribute('aria-label') || el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 60) || to;
+    out.push(`<a href="${to}.dc.html" aria-label="${ea(lab)}" style="position: absolute; left: ${Math.round(r.left - sh.left)}px; top: ${Math.round(r.top - sh.top)}px; width: ${Math.round(r.width)}px; height: ${Math.round(r.height)}px; z-index: 60; border-radius: 12px"></a>`);
+  }
+  return out.join('\n');
+})"""
+
 SECTIONS = ['Главные экраны', 'Карточки', 'Добавление записи', 'Формы', 'Тёмная тема']
 
 TPL = """<!doctype html>
@@ -138,10 +186,14 @@ TPL = """<!doctype html>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
 <style>
 body{{margin:0}}
+[data-taps] a{{pointer-events:auto;display:block}}
 </style>
 </helmet>
 <div data-theme="{theme}" style="position: relative; width: 390px; height: {h}px; overflow: hidden; transform: translateZ(0); background: var(--bg); color: var(--ink); font-family: var(--font-text)">
 {body}
+<div data-taps="1" style="position: absolute; inset: 0; z-index: 60; pointer-events: none">
+{links}
+</div>
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{{"$preview":{{"width":390,"height":{h}}}}}'>
@@ -165,7 +217,8 @@ with sync_playwright() as pw:
             sheet = p.locator('.bl-sheet').count() > 0
             h = min(1600 if sheet else 2400, int((h + extra) / (0.94 if sheet else 1)) + 8); p.set_viewport_size({"width": 390, "height": h}); p.wait_for_timeout(250)
         theme = ev(p, "document.documentElement.dataset.theme || 'light'")
-        (OUT / f'{f}.dc.html').write_text(TPL.format(title=title, css=CSS, theme=theme, h=h, body=ev(p, SER_JS)))
+        lk = p.evaluate(LINK_JS + '(' + json.dumps(LINKS.get(f, []) + NAV) + ')')  # screen links first: they win over the bottom bar
+        (OUT / f'{f}.dc.html').write_text(TPL.format(title=title, css=CSS, theme=theme, h=h, body=ev(p, SER_JS), links=lk))
         meta.append({'file': f + '.dc.html', 'title': title, 'section': sec, 'h': h}); print(f, h); p.close()
     b.close()
 (OUT / '_meta.json').write_text(json.dumps({'sections': SECTIONS, 'boards': meta}, ensure_ascii=False))
