@@ -128,12 +128,25 @@ html,body{margin:0;background:var(--soft);color:var(--ink);font:14px/1.45 var(--
   <p class="muted">Замечания пиши в чат по экранам: что убрать, что крупнее, что не так по смыслу.</p>
  </div>
 </div>
+<!-- ПРАВКИ МАКЕТА: всё, что меняем в дизайне, пишем только сюда — CSS и JS поверх кода сайта (правка через edit_version).
+     На сайт переносится только по команде «переносим на сайт»; после переноса блоки очищаются. -->
+<script type="text/plain" id="design-css">
+/* правки макета: CSS */
+</script>
+<script type="text/plain" id="design-js">
+// правки макета: JS (выполняется в приложении после его кода; можно оборачивать функции, как модули-расширения)
+</script>
 <script>
 const APP = """ + json.dumps(app, ensure_ascii=False).replace('</', '<\\/') + """;
 window.__PROTO = {lang: 'pl', theme: 'light', empty: false, off: false};
 const fr = document.getElementById('app'), phone = document.getElementById('phone');
 // srcdoc, not a blob: URL — it is covered by the page's own policy and needs no extra frame permission
-function load() { fr.srcdoc = APP.replace('__CFG__', JSON.stringify(window.__PROTO)); mark(); }
+function load() {
+  const css = document.getElementById('design-css').textContent, dj = document.getElementById('design-js').textContent;
+  let doc = APP.replace('__CFG__', JSON.stringify(window.__PROTO)); const i = doc.lastIndexOf('</body>');
+  doc = doc.slice(0, i) + '<style>' + css + '</style><script>' + dj.replace(/<\\/script/gi, '<\\\\/script') + '<\\/script>' + doc.slice(i);
+  fr.srcdoc = doc; mark();
+}
 const send = (cmd, extra) => { try { fr.contentWindow.postMessage(Object.assign({proto: 1, cmd}, extra), '*'); } catch (x) {} };
 function mark() {
   const P = window.__PROTO;
