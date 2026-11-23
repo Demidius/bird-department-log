@@ -23,6 +23,7 @@ change_log (id bigint, at, actor → profiles, kind user|ai|dev, entity, entity_
 ```
 Связи по **имени** (не по id): `collection.encl` → `enclosures.name`, `records.bird` → `collection.name`, `records.f.from/to` и `records.f.place` → `enclosures.name` (переименование места обновляет их триггером).
 Переименование поддерживают триггеры `*_sync`. Поэтому имена мест и животных уникальны по всей базе.
+Realtime (`supabase_realtime`): species, collection, enclosures, records, photos, profiles, change_log, comments — приложение слушает их и перечитывает изменённое.
 Старые таблицы `birds`, `bird_events`, `department_members` (и политики bucket `bird-photos`) не используются.
 
 ## Триггеры (схема `app`)

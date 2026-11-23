@@ -38,7 +38,7 @@
 
   class Q {
     constructor(table) { this.t = table; this.op = 'select'; this.f = []; this.one = false; this.maybe = false; this.rng = null; this.ord = null; }
-    select() { return this; }
+    select(c, o) { if (o && o.count) this.cnt = 1; return this; }
     insert(o) { this.op = 'insert'; this.p = o; return this; }
     update(o) { this.op = 'update'; this.p = o; return this; }
     delete() { this.op = 'delete'; return this; }
@@ -61,8 +61,9 @@
       if (this.op === 'select') {
         let rows = T.filter(r => visible(this.t, r) && this.match(r));
         if (this.ord) { const [c, asc] = this.ord; rows.sort((a, b) => (a[c] > b[c] ? 1 : a[c] < b[c] ? -1 : 0) * (asc ? 1 : -1)); }
+        const total = rows.length;
         if (this.rng) rows = rows.slice(this.rng[0], this.rng[1] + 1);
-        return this.out(rows);
+        const res = this.out(rows); if (this.cnt) res.count = total; return res;
       }
       if (this.op === 'insert') {
         const row = Object.assign({id: id(), created_at: now(), updated_at: now()}, clone(this.p));

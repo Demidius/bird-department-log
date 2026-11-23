@@ -178,5 +178,21 @@ with sync_playwright() as pw:
     p4.evaluate("""(() => { const me = __mock.users[0].id, pl = __mock.db.enclosures[2].name; for (let i = 1; i < 25; i++) __mock.db.records.push({id: crypto.randomUUID(), type: 'obs', bird: pl, species_id: null, f: {k: 'temp', t: Math.round((18 + 4 * Math.sin(i / 3) + (i % 4) * 0.4) * 10) / 10, place: pl}, note: '', event_at: new Date(Date.now() - i * 864e5 - 3e7).toISOString(), created_by: me, created_at: new Date().toISOString()}); return LOAD.records().then(render); })()""")
     p4.wait_for_timeout(300); box = p4.locator(".tchart svg").bounding_box(); p4.mouse.move(box["x"] + box["width"] * 0.5, box["y"] + 60); p4.wait_for_timeout(150)
     p4.locator(".tbox").scroll_into_view_if_needed(); shot(p4, "n22_temp_series"); print("series points:", p4.locator(".tchart .tm").count())
+    # 17. fresh data: button next to the account; someone else's change shows up by itself, a failed load highlights the button
+    p5 = page(b)
+    print("sync button:", p5.locator(".hd [data-sync]").count())
+    ext = """(() => { const db = __mock.db, a = db.collection[0], me = __mock.users[0].id;
+      db.records.push({id: crypto.randomUUID(), type: 'obs', bird: a.name, species_id: a.species_id, f: {}, note: 'EXTERNAL-1', event_at: new Date().toISOString(), created_by: me, created_at: new Date().toISOString()});
+      db.change_log.push({id: db.change_log.length + 1, at: new Date().toISOString(), kind: 'user', entity: 'records', action: 'insert'}); })()"""
+    p5.evaluate(ext.replace('EXTERNAL-1', 'Z innego telefonu'))
+    p5.evaluate("document.dispatchEvent(new Event('visibilitychange'))"); p5.wait_for_timeout(500)
+    print("auto loaded:", p5.evaluate("D.rec.some(r => r.note === 'Z innego telefonu')"))
+    p5.evaluate("window._lr = LOAD.records; LOAD.records = async () => { throw new Error('net'); }; 0")
+    p5.evaluate(ext.replace('EXTERNAL-1', 'Drugi'))
+    p5.evaluate("syncAll()"); p5.wait_for_timeout(500)
+    print("stale:", p5.locator(".hd .sync.stale").count()); p5.locator(".hd").screenshot(path=str(out / "n23_sync_stale.png"))
+    p5.evaluate("LOAD.records = window._lr; 0"); click(p5, "[data-sync]", t=600)
+    print("after button:", p5.locator(".hd .sync.stale").count(), p5.evaluate("D.rec.some(r => r.note === 'Drugi')"), "| toast:", p5.inner_text("#toast"))
+    click(p5, "[data-scr=cal]"); print("overflow cal:", overflow(p5)); p5.locator(".hd").screenshot(path=str(out / "n24_sync_cal.png"))
     print("ERRORS:", errors)
     b.close()
