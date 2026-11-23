@@ -4,7 +4,8 @@
   const DOMAIN = 'zoo-log.invalid';
   const now = () => new Date().toISOString();
   const id = () => crypto.randomUUID();
-  const db = {profiles: [], species: [], collection: [], records: [], photos: [], enclosures: [], change_log: []};
+  const db = {profiles: [], species: [], collection: [], records: [], photos: [], enclosures: [], change_log: [], comments: []};
+  const REC_TYPES = ['expo', 'obs', 'tstart', 'tdose', 'tend', 'lay', 'incub', 'hatch', 'fledge', 'birth'];
   const files = new Map();
   const users = [{id: id(), email: 'diomid13a@gmail.com', password: 'secret123', confirmed: true, banned: false}];
   window.__mock = {db, users, files, calls: []};
@@ -30,7 +31,7 @@
     return false;
   }
   function mayDelete(table, row) {
-    if (table === 'records' || table === 'photos') return isAdmin() || (canWrite() && row.created_by === uidNow());
+    if (table === 'records' || table === 'photos' || table === 'comments') return isAdmin() || (canWrite() && row.created_by === uidNow());
     if (table === 'species' || table === 'collection' || table === 'enclosures' || table === 'change_log') return isAdmin();
     return false;
   }
@@ -68,6 +69,8 @@
         if (this.t === 'profiles' || !canWrite() || row.created_by !== uidNow()) return {data: null, error: err('42501', 'new row violates row-level security policy')};
         if ((this.t === 'collection' || this.t === 'enclosures') && T.some(r => r.name.trim().toLowerCase() === row.name.trim().toLowerCase())) return {data: null, error: err('23505', 'duplicate key value')};
         if (this.t === 'photos' && row.path.split('/')[0] !== uidNow()) return {data: null, error: err('42501', 'rls')};
+        if (this.t === 'records' && (!REC_TYPES.includes(row.type) || !String(row.bird || '').trim())) return {data: null, error: err('23514', 'check constraint')};
+        if (this.t === 'comments' && !db.records.some(r => r.id === row.record_id)) return {data: null, error: err('23503', 'foreign key')};
         T.push(row);
         return this.out([row]);
       }
