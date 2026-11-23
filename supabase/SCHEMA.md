@@ -10,7 +10,7 @@ profiles   (id → auth.users, login unique lower без пробелов, displ
 species    (id, name_ru, name_pl, name_en, latin, note, info jsonb object, created_by, created_at, updated_at)
            хоть одно из названий/латыни непустое; latin уникальна без учёта регистра (если непустая)
 collection (id, name unique lower(btrim), species_id → species, sex ''|m|f, ring, chip, born date, arrived date, origin,
-           encl text = ИМЯ места, encl_at, status active|out, note, names jsonb [{l,v}], locked jsonb [], grp jsonb {m,f,u,j}|null,
+           encl text = ИМЯ места, encl_at, status active|out, note, names jsonb [{l,v}], locked jsonb [], grp jsonb {m,f,u,j[,unk:true,about]}|null,
            parents jsonb [id карточек], created_by, created_at, updated_at)
 enclosures (id, name unique lower(btrim) по всей базе, kind building|aviary|enclosure|cage|incubator|brooder|room|quarantine|pond|other,
            area, size, capacity 1..10000, active, note, parent_id → enclosures (без циклов, глубина ≤ 50), names [{l,v}], locked [], …)
