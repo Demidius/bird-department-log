@@ -14,12 +14,14 @@ collection (id, name unique lower(btrim), species_id → species, sex ''|m|f, ri
            parents jsonb [id карточек], created_by, created_at, updated_at)
 enclosures (id, name unique lower(btrim) по всей базе, kind building|aviary|enclosure|cage|incubator|brooder|room|quarantine|pond|other,
            area, size, capacity 1..10000, active, note, parent_id → enclosures (без циклов, глубина ≤ 50), names [{l,v}], locked [], …)
-records    (id, type expo|obs|tstart|tdose|tend|lay|incub|hatch|fledge|birth, species_id, bird text = ИМЯ из collection,
-           event_at, f jsonb (expo: {from,to} = имена мест; nt:1 = без времени), note, created_by, …)
+records    (id, type expo|obs|tstart|tdose|tend|lay|incub|hatch|fledge|birth|injury|proc|watch|wend|score|mate|diet|env|enr|leave|arrive|dept,
+           species_id, bird text = ИМЯ из collection (или имя места при f.place; пусто можно только у dept),
+           event_at, f jsonb (expo: {from,to} = имена мест; nt:1 = без времени; v2 пишет новые виды как obs + f.k), note, created_by, …)
+comments   (id, record_id → records on delete cascade, parent_id → comments (ответ), body 1–2000, created_by, created_at) — RLS как у records: читают все, пишут can_write, удаляет автор или admin
 photos     (id, owner_type record|bird|species|encl, owner_id, path '<uid>/<uuid>.jpg', width, height, created_by, created_at)
 change_log (id bigint, at, actor → profiles, kind user|ai|dev, entity, entity_id, action insert|update|delete|note, label, fields[], extra, summary ≤1000, ver)
 ```
-Связи по **имени** (не по id): `collection.encl` → `enclosures.name`, `records.bird` → `collection.name`, `records.f.from/to` → `enclosures.name`.
+Связи по **имени** (не по id): `collection.encl` → `enclosures.name`, `records.bird` → `collection.name`, `records.f.from/to` и `records.f.place` → `enclosures.name` (переименование места обновляет их триггером).
 Переименование поддерживают триггеры `*_sync`. Поэтому имена мест и животных уникальны по всей базе.
 Старые таблицы `birds`, `bird_events`, `department_members` (и политики bucket `bird-photos`) не используются.
 
@@ -31,7 +33,7 @@ change_log (id bigint, at, actor → profiles, kind user|ai|dev, entity, entity_
 | species | `species_locks` | поля из `info.locked` (`'*'` = всё) не меняются, если пишет не админ; не-админ не может менять сами замки |
 | collection, enclosures | `*_locks` → `row_locks` | то же по колонке `locked` |
 | collection | `collection_sync` | переименование/смена вида → обновляет `records.bird/species_id` |
-| enclosures | `enclosures_sync` | переименование → `collection.encl`, `records.f.from/to` |
+| enclosures | `enclosures_sync` | переименование → `collection.encl`, `records.f.from/to`, `records.f.place` (+ `bird`) |
 | enclosures | `enclosures_no_cycle` | запрет циклов вложенности |
 | все с фото | `*_drop_photos` | удаляет фото владельца |
 | все | `*_touch` | `updated_at` |
