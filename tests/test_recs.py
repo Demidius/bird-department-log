@@ -1,5 +1,5 @@
 # ux.js 8–10: record card of mating / birth shows all animals on separate plates; animal card edit lists animals of the species
-# and switches between them; narrow fields row keeps the AI lock whole. Reuses the helpers of test_newui.py.
+# and switches between them; calendar: expected fledging after hatching, more than three events → ellipsis. Reuses the helpers of test_newui.py.
 import pathlib, sys
 HERE = pathlib.Path(__file__).resolve().parent
 exec((HERE / 'test_newui.py').read_text().split('\nwith sync_playwright()')[0])
@@ -25,5 +25,11 @@ with sync_playwright() as pw:
     n = p.locator('[data-edani]').count(); print("species animals in edit:", n)
     p.locator(f'[data-edani="{ids[1]}"]').click(); p.wait_for_timeout(200)
     print("switched:", p.evaluate("st.ed.id") == ids[1], "| pressed:", p.locator(f'[data-edani="{ids[1]}"]').get_attribute('aria-pressed'))
+    # calendar: expected fledging after hatching; more than three events → ellipsis
+    p.evaluate("""(() => { const a = D.an.find(x => x.species_id && !x.grp); spInfo(spBy(a.species_id)).fledge_days = 15;
+      D.rec.unshift({id: 'rh1', k: 'hatch', type: 'obs', bird: a.name, at: Date.now() - DAY, by: me, note: '', f: {k: 'hatch'}}); })()""")
+    print("fledging forecast:", p.evaluate("[...calEvents().values()].flat().some(e => e.exp && e.r.id === 'rh1')"))
+    p.evaluate("""(() => { for (let i = 0; i < 5; i++) D.rec.unshift({id: 'rc' + i, k: 'obs', type: 'obs', bird: D.an[0].name, at: Date.now() - 2 * DAY + i, by: me, note: '', f: {}}); st.ed = null; st.scr = 'cal'; render(); })()""")
+    p.wait_for_timeout(200); print("ellipsis days:", p.locator('.evs .evmore').count() >= 1, "| max dots:", p.evaluate("Math.max(...[...document.querySelectorAll('.evs')].map(e => e.querySelectorAll('.dot').length))"))
     print("ERRORS:", [e for e in errors if 'fetching the script' not in e])
     b.close()

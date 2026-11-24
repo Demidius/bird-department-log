@@ -1,8 +1,8 @@
 {
-  "name": "Журнал отдела птиц",
-  "short_name": "Журнал птиц",
-  "description": "Журнал отдела птиц зоопарка: записи, коллекция, виды",
-  "lang": "ru",
+  "name": "Bird Department Log",
+  "short_name": "Bird Log",
+  "description": "Zoo bird department log: records, collection, species",
+  "lang": "en",
   "id": "./",
   "start_url": "./v2/",
   "scope": "./",
