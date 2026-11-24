@@ -23,6 +23,8 @@ create table if not exists public.drugs (
 );
 create unique index if not exists drugs_name_key on public.drugs (lower(btrim(name)));
 alter table public.drugs enable row level security;
+-- the project does not grant table rights by default: like the other tables, signed-in users get them (RLS still decides)
+grant select, insert, update, delete on public.drugs to authenticated;
 
 do $p$ begin
   if not exists (select 1 from pg_policy where polrelid = 'public.drugs'::regclass and polname = 'drugs_read') then
