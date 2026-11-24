@@ -5,8 +5,16 @@
 //    under the tabs; tabs keep «In the zoo» — diet, husbandry; «In the wild» — range, habitat, diet, behaviour.
 // 3) Edit forms of cards (species, animal, enclosure, drug): an empty field is tinted light red (class isempty).
 // 4) Drug field in treatment / dose forms: a tap opens the list of all drugs (catalogue + names from records); typing filters
-//    by name and active substance; a catalogue drug fills its route when it has one.
+//    by drug name (word starts); a catalogue drug fills its route when it has one.
 // 5) Every filled text field in forms has a cross on the right that clears it.
+// 6) Enclosures: search by enclosure name in the «Enclosures» list and in the enclosure picker; matches show as a flat list
+//    with the parent place underneath.
+// 7) Search in every list matches word starts only (qhit), and only the list's main name: animals — species name as shown,
+//    species — name, drugs — name, enclosures — enclosure name; the journal — its text. Letters without diacritics (ż = z, ł = l).
+
+/* 7) search helper (used below and by the list functions rebuilt at the end of this file) */
+const qnorm = s => String(s || '').toLowerCase().replace(/ł/g, 'l').normalize('NFD').replace(/[̀-ͯ]/g, '');
+const qhit = (text, q) => { const w = qnorm(text).split(/[^\p{L}\p{N}]+/u).filter(Boolean); return qnorm(q).split(/\s+/).filter(Boolean).every(t => w.some(x => x.startsWith(t))); };
 
 /* 1) journal: merged mating rows */
 const MERGE_KINDS = ['mate'];
@@ -60,7 +68,7 @@ const _medFormU = medForm;
 medForm = function () {
   const h = _medFormU(), f = F(); if (!f || !f.medOpen) return h;
   const q = key(f.fv.drug || '');
-  const all = medList().filter(m => !q || key(m.name + ' ' + (m.sub || '')).includes(q))
+  const all = medList().filter(m => !q || qhit(m.name, q))
     .sort((a, b) => (q ? (key(b.name).startsWith(q) - key(a.name).startsWith(q)) : 0) || b.n - a.n || a.name.localeCompare(b.name));
   const items = all.map(m => `<button data-med="${esc(m.name)}"><span><b>${esc(m.name)}</b><small>${esc([m.sub, m.dose, m.route].filter(Boolean).join(' · ')) || (m.cat ? L('z katalogu', 'из каталога', 'from the catalogue') : '')}</small></span><em>${m.n ? m.n + '×' : ''}</em></button>`).join('')
     || `<p class="tip" style="margin:8px 12px">${L('Brak takiego leku — zostanie zapisany jako nowy', 'Такого средства нет — запишется как новое', 'No such drug — it will be saved as new')}</p>`;
@@ -70,6 +78,39 @@ medForm = function () {
   const j = h.indexOf('</button>', i) + 9; return h.slice(0, j) + list + h.slice(j);
 };
 document.addEventListener('focusin', e => { if (e.target.id !== 'medin') return; const f = F(); if (f && !f.medOpen) { f.medOpen = 1; render(); } });
+
+/* 6) enclosures: search */
+const _placeTreeU = placeTree;
+placeTree = function (openAttr = 'data-plc') {
+  const id = openAttr === 'data-pickplc' ? 'pq' : 'plq', v = st[id] || '';
+  const box = `<label class="bl-search" style="margin-bottom:8px">${ic('search', 18)}<input id="${id}" type="search" value="${esc(v)}" placeholder="${L('Nazwa woliery', 'Название вольера', 'Enclosure name')}" autocomplete="off"></label>`;
+  if (!v.trim()) return box + _placeTreeU(openAttr);
+  const rows = D.pl.filter(p => p.active !== false && qhit(plName(p), v)).sort((a, b) => plName(a).localeCompare(plName(b), undefined, {numeric: true}))
+    .map(p => { const par = plById(p.parent_id), n = anOfPlace(p).length; return `<div class="trow" style="--d:0"><span class="tgl"></span><button class="bl-who" ${openAttr}="${p.id}"><span class="bl-av">${ic(p.kind === 'building' ? 'building' : 'home', 20)}</span><span><b>${esc(plName(p))}</b><small>${esc(par ? plName(par) : '')}</small></span><span class="sx">${n || ''}</span></button></div>`; }).join('');
+  return box + (rows ? `<div class="tree">${rows}</div>` : `<p class="empty">${L('Nic nie znaleziono', 'Ничего не найдено', 'Nothing found')}</p>`);
+};
+document.addEventListener('input', e => { const i = e.target.id; if (i === 'pq' || i === 'plq') { st[i] = e.target.value; render(); } });
+
+/* 7) list searches: the list functions (views.js, forms.js, picker.js, drugs.js) filter with key(text).includes(q);
+   here they are rebuilt from their own source with that check replaced by qhit(main name, q), through the chain of wrappers
+   of the extension modules. If a function changes so that nothing matches, it simply stays as it was. */
+(function () {
+  const G = s => (0, eval)(s);
+  const bal = d => d ? '(?:[^()]|\\(' + bal(d - 1) + '\\))*' : '[^()]*';
+  const RE = new RegExp('key\\((' + bal(6) + ')\\)\\.includes\\(q\\)', 'g');
+  const MAIN = [["anLine(a) + ' ' + a.name + ' ' + a.ring + ' ' + anEncl(a) + ' ' + ((spBy(a.species_id) || {}).latin || '')", 'anTitle(a)'],
+    ["[s.name_pl, s.name_ru, s.name_en, s.latin].join(' ')", 'spName(s)'], ["d.name + ' ' + d.substance", 'd.name']];
+  let n = 0;
+  const patch = src => MAIN.reduce((t, w) => t.split(w[0]).join(w[1]), src).replace(RE, 'qhit($1, q)').replace(/\b(_[A-Za-z]\w*)\(/g, (m, c) => {
+    let f; try { f = G(c); } catch (x) { return m; }
+    if (typeof f !== 'function') return m;
+    const s = f.toString(), p = patch(s); if (p === s) return m;
+    const nm = '__qhit' + (n++); window[nm] = G('(' + p + ')'); return nm + '(';
+  });
+  ['animalsByPlace', 'listScreen', 'logsScreen', 'drugsScreen', 'medForm', 'arriveForm', 'animalEdit'].forEach(name => {
+    try { const s = G(name).toString(), p = patch(s); if (p !== s) G(name + ' = (' + p + ')'); } catch (x) { console.warn('qhit', name, x); }
+  });
+})();
 
 /* 3) empty fields in edit forms; 5) clear cross */
 function markEmptyFields() {
