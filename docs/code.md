@@ -26,10 +26,12 @@ v2/js/polish.js     расширение: вид цветом в журнале,
 v2/js/schedule.js   расширение: «Сейчас» — задача открывает карточку записи; время каждой подачи/оценки (f.times ['08:00',…] у tstart 2×/3× и watch «несколько раз»), кнопка за 30 мин, раньше «Подать в …»
 v2/js/tints.js      расширение: цвет окна по типу (#app[data-wt]: животные, виды, вольеры, запись); секции карточек и рамки
 v2/js/links.js      расширение: переход в другую карточку — единый значок ↗; клетки с вольером/видом и плашка места в записи кликабельны (data-go)
+v2/js/refs.js       расширение: источники в карточке вида (species.info.sources [{t,url}]); пометки «(1)» в текстах — кнопки к источнику; раздел в самом низу
+v2/js/drugs.js      расширение: каталог лекарств (таблица drugs, LOAD.drugs → D.dr) — список, карточка, форма; фото owner_type 'drug'; плашка лекарства в записи лечения
 v2/js/sync.js       свежесть данных: живые обновления (realtime), проверка версии сервера при возврате в приложение/сети/раз в минуту, кнопка «обновить» рядом с аккаунтом (подсвечена, если новые данные не загрузились)
 v2/js/main.js       render(), клики (делегирование data-*), «назад» телефона, вход, тема, язык — грузится последним
 supabase/           схема (SCHEMA.md), миграции, код Edge Function admin-users
-tests/test_newui.py браузерный тест v2 (Playwright + tests/mock_supabase.js, данные tests/seed_v2.json); test_tiles.py, test_batch2.py, test_batch3.py, test_links.py — отдельные экраны, берут его помощники
+tests/test_newui.py браузерный тест v2 (Playwright + tests/mock_supabase.js, данные tests/seed_v2.json); test_tiles.py, test_batch2.py, test_batch3.py, test_links.py, test_drugs.py — отдельные экраны, берут его помощники
 ```
 **Старая версия (не используется, к удалению):** `js/*.js`, `i18n*.js`, `desktop.css`, `pwa.js`, `docs/codemap.md`, `tools/codemap.py`, остальные `tests/test_*.py`. Не править.
 

@@ -18,21 +18,23 @@ records    (id, type expo|obs|tstart|tdose|tend|lay|incub|hatch|fledge|birth|inj
            species_id, bird text = ИМЯ из collection (или имя места при f.place; пусто можно только у dept),
            event_at, f jsonb (expo: {from,to} = имена мест; nt:1 = без времени; v2 пишет новые виды как obs + f.k), note, created_by, …)
 comments   (id, record_id → records on delete cascade, parent_id → comments (ответ), body 1–2000, created_by, created_at) — RLS как у records: читают все, пишут can_write, удаляет автор или admin
-photos     (id, owner_type record|bird|species|encl, owner_id, path '<uid>/<uuid>.jpg', width, height, created_by, created_at)
+drugs      (id, name unique lower(btrim), substance, form 0–7 (OPT.dform), conc, routes jsonb [индексы OPT.routes], maker,
+           dose, use, contra, storage, note, locked [], created_by, created_at, updated_at) — каталог лекарств; связь с записями по имени (records.f.drug)
+photos     (id, owner_type record|bird|species|encl|drug, owner_id, path '<uid>/<uuid>.jpg', width, height, created_by, created_at)
 change_log (id bigint, at, actor → profiles, kind user|ai|dev, entity, entity_id, action insert|update|delete|note, label, fields[], extra, summary ≤1000, ver)
 ```
 Связи по **имени** (не по id): `collection.encl` → `enclosures.name`, `records.bird` → `collection.name`, `records.f.from/to` и `records.f.place` → `enclosures.name` (переименование места обновляет их триггером).
 Переименование поддерживают триггеры `*_sync`. Поэтому имена мест и животных уникальны по всей базе.
-Realtime (`supabase_realtime`): species, collection, enclosures, records, photos, profiles, change_log, comments — приложение слушает их и перечитывает изменённое.
+Realtime (`supabase_realtime`): species, collection, enclosures, records, photos, profiles, change_log, comments, drugs — приложение слушает их и перечитывает изменённое.
 Старые таблицы `birds`, `bird_events`, `department_members` (и политики bucket `bird-photos`) не используются.
 
 ## Триггеры (схема `app`)
 | таблица | триггер | что делает |
 |---|---|---|
-| species, collection, enclosures, records, photos, profiles | `*_log` → `log_change` | пишет `change_log`; без `auth.uid()` → `kind='ai'` |
+| species, collection, enclosures, records, photos, profiles, drugs | `*_log` → `log_change` | пишет `change_log`; без `auth.uid()` → `kind='ai'` |
 | change_log | `change_log_ver` (before insert) | у `dev` растёт `ver` = версия приложения |
 | species | `species_locks` | поля из `info.locked` (`'*'` = всё) не меняются, если пишет не админ; не-админ не может менять сами замки |
-| collection, enclosures | `*_locks` → `row_locks` | то же по колонке `locked` |
+| collection, enclosures, drugs | `*_locks` → `row_locks` | то же по колонке `locked` |
 | collection | `collection_sync` | переименование/смена вида → обновляет `records.bird/species_id` |
 | enclosures | `enclosures_sync` | переименование → `collection.encl`, `records.f.from/to`, `records.f.place` (+ `bird`) |
 | enclosures | `enclosures_no_cycle` | запрет циклов вложенности |

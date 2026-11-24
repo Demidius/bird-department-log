@@ -22,6 +22,7 @@
 - Тексты (`size life order family range habitat diet_wild behaviour breeding diet_zoo husbandry health sex`): строка (= польский) или `{"pl","en","ru"}`. Пиши все три языка.
 - `group`: `bird` (по умолчанию) | `mammal`. `iucn`: LC NT VU EN CR EW DD. Дни (`incub_days`, `fledge_days`, `gest_days`) — целые 1–400, при диапазоне — нижняя граница, диапазон строкой в `incub_range`.
 - `photo`: имя файла Commons (строка) или `{"file","credit"}` — ссылки строятся сами. Только файлы, реально найденные на commons.wikimedia.org.
+- `sources`: `[{"t":"Название источника","url":"https://…"}]` (1–30). В текстах ставь после факта номер источника по порядку списка: `"Głównie owoce i jagody. (1)(2)"` — в карточке вида номер станет кнопкой к источнику. Без `replace` список заполняется только если его ещё нет.
 - Любой другой ключ = ошибка (защита от опечаток).
 
 **Место содержания** (ключ — `name`, уникально во всей базе):
