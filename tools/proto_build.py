@@ -95,11 +95,14 @@ html,body{margin:0;background:var(--soft);color:var(--ink);font:14px/1.45 var(--
 .notes .muted{color:var(--muted);font-size:13px}
 @media (max-width:700px){.ctl{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding:8px 10px}.ctl .grp{flex-wrap:nowrap;flex:none}.wrap{padding:12px 0 30px}.notes{padding:0 16px}}
 .phone.bare{padding:0;border-radius:0;background:none;box-shadow:none}.phone.bare iframe{border-radius:0}
+.phone.pc{width:1380px;height:840px;padding:10px;border-radius:20px}.phone.pc iframe{width:1360px;height:820px;border-radius:12px}
+body.pcmode .notes{display:none}
 </style>
 </head>
 <body>
 <div class="ctl" role="toolbar" aria-label="Управление прототипом">
  <div class="grp"><b>Экран</b><button data-go="now">Сейчас</button><button data-go="add">+ Запись</button><button data-go="logs">Журнал</button><button data-go="cal">Календарь</button><button data-go="more">Ещё</button><button data-go="animal">Животное</button><button data-go="place">Вольер</button><button data-go="weather">Погода</button><button data-go="arrive">Поступление</button></div>
+ <div class="grp"><b>Устройство</b><button data-dev="phone">Телефон</button><button data-dev="pc">Компьютер</button></div>
  <div class="grp"><b>Язык</b><button data-lang="pl">PL</button><button data-lang="ru">RU</button><button data-lang="en">EN</button></div>
  <div class="grp"><b>Данные</b><button data-empty="0">База</button><button data-empty="1">Пусто</button></div>
  <div class="grp"><b>Сеть</b><button data-off="0">Есть</button><button data-off="1">Нет</button></div>
@@ -155,6 +158,7 @@ function mark() {
   document.querySelectorAll('[data-empty]').forEach(b => b.setAttribute('aria-pressed', (b.dataset.empty === '1') === P.empty));
   document.querySelectorAll('[data-off]').forEach(b => b.setAttribute('aria-pressed', (b.dataset.off === '1') === P.off));
   document.documentElement.dataset.theme = P.theme;
+  document.querySelectorAll('[data-dev]').forEach(b => b.setAttribute('aria-pressed', (b.dataset.dev === 'pc') === document.body.classList.contains('pcmode')));
 }
 document.addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return; const d = b.dataset, P = window.__PROTO;
@@ -164,13 +168,14 @@ document.addEventListener('click', e => {
   if (d.off) { P.off = d.off === '1'; send('off', {v: P.off}); }
   if (d.empty) { P.empty = d.empty === '1'; load(); }
   if (d.reset) { P.empty = false; P.off = false; load(); }
+  if (d.dev) { document.body.classList.toggle('pcmode', d.dev === 'pc'); fit(); }
   mark();
 });
 function fit() {
-  const bare = innerWidth < 500, W0 = bare ? 390 : 414, H0 = bare ? 844 : 868, st = document.getElementById('stage');
-  phone.classList.toggle('bare', bare);
+  const pc = document.body.classList.contains('pcmode'), bare = !pc && innerWidth < 500, W0 = pc ? 1380 : bare ? 390 : 414, H0 = pc ? 840 : bare ? 844 : 868, st = document.getElementById('stage');
+  phone.classList.toggle('bare', bare); phone.classList.toggle('pc', pc);
   const avail = innerHeight - document.querySelector('.ctl').offsetHeight - (bare ? 0 : 40);
-  const s = bare ? Math.min(1, innerWidth / W0) : Math.min(1, Math.max(0.5, Math.min(avail / H0, (innerWidth - 32) / W0)));
+  const s = bare ? Math.min(1, innerWidth / W0) : pc ? Math.min(1, (innerWidth - 32) / W0) : Math.min(1, Math.max(0.5, Math.min(avail / H0, (innerWidth - 32) / W0)));
   phone.style.transformOrigin = 'top left'; phone.style.transform = s < 1 ? `scale(${s})` : ''; st.style.width = (W0 * s) + 'px'; st.style.height = (H0 * s) + 'px';
 }
 addEventListener('resize', fit); fit(); load();
