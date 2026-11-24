@@ -29,10 +29,11 @@ v2/js/links.js      расширение: переход в другую кар�
 v2/js/refs.js       расширение: источники в карточке вида (species.info.sources [{t,url}]); пометки «(1)» в текстах — кнопки к источнику; раздел в самом низу
 v2/js/drugs.js      расширение: каталог лекарств (таблица drugs, LOAD.drugs → D.dr) — список, карточка, форма; фото owner_type 'drug'; плашка лекарства в записи лечения
 v2/js/ux.js         расширение: правки форм, карточек, поиска и экрана загрузки — полный пронумерованный список в шапке файла (поиск qhit пересобирает функции списков из их кода)
+v2/js/ux2.js        расширение: продолжение ux.js для новых мелких правок (список в шапке файла); сюда же добавлять следующие
 v2/js/sync.js       свежесть данных: живые обновления (realtime), проверка версии сервера при возврате в приложение/сети/раз в минуту, кнопка «обновить» рядом с аккаунтом (подсвечена, если новые данные не загрузились)
 v2/js/main.js       render(), клики (делегирование data-*), «назад» телефона, вход, тема, язык — грузится последним
 supabase/           схема (SCHEMA.md), миграции, код Edge Function admin-users
-tests/test_newui.py браузерный тест v2 (Playwright + tests/mock_supabase.js, данные tests/seed_v2.json); test_tiles.py, test_batch2.py, test_batch3.py, test_links.py, test_drugs.py, test_ux.py, test_search.py, test_recs.py, test_load.py — отдельные экраны, берут его помощники
+tests/test_newui.py браузерный тест v2 (Playwright + tests/mock_supabase.js, данные tests/seed_v2.json); test_tiles.py, test_batch2.py, test_batch3.py, test_links.py, test_drugs.py, test_ux.py, test_search.py, test_recs.py, test_load.py, test_ux2.py — отдельные экраны, берут его помощники
 ```
 **Старая версия (не используется, к удалению):** `js/*.js`, `i18n*.js`, `desktop.css`, `pwa.js`, `docs/codemap.md`, `tools/codemap.py`, остальные `tests/test_*.py`. Не править.
 
