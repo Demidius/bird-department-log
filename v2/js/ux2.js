@@ -5,7 +5,7 @@
 //    that fails to load takes a new link.
 // 3) Card top bar: instead of the pale «Journal» — a clear window type label in the window colour (journal entry, animal,
 //    species, enclosure, drug card); the label and round buttons are white with a coloured outline.
-// 4) «Now», treatment with several doses a day: after the first dose, «Undo hh:mm» next to «Give» removes the last dose
+// 4) «Now», treatment with several doses a day: after the first dose, «Undo» next to «Give» removes the last dose
 //    given today (if the user may edit it: author or admin).
 
 /* 1) comment field */
@@ -42,7 +42,7 @@ taskHTML = function (x) {
   let h = _taskHTMLU2(x); const r = x.rx; if (!r || x.act !== 'dose' || !canWrite()) return h;
   const today = D.rec.filter(d => d.k === 'tdose' && key(d.bird) === key(r.bird) && d.at > r.at && d.at >= today0() && (!r.f.drug || !d.f.drug || key(d.f.drug) === key(r.f.drug))).sort((a, b) => b.at - a.at);
   const last = today[0]; if (!last || !canEditRec(last)) return h;
-  const btn = `<button class="bl-btn undodose" data-undorec="${last.id}" aria-label="${L('Cofnij ostatnie podanie', 'Отменить последнюю подачу', 'Undo last dose')}">${ic('back', 16)}<span>${L('Cofnij', 'Отменить', 'Undo')} ${fTime(last.at)}</span></button>`;
+  const btn = `<button class="bl-btn undodose" data-undorec="${last.id}" aria-label="${L('Cofnij ostatnie podanie', 'Отменить последнюю подачу', 'Undo last dose')}">${ic('back', 16)}<span>${L('Cofnij', 'Отменить', 'Undo')}</span></button>`;
   const i = h.indexOf(`<button class="bl-btn icon" data-tmenu="${r.id}"`); return i < 0 ? h : h.slice(0, i) + btn + h.slice(i);
 };
 
