@@ -4,7 +4,7 @@
   const DOMAIN = 'zoo-log.invalid';
   const now = () => new Date().toISOString();
   const id = () => crypto.randomUUID();
-  const db = {profiles: [], species: [], collection: [], records: [], photos: [], enclosures: [], change_log: [], comments: []};
+  const db = {profiles: [], species: [], collection: [], records: [], photos: [], enclosures: [], change_log: [], comments: [], drugs: []};
   const REC_TYPES = ['expo', 'obs', 'tstart', 'tdose', 'tend', 'lay', 'incub', 'hatch', 'fledge', 'birth'];
   const files = new Map();
   const users = [{id: id(), email: 'diomid13a@gmail.com', password: 'secret123', confirmed: true, banned: false}];
@@ -27,12 +27,12 @@
   }
   function mayUpdate(table, row) {
     if (table === 'records') return isAdmin() || (canWrite() && row.created_by === uidNow());
-    if (table === 'species' || table === 'collection' || table === 'enclosures') return canWrite();
+    if (table === 'species' || table === 'collection' || table === 'enclosures' || table === 'drugs') return canWrite();
     return false;
   }
   function mayDelete(table, row) {
     if (table === 'records' || table === 'photos' || table === 'comments') return isAdmin() || (canWrite() && row.created_by === uidNow());
-    if (table === 'species' || table === 'collection' || table === 'enclosures' || table === 'change_log') return isAdmin();
+    if (table === 'species' || table === 'collection' || table === 'enclosures' || table === 'drugs' || table === 'change_log') return isAdmin();
     return false;
   }
 
@@ -95,7 +95,7 @@
         const rows = T.filter(r => visible(this.t, r) && this.match(r) && mayDelete(this.t, r));
         for (const r of rows) {
           T.splice(T.indexOf(r), 1);
-          const ot = {records: 'record', collection: 'bird', species: 'species', enclosures: 'encl'}[this.t];
+          const ot = {records: 'record', collection: 'bird', species: 'species', enclosures: 'encl', drugs: 'drug'}[this.t];
           if (ot) db.photos = db.photos.filter(p => !(p.owner_type === ot && p.owner_id === r.id));
         }
         if (this.t !== 'photos') window.__mock.db.photos = db.photos;

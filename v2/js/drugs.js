@@ -2,6 +2,7 @@
 // dosage, indications and use, contraindications, storage, notes; at the bottom — prescriptions and doses of this drug in the department.
 // Table public.drugs (form = index of OPT.dform, routes = indexes of OPT.routes); photos owner_type 'drug'. Names used in records
 // but without a card are listed under the catalogue with «create card». A treatment / dose record card links to the drug card (↗).
+// AI locks per field (admin toggles, column locked, trigger row_locks); an admin can delete a drug (tap twice).
 if (typeof WIN_TINT !== 'undefined') { WIN_TINT.drugs = 'dr'; WIN_TINT.dcard = 'dr'; }
 D.dr = [];
 let drugsOn = false;
@@ -44,29 +45,46 @@ function drugCard() {
   <div class="sec"><span>${L('Stosowanie w dziale', 'Применение в отделе', 'Use in the department')}</span><span>${u.length}</span></div><div class="stack">${u.slice(0, 30).map(recHTML).join('') || `<p class="empty">${L('Jeszcze nie stosowano', 'Ещё не применялось', 'Not used yet')}</p>`}</div>
   </div>${st.gal ? gallery('dr', d.id, 'drug') : ''}${st.ph >= 0 ? lightbox('dr', d.id) : ''}</div>`;
 }
+const drLocked = (f, k) => (f.locked || []).includes(k) || (f.locked || []).includes('*');
+const drRo = (f, k) => !isAdmin() && drLocked(f, k);
+const drLockBtn = (f, k) => { const on = drLocked(f, k); return `<button class="lk ${on ? 'on' : ''}" ${isAdmin() ? `data-dlock="${k}"` : 'disabled'} aria-pressed="${on}" title="${on ? L('AI nie może zmieniać tego pola', 'Нейросеть не может менять это поле', 'AI cannot change this field') : L('AI może uzupełniać to pole', 'Нейросеть может дополнять это поле', 'AI may fill in this field')}"><b>AI</b>${ic(on ? 'lock' : 'unlock', 12, 2.4)}</button>`; };
+const dfld = (f, label, k, body) => `<div class="bl-field"><span>${label}${f.id ? drLockBtn(f, k) : ''}</span>${body}</div>`;
 function drugForm() {
   const f = st.dform; if (!f) return '';
-  const chips = (k, list, multi) => `<div class="bl-chips">${list.map((t, i) => `<button class="bl-chip phrase" data-dchip="${k}" data-i="${i}" data-m="${multi ? 1 : ''}" aria-pressed="${multi ? (f[k] || []).includes(i) : f[k] === i}">${esc(t)}</button>`).join('')}</div>`;
-  const inp = (k, ph) => `<input class="inp" data-din="${k}" value="${esc(f[k] || '')}" placeholder="${esc(ph || '')}" autocomplete="off">`;
+  const chips = (k, list, multi) => `<div class="bl-chips">${list.map((t, i) => `<button class="bl-chip phrase" data-dchip="${k}" data-i="${i}" data-m="${multi ? 1 : ''}" aria-pressed="${multi ? (f[k] || []).includes(i) : f[k] === i}" ${drRo(f, k) ? 'disabled' : ''}>${esc(t)}</button>`).join('')}</div>`;
+  const inp = (k, ph) => `<input class="inp" data-din="${k}" value="${esc(f[k] || '')}" placeholder="${esc(ph || '')}" autocomplete="off" ${drRo(f, k) ? 'disabled' : ''}>`;
   return `<div class="scrim" data-dclose="1"></div><div class="bl-sheet g-health full"><div class="grip"></div><div class="head"><h3>${ic('pill', 20)}${f.id ? L('Edycja leku', 'Правка средства', 'Edit drug') : L('Nowy lek', 'Новое средство', 'New drug')}</h3><button class="bl-x" data-dclose="1" aria-label="×">${ic('x', 18)}</button></div><div class="shbody"><div class="formbody">
-    ${fld(L('Nazwa', 'Название', 'Name'), inp('name', L('nazwa handlowa', 'торговое название', 'trade name')))}
-    ${fld(L('Substancja czynna', 'Действующее вещество', 'Active substance'), inp('substance'))}
-    ${fld(L('Postać', 'Форма', 'Form'), chips('form', OPT.dform()))}
-    ${fld(L('Stężenie', 'Концентрация', 'Strength'), inp('conc', L('np. 5 mg/ml', 'напр. 5 мг/мл', 'e.g. 5 mg/ml')))}
-    ${fld(L('Podanie', 'Способ подачи', 'Route'), chips('routes', OPT.routes(), 1))}
-    ${fld(L('Producent', 'Производитель', 'Maker'), inp('maker'))}
-    ${DRUG_TX().map(([k, l, ph]) => fld(l, `<div class="bl-text"><textarea data-din="${k}" rows="3" placeholder="${esc(ph)}">${esc(f[k] || '')}</textarea></div>`)).join('')}
+    ${dfld(f, L('Nazwa', 'Название', 'Name'), 'name', inp('name', L('nazwa handlowa', 'торговое название', 'trade name')))}
+    ${dfld(f, L('Substancja czynna', 'Действующее вещество', 'Active substance'), 'substance', inp('substance'))}
+    ${dfld(f, L('Postać', 'Форма', 'Form'), 'form', chips('form', OPT.dform()))}
+    ${dfld(f, L('Stężenie', 'Концентрация', 'Strength'), 'conc', inp('conc', L('np. 5 mg/ml', 'напр. 5 мг/мл', 'e.g. 5 mg/ml')))}
+    ${dfld(f, L('Podanie', 'Способ подачи', 'Route'), 'routes', chips('routes', OPT.routes(), 1))}
+    ${dfld(f, L('Producent', 'Производитель', 'Maker'), 'maker', inp('maker'))}
+    ${DRUG_TX().map(([k, l, ph]) => dfld(f, l, k, `<div class="bl-text"><textarea data-din="${k}" rows="3" placeholder="${esc(ph)}" ${drRo(f, k) ? 'disabled' : ''}>${esc(f[k] || '')}</textarea></div>`)).join('')}
+    ${f.id ? lockTip() : ''}
     <p class="tip">${L('Zdjęcia — w karcie leku, sekcja «Zdjęcia».', 'Фото — в карточке средства, раздел «Фотографии».', 'Photos — in the drug card, «Photos».')}</p>
     ${f.err ? `<p class="err" id="ferr">${esc(f.err)}</p>` : ''}</div>
-    <button class="bl-btn solid wide" data-dsave="1">${L('Zapisz', 'Сохранить', 'Save')}</button></div></div>`;
+    <button class="bl-btn solid wide" data-dsave="1">${L('Zapisz', 'Сохранить', 'Save')}</button>
+    ${f.id && isAdmin() ? `<button class="bl-btn wide ddel ${f.delAsk ? 'ask' : ''}" data-ddel="1">${ic('x', 16)}${f.delAsk ? L('Na pewno usunąć? Dotknij jeszcze raz', 'Точно удалить? Нажми ещё раз', 'Really delete? Tap again') : L('Usuń lek', 'Удалить средство', 'Delete drug')}</button>` : ''}</div></div>`;
 }
 const DRUG_COLS = ['name', 'substance', 'form', 'conc', 'routes', 'maker', 'dose', 'use', 'contra', 'storage', 'note'];
+async function deleteDrug() {
+  const f = st.dform; if (!f || !f.id || !isAdmin()) return;
+  if (!f.delAsk) { f.delAsk = true; return render(); }
+  try {
+    must(await sb.from('drugs').delete().eq('id', f.id));
+    D.dr = D.dr.filter(d => d.id !== f.id); D.ph = D.ph.filter(p => !(p.owner_type === 'drug' && p.owner_id === f.id));
+    st.dform = null; toast(L('Usunięto', 'Удалено', 'Deleted')); return go({scr: 'drugs'});
+  } catch (x) { f.err = errText(x); f.delAsk = false; }
+  render();
+}
 async function saveDrug() {
   const f = st.dform, name = String(f.name || '').trim();
   if (!name) { f.err = L('Podaj nazwę', 'Укажи название', 'Enter the name'); return render(); }
   if (D.dr.some(d => d.id !== f.id && key(d.name) === key(name))) { f.err = L('Taki lek już jest', 'Такое средство уже есть', 'This drug already exists'); return render(); }
   const row = {}; for (const k of DRUG_COLS) row[k] = k === 'form' ? (f.form ?? null) : k === 'routes' ? (f.routes || []) : String(f[k] || '').trim();
   row.name = name;
+  if (f.id && isAdmin()) row.locked = f.locked || []; else if (f.id) for (const k of DRUG_COLS) if (drLocked(f, k)) delete row[k];
   try {
     const saved = f.id ? must(await sb.from('drugs').update(row).eq('id', f.id).select().single())
                        : must(await sb.from('drugs').insert(Object.assign(row, {created_by: me})).select().single());
@@ -90,14 +108,16 @@ addEventListener('DOMContentLoaded', () => { // screen and NAVK come from main.j
   };
 });
 document.addEventListener('click', e => {
-  const b = e.target.closest('[data-drug],[data-dnew],[data-dedit],[data-dclose],[data-dchip],[data-dsave]'); if (!b) return;
+  const b = e.target.closest('[data-drug],[data-dnew],[data-dedit],[data-dclose],[data-dchip],[data-dsave],[data-dlock],[data-ddel]'); if (!b) return;
   e.preventDefault(); e.stopImmediatePropagation(); const x = b.dataset;
   if (x.drug) { st.dform = null; go({scr: 'dcard', drug: x.drug}); return; }
   if (x.dnew) st.dform = {routes: [], name: x.dname || ''};
   else if (x.dedit) { const d = drBy(st.drug); if (d) st.dform = JSON.parse(JSON.stringify(d)); }
   else if (x.dclose) st.dform = null;
-  else if (x.dchip) { const f = st.dform, i = +x.i; if (x.m) { const a = f[x.dchip] || []; f[x.dchip] = a.includes(i) ? a.filter(v => v !== i) : a.concat(i).sort(); } else f[x.dchip] = f[x.dchip] === i ? null : i; }
+  else if (x.dchip) { const f = st.dform, i = +x.i; if (drRo(f, x.dchip)) return; if (x.m) { const a = f[x.dchip] || []; f[x.dchip] = a.includes(i) ? a.filter(v => v !== i) : a.concat(i).sort(); } else f[x.dchip] = f[x.dchip] === i ? null : i; }
   else if (x.dsave) return saveDrug();
+  else if (x.ddel) return deleteDrug();
+  else if (x.dlock) { const f = st.dform, l = (f.locked || []).filter(v => v !== '*'); f.locked = l.includes(x.dlock) ? l.filter(v => v !== x.dlock) : l.concat(x.dlock); }
   render();
 }, true);
 document.addEventListener('input', e => {
@@ -105,4 +125,4 @@ document.addEventListener('input', e => {
   if (t.dataset && t.dataset.din != null && st.dform) { st.dform[t.dataset.din] = t.value; e.stopImmediatePropagation(); }
   else if (t.id === 'dq') { st.dq = t.value; e.stopImmediatePropagation(); clearTimeout(drugsScreen.t); drugsScreen.t = setTimeout(() => { render(); const q = document.getElementById('dq'); if (q) { q.focus(); q.setSelectionRange(q.value.length, q.value.length); } }, 250); }
 }, true);
-document.head.insertAdjacentHTML('beforeend', '<style>#app[data-wt=dr]{--tint:#e3a3ae}.dtext{white-space:pre-wrap}</style>');
+document.head.insertAdjacentHTML('beforeend', '<style>#app[data-wt=dr]{--tint:#e3a3ae}.dtext{white-space:pre-wrap}.ddel{margin-top:8px;color:var(--health)}.ddel.ask{background:var(--health);color:var(--on-group)}</style>');

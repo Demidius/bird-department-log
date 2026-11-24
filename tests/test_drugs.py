@@ -1,4 +1,4 @@
-# Drug catalogue (drugs.js) and species sources (refs.js).
+# Drug catalogue (drugs.js): card, form, AI locks, delete; species sources (refs.js).
 # Reuses the page / click / shot helpers of test_newui.py (everything above its main block).
 import pathlib, sys
 HERE = pathlib.Path(__file__).resolve().parent
@@ -20,12 +20,18 @@ with sync_playwright() as pw:
     print("saved row:", p.evaluate("(({name, substance, form, conc, routes, dose}) => ({name, substance, form, conc, routes, dose}))(__mock.db.drugs[0] || {})"))
     print("card:", p.evaluate("st.scr"), "| tint:", p.evaluate("document.getElementById('app').dataset.wt"), "| uses:", p.locator('.cardscr .stack [data-rec]').count())
     print("photo block:", p.locator('[data-upload^="drug:"]').count()); shot(p, "d2_card")
+    # AI locks (admin): lock «dose», saved in locked
+    click(p, '[data-dedit]'); click(p, '[data-dlock=dose]'); print("lock on:", p.locator('[data-dlock=dose][aria-pressed=true]').count()); click(p, '[data-dsave]', t=500)
+    print("locked saved:", p.evaluate("__mock.db.drugs[0].locked"), "| err:", p.locator("#ferr").all_inner_texts())
     # duplicate name refused
     click(p, '[data-scr=more]'); click(p, '[data-scr=drugs]'); click(p, '[data-dnew]'); p.fill('[data-din=name]', 'meloksykam'); click(p, '[data-dsave]', t=400)
     print("dup error:", p.locator('#ferr').count() > 0 or p.evaluate("__mock.db.drugs.length")); click(p, '.bl-sheet [data-dclose]')
     # treatment record card links to the drug card
     click(p, "[data-scr=logs]"); p.locator('.scroll [data-rec]', has_text='Meloksykam').first.click(); p.wait_for_timeout(250)
     print("drug plate:", p.locator('.bl-whochip[data-drug]').count()); click(p, '.bl-whochip[data-drug]'); print("→", p.evaluate("st.scr"))
+    # delete (admin): two taps
+    click(p, '[data-dedit]'); click(p, '[data-ddel]'); print("ask:", p.locator('.ddel.ask').count()); click(p, '[data-ddel]', t=500)
+    print("deleted:", p.evaluate("__mock.db.drugs.length"), "| screen:", p.evaluate("st.scr"))
     # species sources
     click(p, "[data-scr=more]"); click(p, "[data-scr=species]"); click(p, f'[data-sp="{p.evaluate("window.__sp")}"]'); click(p, '[data-sptab=wild]'); click(p, '[data-acc=diet_wild]')
     print("refs:", p.locator('.accb .ref').count(), "| (3) stays text:", '(3)' in p.inner_text('.accb'), "| sources:", p.locator('.srcl li').count(), "| last section:", p.locator('.cardscr .sec').last.inner_text().split(chr(10))[0])
