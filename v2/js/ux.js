@@ -11,6 +11,11 @@
 //    with the parent place underneath.
 // 7) Search in every list matches word starts only (qhit), and only the list's main name: animals — species name as shown,
 //    species — name, drugs — name, enclosures — enclosure name; the journal — its text. Letters without diacritics (ż = z, ł = l).
+// 8) Record card of mating / birth / hatching shows every animal on its own plate: mating — female and male (records of the
+//    same author within a minute); birth / hatching — the mother (or parents) and the young (f.par / f.kids of the record,
+//    otherwise cards whose parents are these animals and born within 60 days).
+// 9) Animal card edit: under «Species» — all animals of that species; a tap opens that card in the same form with its data.
+// 10) Narrow fields in a row: the AI lock does not shrink and moves under the label; inputs line up at the bottom.
 
 /* 7) search helper (used below and by the list functions rebuilt at the end of this file) */
 const qnorm = s => String(s || '').toLowerCase().replace(/ł/g, 'l').normalize('NFD').replace(/[̀-ͯ]/g, '');
@@ -112,12 +117,58 @@ document.addEventListener('input', e => { const i = e.target.id; if (i === 'pq' 
   });
 })();
 
+/* 8) record card: all animals of mating / birth / hatching */
+const _recCardU = recCard;
+recCard = function () {
+  const h = _recCardU(), r = D.rec.find(x => x.id === st.rec); if (!r || !['mate', 'birth', 'hatch'].includes(r.k)) return h;
+  const a = anByName(r.bird); if (!a) return h;
+  const bySex = (x, y) => (x.sex === 'f' ? 0 : x.sex === 'm' ? 1 : 2) - (y.sex === 'f' ? 0 : y.sex === 'm' ? 1 : 2);
+  const uniq = l => l.filter((m, i) => m && l.findIndex(x => x && x.id === m.id) === i);
+  let groups;
+  if (r.k === 'mate') {
+    const all = uniq([a, ...D.rec.filter(x => x.id !== r.id && x.k === r.k && x.by === r.by && Math.abs(x.at - r.at) < 60000).map(x => anByName(x.bird))]).sort(bySex);
+    if (all.length < 2) return h; groups = [['', all]];
+  } else {
+    const f = r.f || {}, young = isYoung(a, r.at);
+    let par = uniq((f.par || []).map(anByName)), kids = uniq((f.kids || []).map(anByName));
+    if (!par.length) par = young ? uniq((a.parents || []).map(anById)) : [a];
+    if (!kids.length) { const pid = par.map(p => p.id); kids = D.an.filter(k => (k.parents || []).some(id => pid.includes(id)) && k.born && Math.abs(new Date(k.born).getTime() - r.at) <= 60 * DAY); }
+    if (young && !kids.some(k => k.id === a.id)) kids.unshift(a); else if (!young && !par.some(p => p.id === a.id) && !kids.some(k => k.id === a.id)) par.unshift(a);
+    par = uniq(par).sort(bySex); kids = uniq(kids);
+    if (par.length + kids.length < 2) return h;
+    groups = [[par.length > 1 ? L('Rodzice', 'Родители', 'Parents') : (par[0] && par[0].sex === 'm' ? L('Ojciec', 'Отец', 'Father') : L('Matka', 'Мать', 'Mother')), par],
+      [r.k === 'hatch' ? L('Pisklęta', 'Птенцы', 'Chicks') : L('Młode', 'Детёныши', 'Young'), kids]].filter(g => g[1].length);
+  }
+  const i = h.indexOf('<button class="bl-whochip" data-ani="' + a.id + '"'); if (i < 0) return h;
+  const j = h.indexOf('</button>', i) + 9, chip = h.slice(i, j), em = chip.slice(chip.lastIndexOf('<em'));
+  const mk = m => m.id === a.id ? chip : `<button class="bl-whochip" data-ani="${m.id}"><span class="bl-av">${esc(anInit(m))}</span><span><b>${esc(anLine(m))}</b><small>${m.grp ? '' : sexSym(m.sex) + ' · '}${esc(plName(plByName(anEncl(m))) || anEncl(m))}</small></span>${em}`;
+  return h.slice(0, i) + `<div class="matechips">${groups.map(([t, l]) => (t ? `<p class="mclab">${t} <span>${l.length}</span></p>` : '') + l.map(mk).join('')).join('')}</div>` + h.slice(j);
+};
+
+/* 9) animal card edit: animals of the chosen species */
+const _animalEditU = animalEdit;
+animalEdit = function () {
+  const h = _animalEditU(), e = st.ed, v = e.v; if (!v.species_id) return h;
+  const list = anActive().filter(a => a.species_id === v.species_id).sort((a, b) => anLine(a).localeCompare(anLine(b), undefined, {numeric: true}));
+  if (!list.length || (list.length === 1 && list[0].id === e.id)) return h;
+  const i = h.indexOf('data-eset="isg"'), k = i < 0 ? -1 : h.lastIndexOf('<div class="bl-field', i); if (k < 0) return h;
+  const chips = list.map(a => { const pl = plName(plByName(anEncl(a))) || anEncl(a); return `<button class="bl-chip phrase" data-edani="${a.id}" aria-pressed="${a.id === e.id}">${a.grp ? '' : sexSym(a.sex) + ' '}${esc(suffix(a) || pl || anTitle(a))}</button>`; }).join('');
+  return h.slice(0, k) + `<div class="bl-field"><span>${L('Zwierzęta tego gatunku', 'Животные этого вида', 'Animals of this species')} <i class="opt">${list.length}</i></span><div class="bl-chips">${chips}</div></div>` + h.slice(k);
+};
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-edani]'); if (!b) return;
+  e.preventDefault(); e.stopImmediatePropagation();
+  if (st.ed && b.dataset.edani === st.ed.id) return;
+  st.ani = b.dataset.edani; openEd('an'); render();
+  const sc = document.querySelector('.bl-sheet .shbody, .bl-sheet .formbody'); if (sc) sc.scrollTop = 0;
+}, true);
+
 /* 3) empty fields in edit forms; 5) clear cross */
 function markEmptyFields() {
   document.querySelectorAll('.bl-sheet').forEach(sh => {
-    if (!sh.querySelector('[data-ein],[data-din]')) return;
+    if (!sh.querySelector('[data-ein],[data-din],[data-etr]')) return;
     sh.querySelectorAll('.bl-field').forEach(f => {
-      const inp = f.querySelector('[data-ein],[data-din]'), chips = f.querySelectorAll('.bl-chips [aria-pressed]');
+      const inp = f.querySelector('[data-ein],[data-din],[data-etr]'), chips = f.querySelectorAll('.bl-chips [aria-pressed]');
       let empty = false;
       if (inp) empty = !String(inp.value || '').trim();
       else if (chips.length) empty = ![...chips].some(b => b.getAttribute('aria-pressed') === 'true');
@@ -141,7 +192,7 @@ addEventListener('DOMContentLoaded', () => { const _renderU = render; render = f
 document.addEventListener('input', e => {
   const t = e.target, w = t.parentNode;
   if (w && w.classList && w.classList.contains('clrw')) w.classList.toggle('has', !!t.value);
-  if (t.matches && t.matches('[data-ein],[data-din]')) { const f = t.closest('.bl-field'); if (f) f.classList.toggle('isempty', !String(t.value || '').trim()); }
+  if (t.matches && t.matches('[data-ein],[data-din],[data-etr]')) { const f = t.closest('.bl-field'); if (f) f.classList.toggle('isempty', !String(t.value || '').trim()); }
 });
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-clr]'); if (!b) return;
@@ -155,4 +206,6 @@ document.head.insertAdjacentHTML('beforeend', '<style>'
   + '.bl-field.isempty .bl-chips button:not([aria-pressed=true]){border-color:color-mix(in srgb, var(--health) 30%, var(--line))}'
   + '.clrw{position:relative;display:block;flex:1;min-width:0}.clrw>input,.clrw>textarea{width:100%;padding-right:42px}'
   + '.clrx{position:absolute;right:8px;top:50%;transform:translateY(-50%);display:none;align-items:center;justify-content:center;width:26px;height:26px;padding:0;border:0;border-radius:999px;background:color-mix(in srgb, var(--ink) 12%, transparent);color:var(--ink-2);cursor:pointer}'
-  + '.clrw.ta>.clrx{top:8px;transform:none}.clrw.has>.clrx{display:flex}.combo .clrw>input{padding-right:84px}.combo .clrw>.clrx{right:52px}</style>');
+  + '.clrw.ta>.clrx{top:8px;transform:none}.clrw.has>.clrx{display:flex}.combo .clrw>input{padding-right:84px}.combo .clrw>.clrx{right:52px}'
+  + '.frow{align-items:flex-end}.bl-field>span{flex-wrap:wrap;row-gap:5px}.bl-field>span .lk{flex:none}.frow .bl-field>span .lk{margin-left:0}.frow .bl-field>span{gap:5px 6px}.bl-field.isempty>span:first-child::after{flex:none;margin-left:0}'
+  + '.matechips{display:flex;flex-direction:column;gap:8px}.mclab{margin:6px 4px -2px;font:700 11.5px/1.3 var(--font-text);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}.mclab span{opacity:.7}</style>');
