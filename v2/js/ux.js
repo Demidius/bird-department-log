@@ -16,6 +16,8 @@
 //    otherwise cards whose parents are these animals and born within 60 days).
 // 9) Animal card edit: under «Species» — all animals of that species; a tap opens that card in the same form with its data.
 // 10) Narrow fields in a row: the AI lock does not shrink and moves under the label; inputs line up at the bottom.
+// 11) Loading screen: birds fly in circles around the logo (wings flap), «Loading» with running dots; still when the phone
+//     asks for reduced motion.
 
 /* 7) search helper (used below and by the list functions rebuilt at the end of this file) */
 const qnorm = s => String(s || '').toLowerCase().replace(/ł/g, 'l').normalize('NFD').replace(/[̀-ͯ]/g, '');
@@ -163,6 +165,14 @@ document.addEventListener('click', e => {
   const sc = document.querySelector('.bl-sheet .shbody, .bl-sheet .formbody'); if (sc) sc.scrollTop = 0;
 }, true);
 
+/* 11) loading screen */
+const _loginScreenU = loginScreen;
+loginScreen = function (mode) {
+  if (mode !== 'loading') return _loginScreenU(mode);
+  const bird = i => `<span class="ob ob${i}"><svg viewBox="0 0 24 14" aria-hidden="true"><path d="M1 7 Q6.5 0 12 6 Q17.5 0 23 7 Q17.5 3.5 12 9 Q6.5 3.5 1 7Z"/></svg></span>`;
+  return `<div class="login lgload"><div class="orbit">${[1, 2, 3, 4].map(i => `<div class="ring r${i}">${bird(i)}</div>`).join('')}<span class="lglogo">${ic('bird', 36)}</span></div><h1>${L('Dziennik działu ptaków', 'Журнал отдела птиц', 'Bird department log')}</h1><p>${L('Ładowanie', 'Загрузка', 'Loading')}<span class="dots"><i>.</i><i>.</i><i>.</i></span></p></div>`;
+};
+
 /* 3) empty fields in edit forms; 5) clear cross */
 function markEmptyFields() {
   document.querySelectorAll('.bl-sheet').forEach(sh => {
@@ -208,4 +218,14 @@ document.head.insertAdjacentHTML('beforeend', '<style>'
   + '.clrx{position:absolute;right:8px;top:50%;transform:translateY(-50%);display:none;align-items:center;justify-content:center;width:26px;height:26px;padding:0;border:0;border-radius:999px;background:color-mix(in srgb, var(--ink) 12%, transparent);color:var(--ink-2);cursor:pointer}'
   + '.clrw.ta>.clrx{top:8px;transform:none}.clrw.has>.clrx{display:flex}.combo .clrw>input{padding-right:84px}.combo .clrw>.clrx{right:52px}'
   + '.frow{align-items:flex-end}.bl-field>span{flex-wrap:wrap;row-gap:5px}.bl-field>span .lk{flex:none}.frow .bl-field>span .lk{margin-left:0}.frow .bl-field>span{gap:5px 6px}.bl-field.isempty>span:first-child::after{flex:none;margin-left:0}'
-  + '.matechips{display:flex;flex-direction:column;gap:8px}.mclab{margin:6px 4px -2px;font:700 11.5px/1.3 var(--font-text);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}.mclab span{opacity:.7}</style>');
+  + '.matechips{display:flex;flex-direction:column;gap:8px}.mclab{margin:6px 4px -2px;font:700 11.5px/1.3 var(--font-text);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}.mclab span{opacity:.7}'
+  + '.lgload{align-items:center;text-align:center;gap:14px}.orbit{position:relative;width:240px;height:240px;display:flex;align-items:center;justify-content:center;margin-bottom:8px}'
+  + '.orbit::before{content:"";position:absolute;inset:26px;border-radius:50%;border:1.5px dashed color-mix(in srgb, var(--accent) 22%, transparent)}'
+  + '.orbit .lglogo{position:relative;width:80px;height:80px;border-radius:26px;box-shadow:0 12px 30px color-mix(in srgb, var(--accent) 30%, transparent);animation:lgpulse 2.4s ease-in-out infinite}'
+  + '.ring{--d:6s;--dl:0s;position:absolute;inset:0;animation:lgspin var(--d) linear var(--dl) infinite}.r2{--d:4.4s;--dl:-1.4s;inset:34px}.r3{--d:8.5s;--dl:-5s;inset:-8px}.r4{--d:3.4s;--dl:-2.2s;inset:54px}'
+  + '.ob{position:absolute;left:50%;top:0;width:0;height:0;color:var(--accent);animation:lgspin var(--d) linear var(--dl) infinite reverse}'
+  + '.ob svg{position:absolute;left:-19px;top:-11px;display:block;width:38px;height:22px;fill:currentColor;transform-origin:50% 55%;animation:lgflap .46s ease-in-out infinite alternate}'
+  + '.ob2 svg{left:-15px;top:-9px;width:30px;height:18px;animation-duration:.4s}.ob3{color:color-mix(in srgb, var(--accent) 60%, var(--muted))}.ob3 svg{left:-17px;top:-10px;width:34px;height:20px;animation-duration:.54s}.ob4 svg{left:-12px;top:-7px;width:24px;height:14px;animation-duration:.34s;opacity:.7}'
+  + '.lgload .dots i{font-style:normal;opacity:.15;animation:lgdot 1.2s infinite}.lgload .dots i:nth-child(2){animation-delay:.2s}.lgload .dots i:nth-child(3){animation-delay:.4s}'
+  + '@keyframes lgspin{to{transform:rotate(360deg)}}@keyframes lgflap{from{transform:scaleY(1)}to{transform:scaleY(.45) translateY(2px)}}@keyframes lgpulse{50%{transform:scale(1.06)}}@keyframes lgdot{30%{opacity:1}}'
+  + '@media (prefers-reduced-motion: reduce){.ring,.ob,.ob svg,.orbit .lglogo,.lgload .dots i{animation:none;opacity:1}}</style>');
