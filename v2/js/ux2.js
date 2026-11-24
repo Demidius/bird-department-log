@@ -7,6 +7,9 @@
 //    species, enclosure, drug card); the label and round buttons are white with a coloured outline.
 // 4) «Now», treatment with several doses a day: after the first dose, «Undo» next to «Give» removes the last dose
 //    given today (if the user may edit it: author or admin).
+// 5) Enclosure card: «Residents» above «Temperature»; temperature is folded — the header shows the last value and an arrow,
+//    a tap opens the chart and list (and folds them back); after «Record» the chart stays open.
+// 6) Cards: content does not stick to the top bar; a count in a field label has a gap.
 
 /* 1) comment field */
 const cinFit = t => { t.style.height = '48px'; const h = Math.min(t.scrollHeight, 132); t.style.height = Math.max(48, h) + 'px'; t.classList.toggle('tall', t.scrollHeight > 132); };
@@ -46,7 +49,27 @@ taskHTML = function (x) {
   const i = h.indexOf(`<button class="bl-btn icon" data-tmenu="${r.id}"`); return i < 0 ? h : h.slice(0, i) + btn + h.slice(i);
 };
 
+/* 5) enclosure card: residents first, temperature folded */
+const _placeCardTT = placeCard;
+placeCard = function () {
+  let h = _placeCardTT(); const p = plById(st.plc); if (!p) return h;
+  const tl = L('Temperatura', 'Температура', 'Temperature'), ts = h.indexOf(`<div class="sec"><span>${tl}</span>`); if (ts < 0) return h;
+  const nx = [h.indexOf('<div class="sec"', ts + 10), h.indexOf('<div class="note"', ts + 10)].filter(x => x > 0), te = nx.length ? Math.min(...nx) : h.lastIndexOf('</div></div>');
+  let blk = h.slice(ts, te); h = h.slice(0, ts) + h.slice(te);
+  const open = !!st.tOpen, last = tempRecs(p).slice(-1)[0];
+  const sum = last ? `<em class="tlast">${last.f.t} °C · ${relDay(last.at)}</em>` : '';
+  blk = blk.replace(`<span>${tl}</span>`, `<button class="tsecb" data-ttgl="1" aria-expanded="${open}"><span>${tl}</span>${open ? '' : sum}${ic('chev', 16, 2.4)}</button>`);
+  if (!open) blk = blk.slice(0, blk.indexOf('</div>') + 6);
+  const rs = h.indexOf(`<div class="sec"><span>${L('Mieszkańcy', 'Жители', 'Residents')}</span>`);
+  const at = rs < 0 ? ts : (h.indexOf('<div class="sec"', rs + 10) > 0 ? h.indexOf('<div class="sec"', rs + 10) : h.lastIndexOf('</div></div>'));
+  return h.slice(0, at) + blk + h.slice(at);
+};
+document.addEventListener('click', e => { if (e.target.closest('[data-tadd]')) st.tOpen = true; }, true); // after recording a temperature its chart is shown
+document.addEventListener('click', e => { if (!e.target.closest('[data-ttgl]')) return; e.preventDefault(); e.stopImmediatePropagation(); st.tOpen = !st.tOpen; render(); }, true);
+document.head.insertAdjacentHTML('beforeend', '<style>.tsecb{flex:1;display:flex;align-items:center;gap:8px;padding:0;border:0;background:none;color:inherit;font:inherit;letter-spacing:inherit;text-transform:inherit;text-align:left;cursor:pointer}.tsecb .tlast{margin-left:auto;font:700 13px/1 var(--font-text);font-style:normal;letter-spacing:0;text-transform:none;color:var(--muted)}.tsecb svg{flex:none;transition:transform .15s}.tsecb[aria-expanded=true] svg{transform:rotate(90deg)}.tsecb[aria-expanded=true]{flex:1}.tsecb[aria-expanded=true] span{flex:1}</style>');
+
 document.head.insertAdjacentHTML('beforeend', '<style>'
+  + '.cardscr .scroll{padding-top:14px}.bl-field>span .opt{margin-left:5px}'
   + '.cbar textarea{overflow-y:hidden;scrollbar-width:none;max-height:132px}.cbar textarea::-webkit-scrollbar{display:none}.cbar textarea.tall{overflow-y:auto}'
   + '.topbar .tbcat{display:inline-flex;align-items:center;min-height:40px;box-sizing:border-box;padding:0 16px;border-radius:999px;background:var(--card);border:1.5px solid color-mix(in srgb, var(--tint, var(--accent)) 60%, var(--line));color:var(--ink);font:800 16.5px/1 var(--font-display);letter-spacing:.01em;box-shadow:0 1px 3px color-mix(in srgb, var(--ink) 8%, transparent)}'
   + '.cardscr .topbar .bl-x{background:var(--card);border:1.5px solid color-mix(in srgb, var(--tint, var(--accent)) 60%, var(--line));box-shadow:0 1px 3px color-mix(in srgb, var(--ink) 8%, transparent)}'
