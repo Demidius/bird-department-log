@@ -14,6 +14,12 @@
 // 8) Enclosure card: «Add animal» / «Take animal out» instead of «Move» in «Add record», and − / + on the «Animals» tile.
 //    Add: pick animals (except those living here) → move form with «to» = this enclosure (from = their current place).
 //    Take out: pick from the residents → move form, choose «to». Records are ordinary moves.
+// 9) Calendar: records of a day newest first (phone and computer); expected events stay at the bottom.
+// 10) Move form: a date earlier than the last place change (arrival / previous move) does not change the enclosure on the
+//     card — the form warns; pressing «Save» again saves it as history.
+// 11) Forms: the date is a «Now» button that opens the date-time picker at once (no input field in the form);
+//     the chosen date shows on the button, × returns to «Now» (no × when editing a record).
+// 12) Forms: «Save» sits in the bottom bar next to «Back»; the error message is above them.
 
 /* 1) comment field */
 const cinFit = t => { t.style.height = '48px'; const h = Math.min(t.scrollHeight, 132); t.style.height = Math.max(48, h) + 'px'; t.classList.toggle('tall', t.scrollHeight > 132); };
@@ -116,6 +122,56 @@ document.addEventListener('click', e => {
   const p = plById(f.pmv.plc); f.mv.to = f.pmv.mode === 'in' && p ? p.name : ''; render();
 }, true);
 document.head.insertAdjacentHTML('beforeend', '<style>.bl-facts .pmvt{position:relative}.pmvb{position:absolute;right:10px;top:50%;transform:translateY(-50%);display:flex;gap:6px}.pmvb button{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--ctl-line);background:var(--card);color:var(--ink);font:800 18px/1 var(--font-text);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}.pmvb button:hover{background:var(--soft)}</style>');
+
+/* 9) calendar: newest first */
+const _calEventsNew = calEvents;
+calEvents = function () {
+  const m = _calEventsNew(), srt = Array.prototype.sort;
+  for (const a of m.values()) a.sort = function () { return srt.call(this, (x, y) => (x.exp ? 1 : 0) - (y.exp ? 1 : 0) || y.r.at - x.r.at); };
+  return m;
+};
+
+/* 10) move earlier than the last place change */
+const plSince = (a, skip) => { let t = a.encl_at ? new Date(a.encl_at).getTime() : 0, how = 'in'; for (const r of D.rec) if (r.k === 'expo' && r.f.to && r.id !== skip && key(r.bird) === key(a.name) && r.at > t) { t = r.at; how = 'mv'; } return {t, how}; };
+const _saveFormMv = saveForm;
+saveForm = function () {
+  const f = F(); if (!f || f.kind !== 'expo') return _saveFormMv();
+  const at = atMs(), skip = f.edit && f.edit.id;
+  const late = tgt().map(a => [a, plSince(a, skip)]).filter(([, s]) => s.t && at < s.t);
+  if (!late.length || f.mvWarn === at) { f.mvWarn = null; return _saveFormMv(); }
+  f.mvWarn = at; const [a, s] = late[0];
+  f.err = L('Data jest wcześniejsza niż ', 'Дата раньше, чем ', 'The date is earlier than ') + (s.how === 'in' ? L('przybycie / ustawienie miejsca', 'прибытие / указание места', 'arrival / place set') : L('ostatnie przeniesienie', 'последнее перемещение', 'the last move'))
+    + ' (' + anTitle(a) + ', ' + fDay(s.t) + ' ' + fTime(s.t) + L('), więc woliera w karcie się nie zmieni. Sprawdź datę albo naciśnij «Zapisz» jeszcze raz, żeby zapisać jako historię.', '), поэтому вольер в карточке не изменится. Проверь дату или нажми «Сохранить» ещё раз, чтобы записать как историю.', '), so the enclosure on the card will not change. Check the date or press «Save» again to save it as history.');
+  render();
+};
+
+/* 11) date: «Now» button opens the picker */
+const _whenPhotoAt = whenPhoto;
+whenPhoto = function (noPhoto) {
+  const f = F(); if (!f) return _whenPhotoAt(noPhoto); f.showAt = 0;
+  const h = _whenPhotoAt(noPhoto), set = !!f.at;
+  const btn = `<span class="atwrap"><button class="bl-btn atbtn${set ? ' set' : ''}" data-atpick="1" type="button">${ic('clock', 17)}<span>${set ? fDate(atMs()) + ' ' + fTime(atMs()) : L('Teraz', 'Сейчас', 'Now')}</span></button>`
+    + (set && !f.edit ? `<button class="atclr" data-atclr="1" type="button" aria-label="${L('Ustaw: teraz', 'Поставить «сейчас»', 'Set to now')}">${ic('x', 14, 2.4)}</button>` : '')
+    + `<input class="athid" type="datetime-local" data-atin="1" value="${esc(f.at || localDT(Date.now()))}" max="${localDT(Date.now() + DAY)}" tabindex="-1" aria-hidden="true"></span>`;
+  return h.replace(/<button class="bl-btn" style="flex:1" data-showat="1">[\s\S]*?<\/button>/, btn);
+};
+document.addEventListener('click', e => {
+  const p = e.target.closest('[data-atpick]'), c = !p && e.target.closest('[data-atclr]'); if (!p && !c) return;
+  e.preventDefault(); e.stopImmediatePropagation(); const f = F(); if (!f) return;
+  if (c) { f.at = ''; f.mvWarn = null; f.err = ''; return render(); }
+  const inp = p.parentNode.querySelector('.athid');
+  try { inp.showPicker(); } catch (x) { f.showAt = 1; f.at = f.at || localDT(Date.now()); render(); }
+}, true);
+document.addEventListener('change', e => { if (!e.target.matches || !e.target.matches('[data-atin]')) return; const f = F(); if (!f) return; f.at = e.target.value; f.mvWarn = null; f.err = ''; render(); });
+/* 12) «Save» in the bottom bar */
+const _addSheetSv = addSheet;
+addSheet = function () {
+  const h = _addSheetSv(); if (!h || h.indexOf('class="shfoot"') < 0) return h;
+  const m = h.match(/<p class="err" id="ferr" role="alert">([\s\S]*?)<\/p>(<button class="bl-btn solid save wide"[^>]*>[\s\S]*?<\/button>)/); if (!m) return h;
+  const sv = m[2].replace('bl-btn solid save wide', 'bl-btn solid save shsave');
+  return h.replace(m[0], '').replace(/<div class="shfoot">(<button class="shback"[^>]*>[\s\S]*?<\/button>)/, (x, b) => `<div class="shfoot"><p class="err shferr" id="ferr" role="alert">${m[1]}</p>${b}${sv}`);
+};
+document.head.insertAdjacentHTML('beforeend', '<style>.atwrap{flex:1;position:relative;display:flex;min-width:0}.atwrap .atbtn{flex:1;min-width:0}.atbtn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.atbtn.set{background:var(--card);box-shadow:inset 0 0 0 1.5px color-mix(in srgb, var(--accent) 45%, transparent);color:var(--ink)}.atwrap:has(.atclr) .atbtn{padding-right:44px}.atclr{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:30px;height:30px;border-radius:50%;border:0;background:var(--soft);color:var(--ink-2);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}.athid{position:absolute;left:0;bottom:0;width:100%;height:100%;opacity:0;pointer-events:none;border:0;padding:0}.bl-sheet .shfoot{flex-wrap:wrap;gap:10px}.bl-sheet .shfoot .shferr{flex-basis:100%;margin:2px 0 0}.bl-sheet .shfoot .shferr:empty{display:none}.bl-sheet .shfoot:has(.shsave) .shback{flex:0 0 34%}.bl-sheet .shfoot .shsave{flex:1;min-height:50px;margin:0;border-radius:14px}</style>');
 
 document.head.insertAdjacentHTML('beforeend', '<style>'
   + '.cardscr .scroll{padding-top:14px}.bl-field>span .opt{margin-left:5px}'
