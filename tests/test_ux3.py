@@ -1,0 +1,48 @@
+# ux3.js: breeding timings and forecast; expected events in the calendar; resize re-render only on phone ↔ computer;
+# «until cancelled»; arrival «from», age (stage / number / birth date) and «when» (date only / no date). Reuses test_newui.py helpers.
+import pathlib, sys
+HERE = pathlib.Path(__file__).resolve().parent
+exec((HERE / 'test_newui.py').read_text().split('\nwith sync_playwright()')[0])
+
+with sync_playwright() as pw:
+    b = pw.chromium.launch(**CHROME, args=["--no-sandbox"])
+    p = page(b)
+    # 1) breeding timings: reference 16, ours 12 → forecast 14; fledging recorded → expected fledging gone
+    print("timings:", p.evaluate("""(() => {
+      const s = [...D.sp.values()].find(x => !isMammal(x)), inf = spInfo(s); inf.incub_days = 16; inf.fledge_days = 16;
+      const mom = D.an.find(a => !a.grp); mom.species_id = s.id; const H = Date.now() - 12 * DAY;
+      D.an.push({id: 'kid1', name: 'Pisklak X', species_id: s.id, parents: [mom.id], born: new Date(H).toISOString(), status: 'active'});
+      const R = (id, k, bird, at, f = {}) => D.rec.push({id, k, type: 'obs', bird, sp: s.id, at, by: me, note: '', f: Object.assign({k}, f)});
+      R('i1', 'incub', mom.name, H - 12 * DAY); R('h1', 'hatch', mom.name, H, {n: 1});
+      const before = [...calEvents().values()].flat().filter(e => e.exp && e.r.id === 'h1').length;
+      R('f1', 'fledge', 'Pisklak X', Date.now());
+      const after = [...calEvents().values()].flat().filter(e => e.exp && e.r.id === 'h1').length;
+      st.rec = 'f1'; st.scr = 'rcard'; render(); const tile = document.querySelector('.brdt').innerText.replace(/\\n/g, ': ');
+      return JSON.stringify([brdStats(s).est, before, after, tile]); })()"""))
+    # 3) phone resize: no re-render
+    p.evaluate("window._n = 0; const r = render; render = function () { window._n++; return r(); }; st.scr = 'now'; render(); _n = 0")
+    p.set_viewport_size({"width": 390, "height": 500}); p.wait_for_timeout(400); print("renders on phone resize:", p.evaluate("_n"))
+    p.set_viewport_size({"width": 390, "height": 844})
+    # 5) until cancelled
+    a0 = p.evaluate("__mock.db.collection[5].id")
+    click(p, "[data-scr=more]"); click(p, "[data-scr=animals]"); click(p, f'.scroll [data-ani="{a0}"]')
+    click(p, "[data-add=an]"); click(p, "[data-kind=tstart]"); click(p, "[data-medtoggle]"); click(p, "[data-med]")
+    click(p, '[data-fv=days][data-n="7"]'); click(p, '[data-dopen]'); click(p, "[data-save]", t=600)
+    print("until cancelled:", p.evaluate("__mock.db.records.filter(r => r.type === 'tstart').map(r => [r.f.days, r.f.open]).pop()"))
+    # 6, 7) arrival
+    p.evaluate("(() => { const s = [...D.sp.values()].find(x => /nikobar/i.test(x.name_pl)); const i = spInfo(s); i.life = 'do 20 lat'; i.fledge_days = 14; i.mature_years = 2; })()")
+    click(p, "[data-scr=more]"); click(p, "[data-scr=animals]"); click(p, "[data-arrive]")
+    print("from options:", p.locator('[data-fv=from]').all_inner_texts())
+    p.fill("#spin", "nikobar"); p.wait_for_timeout(300); click(p, "[data-spsel]"); click(p, '[data-fv=cnt][data-i="2"]'); click(p, "[data-fv=to]", 0)
+    click(p, '[data-fv=am0][data-s=n]'); p.fill('[data-in="fv.ag0"]', '5'); click(p, '[data-fv=am1][data-s=a]'); click(p, '[data-fv=ac1][data-s=old]'); click(p, '[data-fv=am2][data-s=d]'); p.fill('[data-in="fv.bd2"]', '2024-05-01')
+    click(p, '[data-atmode=d]'); p.fill('[data-in=atd]', '2026-11-20'); n0 = p.evaluate("__mock.db.records.length"); click(p, "[data-save]", t=900)
+    print("animals:", p.evaluate("__mock.db.collection.slice(-3).map(a => [a.born, a.age_class, a.age_n, a.age_at])"))
+    print("date-only records:", p.evaluate(f"__mock.db.records.slice({n0}).map(r => [r.f.k, r.f.nt])"))
+    p.evaluate("st.ani = __mock.db.collection.slice(-2)[0].id; st.scr = 'card'; render()"); p.wait_for_timeout(150)
+    print("card stage:", [t.replace(chr(10), ': ') for t in p.locator('.bl-facts div').all_inner_texts() if 'Wiek' in t])
+    click(p, "[data-scr=more]"); click(p, "[data-scr=animals]"); click(p, "[data-arrive]")
+    p.fill("#spin", "nikobar"); p.wait_for_timeout(300); click(p, "[data-spsel]"); click(p, "[data-fv=to]", 0); click(p, '[data-atmode=none]')
+    n0 = p.evaluate("__mock.db.records.length"); click(p, "[data-save]", t=800)
+    print("no date → records:", p.evaluate(f"__mock.db.records.length - {n0}"), "| arrived:", p.evaluate("__mock.db.collection.slice(-1)[0].arrived"))
+    print("ERRORS:", [e for e in errors if 'fetching the script' not in e])
+    b.close()
