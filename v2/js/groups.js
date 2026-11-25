@@ -69,3 +69,99 @@ animalCard = function () {
   return html.replace(`<div><dt>${L('Płeć', 'Пол', 'Sex')}</dt><dd>${esc(comp)}</dd></div>`,
     `<div><dt>${L('Liczebność', 'Численность', 'Count')}</dt><dd>${esc(ab ? gEst(ab) : L('nieznana', 'неизвестна', 'unknown'))}</dd></div>`);
 };
+
+/* ---------- separate individuals from a counted group ---------- */
+const splitLabel = () => L('Wydziel', 'Отделить', 'Separate');
+const splitAllowed = a => !!(a?.grp && a.status === 'active' && canWrite()
+  && (isAdmin() || !(a.locked || []).some(k => k === '*' || k === 'grp')));
+const splitKinds = mammal => [
+  ['m', L('Samiec', 'Самец', 'Male')],
+  ['f', L('Samica', 'Самка', 'Female')],
+  ['u', L('Płeć nieznana', 'Пол неизвестен', 'Unknown sex')],
+  ['j', mammal ? L('Młody osobnik', 'Молодая особь', 'Young animal') : L('Młody ptak', 'Молодая птица', 'Young bird')]
+];
+function openSplitGroup(a) {
+  if (!splitAllowed(a)) return;
+  st.splitGroup = {id: a.id, version: a.updated_at, grp: a.grp, selected: new Set(), busy: false, error: ''};
+  render();
+  $('#split-close')?.focus();
+}
+function splitGroupSheet() {
+  const s = st.splitGroup;
+  if (!s) return '';
+  const total = grpTotal(s.grp);
+  const kinds = splitKinds(isMammal(spBy(anById(s.id)?.species_id)));
+  const unavailable = gUnk(s.grp) || !total || kinds.some(([k]) => {
+    const n = Number(s.grp[k] ?? 0);
+    return !Number.isSafeInteger(n) || n < 0;
+  });
+  const disabled = s.busy || s.stale ? 'disabled' : '';
+  const rows = unavailable ? '' : kinds.map(([k, label]) =>
+    Array.from({length: +s.grp[k] || 0}, (_, i) => {
+      const value = k + (i + 1);
+      return `<label class="split-choice"><input type="checkbox" id="split-${value}" data-split-choice="${value}" ${s.selected.has(value) ? 'checked' : ''} ${disabled}>${label} ${i + 1}</label>`;
+    }).join('')).join('');
+  return `<div class="scrim" ${s.busy ? '' : 'data-split-close="1"'}></div>
+    <div class="bl-sheet split-sheet" role="dialog" aria-modal="true" aria-labelledby="split-title">
+      <div class="grip"></div><div class="head"><h3 id="split-title">${splitLabel()}</h3>
+      <button class="bl-x" id="split-close" data-split-close="1" aria-label="${L('Zamknij', 'Закрыть', 'Close')}" ${s.busy ? 'disabled' : ''}>${ic('x', 18)}</button></div>
+      <div class="shbody">
+        ${unavailable ? `<p class="tip">${L('Najpierw wpisz dokładny skład grupy.', 'Сначала укажи точный состав группы.', 'Enter the exact group composition first.')}</p>` : rows}
+        ${total && s.selected.size === total ? `<p class="tip">${L('Pusta grupa zniknie z listy zwierząt. Jej wpisy pozostaną w dzienniku.', 'Пустая группа исчезнет из списка животных. Её записи останутся в журнале.', 'The empty group will leave the animal list. Its records will stay in the journal.')}</p>` : ''}
+        ${s.error ? `<p class="tip" role="alert">${esc(s.error)}</p>` : ''}
+      </div>
+      ${unavailable ? `<button class="bl-btn wide" data-split-edit="1">${L('Edytuj skład', 'Изменить состав', 'Edit composition')}</button>` :
+        `<button class="bl-btn solid wide" data-split-save="1" ${!s.selected.size || disabled ? 'disabled' : ''}>${s.busy ? L('Zapisywanie…', 'Сохранение…', 'Saving…') : splitLabel() + ' (' + s.selected.size + ')'}</button>`}
+    </div>`;
+}
+function closeSplitGroup() {
+  if (st.splitGroup?.busy) return;
+  st.splitGroup = null;
+  render();
+  $('[data-split-open]')?.focus();
+}
+async function saveSplitGroup() {
+  const s = st.splitGroup;
+  if (!s || s.busy || s.stale || !s.selected.size) return;
+  const counts = {m: 0, f: 0, u: 0, j: 0};
+  for (const value of s.selected) counts[value[0]]++;
+  s.busy = true;
+  s.error = '';
+  render();
+  try {
+    const result = must(await sb.rpc('split_collection_group', {
+      p_id: s.id, p_version: s.version, p_counts: counts
+    }));
+    const created = new Set(result.individuals.map(a => a.id));
+    D.an = D.an.filter(a => a.id !== s.id && !created.has(a.id)).concat(result.group, result.individuals);
+    st.splitGroup = null;
+    toast(L('Utworzono karty: ', 'Создано карточек: ', 'Cards created: ') + result.individuals.length);
+  } catch (e) {
+    if (e.code === '40001') {
+      s.stale = true;
+      s.error = L('Grupa się zmieniła. Zamknij okno i wybierz ponownie.', 'Группа изменилась. Закрой окно и выбери птиц заново.', 'The group changed. Close this window and select again.');
+      try { await LOAD.collection(); } catch (x) { /* Realtime or manual refresh can reload it later. */ }
+    } else {
+      s.error = errText(e);
+    }
+    s.busy = false;
+  }
+  render();
+}
+document.addEventListener('change', e => {
+  const value = e.target.dataset.splitChoice, s = st.splitGroup;
+  if (!value || !s || s.busy || s.stale) return;
+  if (e.target.checked) s.selected.add(value); else s.selected.delete(value);
+  render();
+});
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-split-open],[data-split-close],[data-split-save],[data-split-edit]');
+  if (!b || b.disabled) return;
+  if (b.hasAttribute('data-split-open')) return openSplitGroup(anById(st.ani));
+  if (b.hasAttribute('data-split-close')) return closeSplitGroup();
+  if (b.hasAttribute('data-split-save')) return saveSplitGroup();
+  if (!st.splitGroup || !splitAllowed(anById(st.ani))) return;
+  st.splitGroup = null;
+  openEd('an');
+  render();
+});

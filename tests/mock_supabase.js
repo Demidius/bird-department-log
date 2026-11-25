@@ -108,6 +108,34 @@
     from: t => new Q(t),
     rpc: async (name, args) => {
       await new Promise(r => setTimeout(r, 5));
+      if (name === 'split_collection_group') {
+        __mock.calls.push({name, args});
+        const denied = () => ({data: null, error: err('42501', 'no permission')});
+        if (!canWrite()) return denied();
+        const group = db.collection.find(a => a.id === args.p_id);
+        if (group?.status !== 'active' || !group.grp || group.updated_at !== args.p_version) {
+          return {data: null, error: err('40001', 'Group has changed')};
+        }
+        const grp = {...group.grp};
+        const cards = [];
+        const move = db.records.filter(r => r.type === 'expo' && r.bird === group.name && r.f.to && r.event_at >= group.encl_at)
+          .sort((a, b) => b.event_at.localeCompare(a.event_at))[0];
+        for (const k of ['m', 'f', 'u', 'j']) {
+          const count = args.p_counts[k] || 0;
+          grp[k] = (grp[k] || 0) - count;
+          for (let i = 0; i < count; i++) {
+            const uid = id();
+            cards.push({...group, id: uid, name: group.name + ' ' + uid, grp: null, locked: [], ring: '', chip: '',
+              encl: move?.f.to || group.encl, sex: ['m', 'f'].includes(k) ? k : '', age_class: k === 'j' ? 'young' : null});
+          }
+        }
+        const status = ['m', 'f', 'u', 'j'].some(k => grp[k] > 0) ? 'active' : 'out';
+        if (!isAdmin() && (group.locked.some(k => k === 'grp' || k === '*') ||
+            (status === 'out' && group.locked.includes('status')))) return denied();
+        Object.assign(group, {grp, status, updated_at: now()});
+        db.collection.push(...cards);
+        return {data: clone({group, individuals: cards}), error: null};
+      }
       if (name === 'journal_has_admin') return {data: db.profiles.some(p => p.role === 'admin'), error: null};
       if (name === 'claim_first_admin') {
         if (!uidNow() || db.profiles.some(p => p.role === 'admin')) return {data: false, error: null};

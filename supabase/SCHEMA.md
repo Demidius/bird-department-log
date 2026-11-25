@@ -47,6 +47,7 @@ Realtime (`supabase_realtime`): species, collection, enclosures, records, photos
 - Вставка требует `created_by = auth.uid()`.
 - Storage bucket `journal-photos`: путь `<uid>/<uuid>(_t).jpg`.
 - `public.claim_first_admin()` — единственный способ стать админом. `public.journal_has_admin()`.
+- `public.split_collection_group(id, version, counts)` — атомарно создаёт индивидуальные карточки и уменьшает состав исходной группы. Пустая группа получает статус `out`. Функция работает с правами вызывающего, с действующими RLS и замками.
 - Аккаунты — Edge Function `admin-users` (копия кода: `supabase/functions/admin-users/index.ts`; разворачивать через MCP `deploy_edge_function`).
 
 ## Функции для агентов (только владелец БД, с сайта недоступны)
