@@ -169,6 +169,8 @@ body.dsx{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 var(--fon
 .bl-chips.nowrap{flex-wrap:nowrap}.bl-chips.nowrap .bl-chip{flex:none}
 .empty{margin:8px 0;padding:14px;border-radius:14px;background:var(--card);color:var(--muted);font-size:14px}
 .bl-day{margin:12px 4px 2px}
+.bl-day.log-day{display:flex;align-items:center;gap:12px;margin:16px 4px 4px;color:var(--accent);font:800 19px/1.25 var(--font-display)}
+.log-day::after{content:"";flex:1;min-width:24px;height:2px;background:color-mix(in srgb,var(--accent) 75%,var(--bg));border-radius:1px}
 .bl-rec small+small{margin-top:1px}
 .bl-rec.flat{box-shadow:none;padding:7px 0;background:none;border-radius:0;border-top:1px solid var(--line)}
 .guessrow{background:none;box-shadow:none;outline:2px dashed var(--g,var(--breed));outline-offset:-2px}

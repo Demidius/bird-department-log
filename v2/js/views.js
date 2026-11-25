@@ -59,7 +59,7 @@ function recHTML(r) {
   const cm = D.com.get(r.id) || [], s = seen()[r.id] || 0, nn = cm.filter(c => c.created_by !== me && new Date(c.created_at).getTime() > s).length;
   return `<button class="bl-rec g-${kGroup(r.k)} recbtn" data-rec="${r.id}">${badge(kGroup(r.k), kIcon(r.k), 'sm')}<div><b>${esc(recTitle(r))}</b><span>${esc(recWho(r))}</span>${r.note ? `<small class="nt">${esc(r.note.slice(0, 140))}</small>` : ''}<small>${esc(nameOf(r.by))}</small></div><span class="rside"><time>${r.f.nt ? '—' : fTime(r.at)}</time>${cm.length ? `<span class="cc ${nn ? 'hasnew' : ''}">${ic('chat', 12, 2.4)}${cm.length}${nn ? `<i>+${nn}</i>` : ''}</span>` : ''}</span></button>`;
 }
-function recsByDay(list) { let d = '', h = ''; for (const r of list) { const k = dayKey(r.at); if (k !== d) { d = k; h += `<div class="bl-day">${relDay(r.at)}</div>`; } h += recHTML(r); } return h; }
+function recsByDay(list) { let d = '', h = ''; for (const r of list) { const k = dayKey(r.at); if (k !== d) { d = k; h += `<div class="bl-day log-day">${relDay(r.at)}</div>`; } h += recHTML(r); } return h; }
 function logsScreen() {
   const q = key(st.q);
   let list = D.rec.filter(r => st.flt === 'all' || kGroup(r.k) === st.flt);
@@ -187,8 +187,10 @@ function lightbox(kind, id) { const x = photosFor(kind, id)[st.ph]; if (!x) retu
 function animalCard() {
   const a = anById(st.ani); if (!a) return `${topbar(L('Zwierzęta', 'Животные', 'Animals'))}<div class="scroll"><p class="empty">${L('Karta usunięta', 'Карточка удалена', 'Card deleted')}</p></div>`;
   const s = spBy(a.species_id), plc = plByName(anEncl(a));
+  const iu = spInfo(s).iucn, iuNames = IUCNN();
+  const iuLabel = Object.hasOwn(iuNames, iu) ? `${iu} (${iuNames[iu]})` : iu || '—';
   const facts = [[L('Płeć', 'Пол', 'Sex'), a.grp ? `♂ ${a.grp.m || 0} · ♀ ${a.grp.f || 0} · ? ${a.grp.u || 0}${a.grp.j ? ' · ' + L('młode ', 'мол. ', 'young ') + a.grp.j : ''}` : ({m: L('samiec', 'самец', 'male'), f: L('samica', 'самка', 'female')})[a.sex] || L('nieznana', 'неизвестен', 'unknown')],
-    [L('Woliera', 'Вольер', 'Enclosure'), plc ? plName(plc) : anEncl(a) || '—'], [L('Znak / obrączka', 'Примета / кольцо', 'Mark / ring'), [a.ring, a.chip].filter(Boolean).join(' · ') || '—'], ['IUCN', spInfo(s).iucn || '—']];
+    [L('Woliera', 'Вольер', 'Enclosure'), plc ? plName(plc) : anEncl(a) || '—'], [L('Znak / obrączka', 'Примета / кольцо', 'Mark / ring'), [a.ring, a.chip].filter(Boolean).join(' · ') || '—'], ['IUCN', iuLabel]];
   if (a.born) facts.push([L('Urodzony', 'Родился', 'Born'), fDate(new Date(a.born).getTime())]);
   if (a.arrived) facts.push([L('Przybył', 'Поступил', 'Arrived'), fDate(new Date(a.arrived).getTime())]);
   const going = taskCards().filter(x => x.a && x.a.id === a.id), mates = plc ? anOfPlace(plc).filter(x => x.id !== a.id) : [];
