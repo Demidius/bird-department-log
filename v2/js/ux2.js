@@ -20,6 +20,8 @@
 // 11) Forms: the date is a «Now» button that opens the date-time picker at once (no input field in the form);
 //     the chosen date shows on the button, × returns to «Now» (no × when editing a record).
 // 12) Forms: «Save» sits in the bottom bar next to «Back»; the error message is above them.
+// 13) Phone (narrow screen < 600px): the screen does not turn sideways — in the installed app on Android (iPhone does not
+//     allow it from a site); tablet and computer are not touched.
 
 /* 1) comment field */
 const cinFit = t => { t.style.height = '48px'; const h = Math.min(t.scrollHeight, 132); t.style.height = Math.max(48, h) + 'px'; t.classList.toggle('tall', t.scrollHeight > 132); };
@@ -172,6 +174,10 @@ addSheet = function () {
   return h.replace(m[0], '').replace(/<div class="shfoot">(<button class="shback"[^>]*>[\s\S]*?<\/button>)/, (x, b) => `<div class="shfoot"><p class="err shferr" id="ferr" role="alert">${m[1]}</p>${b}${sv}`);
 };
 document.head.insertAdjacentHTML('beforeend', '<style>.atwrap{flex:1;position:relative;display:flex;min-width:0}.atwrap .atbtn{flex:1;min-width:0}.atbtn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.atbtn.set{background:var(--card);box-shadow:inset 0 0 0 1.5px color-mix(in srgb, var(--accent) 45%, transparent);color:var(--ink)}.atwrap:has(.atclr) .atbtn{padding-right:44px}.atclr{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:30px;height:30px;border-radius:50%;border:0;background:var(--soft);color:var(--ink-2);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}.athid{position:absolute;left:0;bottom:0;width:100%;height:100%;opacity:0;pointer-events:none;border:0;padding:0}.bl-sheet .shfoot{flex-wrap:wrap;gap:10px}.bl-sheet .shfoot .shferr{flex-basis:100%;margin:2px 0 0}.bl-sheet .shfoot .shferr:empty{display:none}.bl-sheet .shfoot:has(.shsave) .shback{flex:0 0 34%}.bl-sheet .shfoot .shsave{flex:1;min-height:50px;margin:0;border-radius:14px}</style>');
+
+/* 13) phone: portrait only */
+const lockPortrait = () => { try { if (Math.min(screen.width, screen.height) < 600 && screen.orientation && screen.orientation.lock) screen.orientation.lock('portrait').catch(() => {}); } catch (x) {} };
+lockPortrait(); document.addEventListener('visibilitychange', () => { if (!document.hidden) lockPortrait(); });
 
 document.head.insertAdjacentHTML('beforeend', '<style>'
   + '.cardscr .scroll{padding-top:14px}.bl-field>span .opt{margin-left:5px}'
