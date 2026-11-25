@@ -68,7 +68,7 @@ const _medListU = medList;
 medList = function () {
   const l = _medListU(), cat = Array.isArray(D.dr) ? D.dr : [];
   for (const d of cat) {
-    const rt = Array.isArray(d.routes) && d.routes.length === 1 ? OPT.routes()[d.routes[0]] : '';
+    const rt = Array.isArray(d.routes) && d.routes.length === 1 ? MED_ROUTES[d.routes[0]]?.[0] : '';
     const m = l.find(x => key(x.name) === key(d.name));
     if (m) { m.sub = d.substance || ''; if (!m.route && rt) m.route = rt; } else l.push({name: d.name, n: 0, route: rt, sub: d.substance || '', cat: 1});
   }
@@ -80,7 +80,7 @@ medForm = function () {
   const q = key(f.fv.drug || '');
   const all = medList().filter(m => !q || qhit(m.name, q))
     .sort((a, b) => (q ? (key(b.name).startsWith(q) - key(a.name).startsWith(q)) : 0) || b.n - a.n || a.name.localeCompare(b.name));
-  const items = all.map(m => `<button data-med="${esc(m.name)}"><span><b>${esc(m.name)}</b><small>${esc([m.sub, m.dose, m.route].filter(Boolean).join(' · ')) || (m.cat ? L('z katalogu', 'из каталога', 'from the catalogue') : '')}</small></span><em>${m.n ? m.n + '×' : ''}</em></button>`).join('')
+  const items = all.map(m => `<button data-med="${esc(m.name)}"><span><b>${esc(m.name)}</b><small>${esc([m.sub, m.dose, medRouteLabel(m.route)].filter(Boolean).join(' · ')) || (m.cat ? L('z katalogu', 'из каталога', 'from the catalogue') : '')}</small></span><em>${m.n ? m.n + '×' : ''}</em></button>`).join('')
     || `<p class="tip" style="margin:8px 12px">${L('Brak takiego leku — zostanie zapisany jako nowy', 'Такого средства нет — запишется как новое', 'No such drug — it will be saved as new')}</p>`;
   const list = `<div class="clist">${items}</div>`;
   if (/<div class="clist">[\s\S]*?<\/div>/.test(h)) return h.replace(/<div class="clist">[\s\S]*?<\/div>/, list);
