@@ -11,7 +11,8 @@ species    (id, name_ru, name_pl, name_en, latin, note, info jsonb object, creat
            хоть одно из названий/латыни непустое; latin уникальна без учёта регистра (если непустая)
 collection (id, name unique lower(btrim), species_id → species, sex ''|m|f, ring, chip, born date, arrived date, origin,
            encl text = ИМЯ места, encl_at, status active|out, note, names jsonb [{l,v}], locked jsonb [], grp jsonb {m,f,u,j[,unk:true,about]}|null,
-           parents jsonb [id карточек], created_by, created_at, updated_at)
+           parents jsonb [id карточек], age_class chick|young|adult|old|num, age_n (месяцы при num), age_at date — примерный возраст
+           на дату оценки (прибытие), created_by, created_at, updated_at)
 enclosures (id, name unique lower(btrim) по всей базе, kind building|aviary|enclosure|cage|incubator|brooder|room|quarantine|pond|other,
            area, size, capacity 1..10000, active, note, parent_id → enclosures (без циклов, глубина ≤ 50), names [{l,v}], locked [], …)
 records    (id, type expo|obs|tstart|tdose|tend|lay|incub|hatch|fledge|birth|injury|proc|watch|wend|score|mate|diet|env|enr|leave|arrive|dept,
