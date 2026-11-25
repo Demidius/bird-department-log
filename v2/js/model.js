@@ -73,6 +73,28 @@ const kGroup = k => (KINDS[k] || KINDS.obs)[0], kIcon = k => (KINDS[k] || KINDS.
 const WHAT = {health: ['injury', 'tstart', 'tdose', 'proc'], obs: ['obs', 'watch', 'score'], breed: ['mate', 'lay', 'incub', 'hatch', 'fledge', 'birth'], keep: ['expo', 'diet', 'env', 'enr', 'leave']};
 
 /* ---------- option lists (index is stored, text is shown in the current language) ---------- */
+// The drug catalogue stores these positions. Append new routes at the end.
+const MED_ROUTES = [
+  ['p.o.', 'doustnie', 'внутрь', 'orally'],
+  ['i.m.', 'domięśniowo', 'внутримышечно', 'intramuscularly'],
+  ['s.c.', 'podskórnie', 'подкожно', 'subcutaneously'],
+  ['i.v.', 'dożylnie', 'внутривенно', 'intravenously'],
+  ['miejscowo', 'miejscowo', 'местно', 'topical'],
+  ['do wody', 'do wody', 'в воду', 'in water'],
+  ['do karmy', 'do karmy', 'в корм', 'in feed'],
+  ['na skórę', 'na skórę', 'на кожу', 'on the skin']
+];
+function medRoute(value) {
+  const k = key(value);
+  return MED_ROUTES.find(route => route.includes(k));
+}
+function medRouteLabel(value) {
+  const route = medRoute(value);
+  if (!route) return value || '';
+  const [code, pl, ru, en] = route, label = L(pl, ru, en);
+  return code === pl ? label : `${code} (${label})`;
+}
+
 const OPT = {
   inj_what: () => LA(['Kuleje', 'Rana', 'Krwawienie', 'Nastroszony', 'Nie je', 'Przerośnięty dziób', 'Przerośnięte pazury', 'Wypadanie piór', 'Biegunka'], ['Хромает', 'Рана', 'Кровотечение', 'Нахохлился', 'Не ест', 'Перерос клюв', 'Перерос когти', 'Выпадают перья', 'Понос'], ['Limping', 'Wound', 'Bleeding', 'Fluffed up', 'Not eating', 'Overgrown beak', 'Overgrown claws', 'Feather loss', 'Diarrhoea']),
   inj_what_m: () => LA(['Kuleje', 'Rana', 'Krwawienie', 'Apatia', 'Nie je', 'Przerośnięte racice / pazury', 'Wypadanie sierści', 'Biegunka'], ['Хромает', 'Рана', 'Кровотечение', 'Вялость', 'Не ест', 'Переросли копыта / когти', 'Выпадает шерсть', 'Понос'], ['Limping', 'Wound', 'Bleeding', 'Lethargy', 'Not eating', 'Overgrown hooves / claws', 'Hair loss', 'Diarrhoea']),
@@ -112,7 +134,7 @@ const OPT = {
   endwhy: () => LA(['Kurs zakończony', 'Wyzdrowiał', 'Odwołane przez weterynarza', 'Zmiana leku', 'Inne'], ['Курс окончен', 'Выздоровел', 'Отменено ветеринаром', 'Смена препарата', 'Другое'], ['Course finished', 'Recovered', 'Cancelled by vet', 'Drug changed', 'Other']),
   freq: () => LA(['1× dziennie', '2× dziennie', '3× dziennie', 'co 2 dni', 'jednorazowo'], ['1× в день', '2× в день', '3× в день', 'раз в 2 дня', 'однократно'], ['1× a day', '2× a day', '3× a day', 'every 2 days', 'once']),
   days: () => LA(['3 dni', '5 dni', '7 dni', '14 dni'], ['3 дня', '5 дней', '7 дней', '14 дней'], ['3 days', '5 days', '7 days', '14 days']),
-  routes: () => ['p.o.', 'i.m.', 's.c.', 'i.v.', L('miejscowo', 'местно', 'topical')]
+  routes: () => MED_ROUTES.map(([code]) => medRouteLabel(code))
 };
 const pick = (list, v) => Array.isArray(v) ? v.map(i => OPT[list]()[i]).filter(Boolean).join(', ') : v != null && OPT[list]()[v] != null ? OPT[list]()[v] : '';
 const FREQ_N = [1, 2, 3, 0.5, 0], DAYS_N = [3, 5, 7, 14];
@@ -126,8 +148,8 @@ function recWho(r) {
 function recTitle(r) {
   const f = r.f, n = kName(r.k);
   switch (r.k) {
-    case 'tdose': return L('Podano', 'Подано', 'Given') + (f.drug ? ': ' + [f.drug, f.dose, f.route].filter(Boolean).join(' ') : '');
-    case 'tstart': return n + (f.drug ? ': ' + [f.drug, f.dose, f.route].filter(Boolean).join(' ') : '');
+    case 'tdose': return L('Podano', 'Подано', 'Given') + (f.drug ? ': ' + [f.drug, f.dose, medRouteLabel(f.route)].filter(Boolean).join(' ') : '');
+    case 'tstart': return n + (f.drug ? ': ' + [f.drug, f.dose, medRouteLabel(f.route)].filter(Boolean).join(' ') : '');
     case 'tend': return n + (f.drug ? ': ' + f.drug : '');
     case 'expo': return n + (f.from || f.to ? ': ' + [f.from && plName(plByName(f.from)) || f.from, f.to && plName(plByName(f.to)) || f.to].filter(Boolean).join(' → ') : '');
     case 'score': return n + (f.v ? ` ${f.v}/5` : '');

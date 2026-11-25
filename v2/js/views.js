@@ -12,7 +12,7 @@ function taskCards() {
     const a = anByName(x.r.bird), f = x.r.f;
     const times = x.todays.map(d => fTime(d.at) + ' ✓').join(' · ');
     T.push({id: 't' + x.r.id, g: 'health', i: 'pill', a, bird: x.r.bird, sp: x.r.sp, rx: x.r,
-      what: [f.drug, f.dose, f.route].filter(Boolean).join(' ') + (f.freq != null ? ' · ' + pick('freq', f.freq) : ''),
+      what: [f.drug, f.dose, medRouteLabel(f.route)].filter(Boolean).join(' ') + (f.freq != null ? ' · ' + pick('freq', f.freq) : ''),
       meta: [times, x.end ? L('do ', 'до ', 'until ') + fDate(x.end - DAY) : ''].filter(Boolean).join(' · ') || L('od ', 'с ', 'since ') + fDate(x.r.at),
       when: x.due ? L('dziś', 'сегодня', 'today') : '', act: x.due ? 'dose' : 'dosed', last: x.todays[x.todays.length - 1], need: x.due});
   }
