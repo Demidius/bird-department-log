@@ -10,6 +10,10 @@
 // 5) Enclosure card: «Residents» above «Temperature»; temperature is folded — the header shows the last value and an arrow,
 //    a tap opens the chart and list (and folds them back); after «Record» the chart stays open.
 // 6) Cards: content does not stick to the top bar; a count in a field label has a gap.
+// 7) Enclosures (list and enclosure picker): all folded at first; new places appear folded; opened ones stay open.
+// 8) Enclosure card: «Add animal» / «Take animal out» instead of «Move» in «Add record», and − / + on the «Animals» tile.
+//    Add: pick animals (except those living here) → move form with «to» = this enclosure (from = their current place).
+//    Take out: pick from the residents → move form, choose «to». Records are ordinary moves.
 
 /* 1) comment field */
 const cinFit = t => { t.style.height = '48px'; const h = Math.min(t.scrollHeight, 132); t.style.height = Math.max(48, h) + 'px'; t.classList.toggle('tall', t.scrollHeight > 132); };
@@ -67,6 +71,51 @@ placeCard = function () {
 document.addEventListener('click', e => { if (e.target.closest('[data-tadd]')) st.tOpen = true; }, true); // after recording a temperature its chart is shown
 document.addEventListener('click', e => { if (!e.target.closest('[data-ttgl]')) return; e.preventDefault(); e.stopImmediatePropagation(); st.tOpen = !st.tOpen; render(); }, true);
 document.head.insertAdjacentHTML('beforeend', '<style>.tsecb{flex:1;display:flex;align-items:center;gap:8px;padding:0;border:0;background:none;color:inherit;font:inherit;letter-spacing:inherit;text-transform:inherit;text-align:left;cursor:pointer}.tsecb .tlast{margin-left:auto;font:700 13px/1 var(--font-text);font-style:normal;letter-spacing:0;text-transform:none;color:var(--muted)}.tsecb svg{flex:none;transition:transform .15s}.tsecb[aria-expanded=true] svg{transform:rotate(90deg)}.tsecb[aria-expanded=true]{flex:1}.tsecb[aria-expanded=true] span{flex:1}</style>');
+
+/* 7) enclosures folded at first */
+const plSeen = new Set();
+const _placeTreeF = placeTree;
+placeTree = function (openAttr) { for (const p of D.pl) if (!plSeen.has(p.id)) { plSeen.add(p.id); st.folded.add(p.id); } return _placeTreeF(openAttr); };
+
+/* 8) enclosure: add / take out animals */
+const pmvStart = (mode, plc) => { newAdd({step: 'who', target: 'multi', from: 'card', pmv: {mode, plc}}); st.multi = new Set(); st.wq = ''; render(); };
+const _stepWhatPmv = stepWhat;
+stepWhat = function () {
+  const h = _stepWhatPmv(), f = F(); if (!f || f.target !== 'place' || !f.plc) return h;
+  const b = (m, icn, t) => `<button class="tbtn" data-pmv="${m}"><span class="bl-badge sm">${ic(icn, 18)}</span><span>${t}</span></button>`;
+  return h.replace(/<button class="tbtn" data-kind="expo">[\s\S]*?<\/button>/, b('in', 'plus', L('Dodaj zwierzę', 'Добавить животное', 'Add animal')) + b('out', 'swap', L('Zabierz zwierzę', 'Забрать животное', 'Take animal out')));
+};
+const _stepWhoPmv = stepWho;
+stepWho = function () {
+  const f = F(); if (!f || !f.pmv) return _stepWhoPmv();
+  const p = plById(f.pmv.plc), here = p ? anOfPlace(p).map(a => a.id) : [], all = D.an;
+  D.an = all.filter(a => f.pmv.mode === 'out' ? here.includes(a.id) : !here.includes(a.id));
+  try { return _stepWhoPmv(); } finally { D.an = all; }
+};
+function pmvTitle() {
+  const f = st.add; if (!f || !f.pmv) return; const p = plById(f.pmv.plc), h = document.querySelector('.bl-sheet h3'); if (!h || !p) return;
+  const t = f.step === 'who' ? (f.pmv.mode === 'in' ? L('Kogo dodać do: ', 'Кого добавить в: ', 'Who to add to: ') : L('Kogo zabrać z: ', 'Кого забрать из: ', 'Who to take out of: ')) + plName(p)
+    : f.step === 'form' ? (f.pmv.mode === 'in' ? L('Dodaj do: ', 'Добавить в: ', 'Add to: ') : L('Zabierz z: ', 'Забрать из: ', 'Take out of: ')) + plName(p) : '';
+  if (t) { const ico = h.querySelector('svg'); h.textContent = t; if (ico) h.prepend(ico); }
+}
+function pmvTile() {
+  if (st.scr !== 'pcard' || !canWrite()) return; const p = plById(st.plc); if (!p) return;
+  const dt = [...document.querySelectorAll('.cardscr .bl-facts dt')].find(x => x.textContent.trim() === L('Zwierzęta', 'Животные', 'Animals'));
+  if (!dt || dt.parentNode.querySelector('.pmvb')) return;
+  dt.parentNode.classList.add('pmvt');
+  dt.parentNode.insertAdjacentHTML('beforeend', `<span class="pmvb"><button data-pmv="out" aria-label="${L('Zabierz zwierzę', 'Забрать животное', 'Take animal out')}">−</button><button data-pmv="in" aria-label="${L('Dodaj zwierzę', 'Добавить животное', 'Add animal')}">+</button></span>`);
+}
+addEventListener('DOMContentLoaded', () => { const _r = render; render = function () { _r(); pmvTitle(); pmvTile(); }; });
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-pmv]'), g = !b && e.target.closest('[data-gomulti]');
+  if (b) { e.preventDefault(); e.stopImmediatePropagation(); const plc = (st.add && st.add.plc) || st.plc; pmvStart(b.dataset.pmv, plc); return; }
+  const f = st.add; if (!g || !f || !f.pmv || !st.multi.size) return;
+  e.preventDefault(); e.stopImmediatePropagation();
+  if (st.multi.size === 1) { f.target = 'animal'; f.ani = [...st.multi][0]; st.multi = new Set(); } else f.target = 'multi';
+  f.kind = 'expo'; f.step = 'form'; f.from = 'who';
+  const p = plById(f.pmv.plc); f.mv.to = f.pmv.mode === 'in' && p ? p.name : ''; render();
+}, true);
+document.head.insertAdjacentHTML('beforeend', '<style>.bl-facts .pmvt{position:relative}.pmvb{position:absolute;right:10px;top:50%;transform:translateY(-50%);display:flex;gap:6px}.pmvb button{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--ctl-line);background:var(--card);color:var(--ink);font:800 18px/1 var(--font-text);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}.pmvb button:hover{background:var(--soft)}</style>');
 
 document.head.insertAdjacentHTML('beforeend', '<style>'
   + '.cardscr .scroll{padding-top:14px}.bl-field>span .opt{margin-left:5px}'

@@ -95,7 +95,7 @@ with sync_playwright() as pw:
     print("card place:", p.inner_text(".bl-facts div:nth-child(2) dd"))
 
     # 5. place card -> record about the enclosure
-    click(p, "[data-scr=more]"); click(p, "[data-scr=places]"); shot(p, "n10_places")
+    click(p, "[data-scr=more]"); click(p, "[data-scr=places]"); p.evaluate("st.folded.clear(); render()"); shot(p, "n10_places")
     pid = p.evaluate("__mock.db.enclosures[2].id"); click(p, f'[data-plc="{pid}"]'); shot(p, "n11_place")
     click(p, "[data-add=pl]"); click(p, "[data-kind=env]"); click(p, '[data-fv=what][data-i="3"]'); click(p, "[data-save]", t=500)
     print("place rec:", [x for x in recs(p) if x[1] == 'env'])
@@ -164,7 +164,7 @@ with sync_playwright() as pw:
 
     # 16. temperature in an enclosure: from "+" -> place -> what, and from the card; chart with readings
     pid = p4.evaluate("__mock.db.enclosures[2].id")
-    click(p4, "[data-scr=more]"); click(p4, "[data-scr=places]"); click(p4, f'[data-plc="{pid}"]')
+    click(p4, "[data-scr=more]"); click(p4, "[data-scr=places]"); p4.evaluate("st.folded.clear(); render()"); click(p4, f'[data-plc="{pid}"]')
     print("temp empty block:", p4.locator(".scroll [data-tadd]").count())
     click(p4, "[data-add=pl]"); print("temp in what:", p4.locator("[data-kind=temp]").count()); click(p4, "[data-kind=temp]")
     click(p4, "[data-save]"); print("empty err:", p4.inner_text("#ferr"))
@@ -234,7 +234,7 @@ with sync_playwright() as pw:
     print("list photo:", p6.locator(f'.scroll [data-ani="{a34}"] .bl-av img').count(), "| no photo keeps letters:", p6.inner_text(f'.scroll [data-ani="{a33}"] .bl-av'))
     print("newest:", 'blue' in (p6.get_attribute(f'.scroll [data-ani="{a34}"] .bl-av img', 'src') or ''))
     click(p6, f'.scroll [data-ani="{a34}"]'); print("hero photo:", p6.locator('.ahero .bl-av img').count())
-    click(p6, "[data-scr=more]"); click(p6, "[data-scr=places]"); pid = p6.evaluate("__mock.db.enclosures[2].id")
+    click(p6, "[data-scr=more]"); click(p6, "[data-scr=places]"); p6.evaluate("st.folded.clear(); render()"); pid = p6.evaluate("__mock.db.enclosures[2].id")
     print("place row photo:", p6.locator(f'[data-plc="{pid}"] .bl-av img').count(), "| other place icon:", p6.locator('.trow .bl-av svg').count() > 0)
     shot(p6, "n29_avatars")
     print("ERRORS:", errors)
