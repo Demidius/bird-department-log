@@ -513,3 +513,7 @@ input.inp:disabled,textarea:disabled{opacity:.6}
 .rpl+.rpl{margin-left:14px}
 .bl-counter{padding:9px 8px}.bl-counter .l{font-size:11px;letter-spacing:-.01em}
 .injh .seg2 button{min-width:36px;font-size:15px}
+
+.split-open{min-height:44px;margin:4px 0}
+.split-choice{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 6px;border-bottom:1px solid var(--line);cursor:pointer}
+.split-choice input{width:20px;height:20px;margin:0;accent-color:var(--accent)}

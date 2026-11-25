@@ -199,6 +199,7 @@ function animalCard() {
   <dl class="bl-facts">${facts.map(([x, y]) => `<div><dt>${x}</dt><dd>${esc(y)}</dd></div>`).join('')}</dl>
   ${a.note ? `<div class="note">${esc(a.note)}</div>` : ''}${par.length ? `<p class="tip" style="margin:8px 2px 0">${L('Rodzice: ', 'Родители: ', 'Parents: ')}${par.map(p => `<button class="lnkb" data-ani="${p.id}">${esc(suffix(p) || p.name)}</button>`).join(', ')}</p>` : ''}
   ${canWrite() ? `<button class="bl-btn addrec" data-add="an">${ic('plus', 20, 2.6)}${L('Dodaj wpis', 'Добавить запись', 'Add record')}</button>` : ''}
+  ${splitAllowed(a) ? `<button class="bl-btn wide split-open" data-split-open="1">${splitLabel()}</button>` : ''}
   ${going.length ? `<div class="sec"><span>${L('Trwa teraz', 'Идёт сейчас', 'Ongoing')}</span><span>${going.length}</span></div><div class="stack">${going.map(taskHTML).join('')}</div>` : ''}
   ${mates.length ? `<div class="sec"><span>${L('W tej samej wolierze', 'В том же вольере', 'In the same enclosure')}</span><span>${mates.length}</span></div><div class="stack">${mates.map(m => `<button class="bl-who flat2" data-ani="${m.id}"><span class="bl-av">${esc(anInit(m))}</span><span><b>${esc(anTitle(m))}</b><small>${esc(suffix(m)) || '&nbsp;'}</small></span><span class="sx">${m.grp ? '' : sexSym(m.sex)}</span></button>`).join('')}</div>` : ''}
   ${photoBlock('an', a.id, 'bird')}

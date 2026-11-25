@@ -1,6 +1,6 @@
 // main.js — v2: state, render, navigation (phone Back moves through screens), events, sign-in, theme, language
 const st = {scr: 'now', flt: 'all', q: '', lq: '', wq: '', lim: 150, multi: new Set(), folded: new Set(), acc: new Set(), ph: -1, gal: 0, phf: 'all',
-  add: null, ed: null, tmenu: null, tend: 0, tendv: {}, wmenu: null, msheet: '', uform: null, cf: '', gate: 'loading', calMode: 'month'};
+  add: null, ed: null, tmenu: null, tend: 0, tendv: {}, wmenu: null, msheet: '', splitGroup: null, uform: null, cf: '', gate: 'loading', calMode: 'month'};
 const app = () => $('#app');
 const urlTried = new Set();
 
@@ -22,13 +22,14 @@ $('#toast').addEventListener('click', e => { if (e.target.closest('[data-undo]')
 /* ---------- navigation ---------- */
 const NAVK = ['scr', 'ani', 'plc', 'sp', 'rec'];
 const navOf = () => Object.fromEntries(NAVK.map(k => [k, st[k]]));
-const overlayOpen = () => !!(st.add || st.ed || st.tmenu || st.wmenu || st.msheet || st.uform || st.gal || st.ph >= 0 || st.lbx || st.cf);
+const overlayOpen = () => !!(st.add || st.ed || st.tmenu || st.wmenu || st.msheet || st.uform || st.gal || st.splitGroup || st.ph >= 0 || st.lbx || st.cf);
 const addDirty = () => { const f = st.add; return !!(f && f.step !== 'menu' && f.step !== 'kids' && (String(f.note || '').trim() || Object.keys(f.fv).some(k => !['cnt', 'wu'].includes(k) && f.fv[k] != null && f.fv[k] !== '' && !(Array.isArray(f.fv[k]) && !f.fv[k].length)) || (f.files || []).length || (f.mv && (f.mv.to || f.mv.proc.length)))); };
 function closeTop() {
   if (st.cf) { st.cf = ''; return; }
   if (st.lbx) { st.lbx = ''; return; }
   if (st.ph >= 0) { st.ph = -1; return; }
   if (st.gal) { st.gal = 0; return; }
+  if (st.splitGroup) { if (!st.splitGroup.busy) st.splitGroup = null; return; }
   if (st.ed) { st.ed = null; return; }
   if (st.uform) { st.uform = null; return; }
   if (st.msheet) { st.msheet = ''; return; }
@@ -88,7 +89,11 @@ function render() {
   document.documentElement.lang = lang;
   if (st.gate !== 'app') { root.innerHTML = `<div class="app">${loginScreen(st.gate)}</div>`; }
   else {
-    root.innerHTML = `<div class="app scr-${st.scr}">${screen()}${st.scr === 'rcard' && commentsOn && canWrite() ? '' : bottomNav()}${addSheet()}${st.tmenu ? treatMenu() : ''}${st.wmenu ? watchMenu() : ''}${edSheet()}${st.msheet ? mSheet() : ''}${st.uform ? userSheet() : ''}${st.cf ? confirmBox() : ''}</div>`;
+    root.innerHTML = `<div class="app scr-${st.scr}">${screen()}${st.scr === 'rcard' && commentsOn && canWrite() ? '' : bottomNav()}${addSheet()}${st.tmenu ? treatMenu() : ''}${st.wmenu ? watchMenu() : ''}${edSheet()}${st.msheet ? mSheet() : ''}${st.uform ? userSheet() : ''}${st.cf ? confirmBox() : ''}${splitGroupSheet()}</div>`;
+  }
+  const split = root.querySelector('.split-sheet');
+  if (split) for (const el of root.firstElementChild.children) {
+    if (el !== split && el !== split.previousElementSibling) el.inert = true;
   }
   const sc = [...root.querySelectorAll('.scroll,.shbody')]; sc.forEach((x, i) => { if (scrolls[i] != null) x.scrollTop = scrolls[i]; });
   if (fk) { try { const el = root.querySelector(fk); if (el) { el.focus({preventScroll: true}); if (caret && el.setSelectionRange) el.setSelectionRange(caret[0], caret[1]); } } catch (x) {} }
