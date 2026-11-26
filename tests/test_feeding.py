@@ -23,6 +23,10 @@ with sync_playwright() as pw:
         return birds.slice(0, 3).map(a => a.id);
     }""")
     fixed_time(p, 26, 12)
+    p.evaluate("""async id => {
+        const a = anById(id);
+        await addRecord('tstart', a.name, a.species_id, {drug: 'Testowe leczenie', freq: 0, times: ['14:00']}, '');
+    }""", ids[1])
     open_form(p, ids[0], 'incub')
     toggle = p.get_by_role('checkbox', name='Dodatkowe karmienie')
     assert not toggle.is_checked()
@@ -46,6 +50,11 @@ with sync_playwright() as pw:
     p.wait_for_function("D.rec.some(r => r.k === 'feed_given')")
     assert p.locator('[data-feed-give][data-feed-time="12:00"]').count() == 0
     assert p.get_by_text('Podać o 13:30').count() == 1
+    ongoing = p.locator('.stack').filter(has=p.get_by_text('Podać o 13:30'))
+    groups = ongoing.locator('.bl-task').evaluate_all(
+        "cards => cards.map(card => ['g-health', 'g-keep', 'g-breed'].find(g => card.classList.contains(g)))"
+    )
+    assert groups == ['g-health', 'g-keep', 'g-keep', 'g-keep', 'g-breed']
     p.evaluate("""async () => {
         const plan = D.rec.find(r => r.k === 'incub');
         await Promise.all([saveFeedingAction(plan.id, ymd(Date.now()), '12:00', false),

@@ -16,6 +16,7 @@ function taskCards() {
       meta: [times, x.end ? L('do ', 'до ', 'until ') + fDate(x.end - DAY) : ''].filter(Boolean).join(' · ') || L('od ', 'с ', 'since ') + fDate(x.r.at),
       when: x.due ? L('dziś', 'сегодня', 'today') : '', act: x.due ? 'dose' : 'dosed', last: x.todays[x.todays.length - 1], need: x.due});
   }
+  T.push(...feedingCards());
   for (const x of activeWatches()) {
     const a = anByName(x.r.bird), last = x.scores[x.scores.length - 1];
     T.push({id: 'w' + x.r.id, g: 'obs', i: 'eye', a, bird: x.r.bird, sp: x.r.sp, watch: x.r,
