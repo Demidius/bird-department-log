@@ -529,3 +529,7 @@ input.inp:disabled,textarea:disabled{opacity:.6}
 .split-open{min-height:44px;margin:4px 0}
 .split-choice{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 6px;border-bottom:1px solid var(--line);cursor:pointer}
 .split-choice input{width:20px;height:20px;margin:0;accent-color:var(--accent)}
+
+.feed-times{display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:8px}
+#feed-count{max-width:140px}
+[data-feed-toggle]+.bl-field{margin-top:10px}

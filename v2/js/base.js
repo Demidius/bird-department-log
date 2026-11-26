@@ -87,9 +87,9 @@ const errText = e => {
   return L('Nie udało się zapisać', 'Не удалось сохранить', 'Could not save');
 };
 // one record; kind may be new (stored as obs + f.k)
-async function addRecord(kind, bird, sp, f, note, at) {
+async function addRecord(kind, bird, sp, f, note, at, id = uuid()) {
   const native = NATIVE.includes(kind);
-  const row = {id: uuid(), type: native ? kind : 'obs', species_id: sp || null, bird: bird || '—', event_at: new Date(at || Date.now()).toISOString(),
+  const row = {id, type: native ? kind : 'obs', species_id: sp || null, bird: bird || '—', event_at: new Date(at || Date.now()).toISOString(),
     f: native ? (f || {}) : Object.assign({k: kind}, f || {}), note: note || '', created_by: me};
   const x = fromRec(must(await sb.from('records').insert(row).select().single()));
   D.rec.push(x); return x;

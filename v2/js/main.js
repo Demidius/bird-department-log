@@ -23,7 +23,7 @@ $('#toast').addEventListener('click', e => { if (e.target.closest('[data-undo]')
 const NAVK = ['scr', 'ani', 'plc', 'sp', 'rec', 'nowStatus', 'nowStatusTab'];
 const navOf = () => Object.fromEntries(NAVK.map(k => [k, st[k]]));
 const overlayOpen = () => !!(st.add || st.ed || st.tmenu || st.wmenu || st.msheet || st.uform || st.gal || st.splitGroup || st.ph >= 0 || st.lbx || st.cf);
-const addDirty = () => { const f = st.add; return !!(f && f.step !== 'menu' && f.step !== 'kids' && (String(f.note || '').trim() || Object.keys(f.fv).some(k => !['cnt', 'wu'].includes(k) && f.fv[k] != null && f.fv[k] !== '' && !(Array.isArray(f.fv[k]) && !f.fv[k].length)) || (f.files || []).length || (f.mv && (f.mv.to || f.mv.proc.length)))); };
+const addDirty = () => { const f = st.add; return !!(f && f.step !== 'menu' && f.step !== 'kids' && (String(f.note || '').trim() || f.feedDraft?.dirty || Object.keys(f.fv).some(k => !['cnt', 'wu'].includes(k) && f.fv[k] != null && f.fv[k] !== '' && !(Array.isArray(f.fv[k]) && !f.fv[k].length)) || (f.files || []).length || (f.mv && (f.mv.to || f.mv.proc.length)))); };
 function closeTop() {
   if (st.cf) { st.cf = ''; return; }
   if (st.lbx) { st.lbx = ''; return; }
@@ -184,7 +184,7 @@ document.addEventListener('click', async e => {
   if (d.pickplc) { st.add = null; go({scr: 'pcard', plc: d.pickplc}); return; }
   if (d.add) { newAdd(d.add === 'an' ? {step: 'what', target: 'animal', ani: st.ani, from: 'card'} : {step: 'what', target: 'place', plc: st.plc, from: 'card'}); return render(); }
   if (d.kind && f) {
-    Object.assign(f, {kind: d.kind, step: 'form', err: '', fv: {}, pa: {}});
+    Object.assign(f, {kind: d.kind, step: 'form', err: '', fv: {}, feedDraft: null, pa: {}});
     if (d.kind === 'tdose') { const rx = activeTreatments().filter(x => tgt().some(a => key(a.name) === key(x.r.bird))); if (rx.length === 1) { const r = rx[0].r; Object.assign(f.fv, {rx: r.id, drug: r.f.drug || '', dose: r.f.dose || '', route: r.f.route || ''}); } }
     return render();
   }
