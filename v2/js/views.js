@@ -63,7 +63,7 @@ function nowStatusData(status) {
   const count = young ? source.reduce((n, r) => n + (Number(r.f.n) || 1), 0) : animals.length;
   return {source, animals, count};
 }
-const counters = () => `<div class="bl-counters">${NOW_STATUS.map(s => `<button class="bl-counter g-${s.group}" data-now-status="${s.id}"><span class="t">${ic(s.icon, 17)}<b>${nowStatusData(s).count}</b></span><span class="l">${s.title()}</span></button>`).join('')}</div>`;
+const counters = (active = '', count = 0) => `<div class="bl-counters">${NOW_STATUS.map(s => `<button class="bl-counter g-${s.group}" data-now-status="${s.id}" aria-pressed="${s.id === active}"><span class="t">${ic(s.icon, 17)}<b>${s.id === active ? count : nowStatusData(s).count}</b></span><span class="l">${s.title()}</span></button>`).join('')}</div>`;
 function nowScreen() {
   const T = taskCards(), need = T.filter(x => x.need), going = T.filter(x => !x.need);
   const body = !T.length ? emptyBox('check', L('Na dziś wszystko zrobione', 'На сегодня всё сделано', 'All done for today'), L('Nowe zadania pojawią się tu same: leczenie, obserwacje, gniazda.', 'Новые задачи появятся здесь сами: лечение, наблюдения, гнёзда.', 'New tasks will appear here: treatments, observations, nests.'))
@@ -88,7 +88,7 @@ function nowStatusScreen() {
     if (status.id === 'young' && count > animals.length) body += `<p class="empty">${L('Młode bez kart znajdziesz we wpisach.', 'Молодняк без карточек указан во вкладке «Записи».', 'Young without cards are listed in Records.')}</p>`;
     if (!body) body = `<p class="empty">${L('Brak zwierząt', 'Нет животных', 'No animals')}</p>`;
   }
-  return `${topbar(`<b class="tbcat">${status.title()}</b>`)}<div class="scroll"><div class="calsub"><div class="bl-seg two">${tabs.map(([id, label]) => `<button data-now-status-tab="${id}" aria-pressed="${tab === id}">${label}</button>`).join('')}</div></div>${body}</div>`;
+  return `${topbar(`<b class="tbcat">${status.title()}</b>`)}${counters(status.id, count)}<div class="scroll"><div class="calsub"><div class="bl-seg two">${tabs.map(([id, label]) => `<button data-now-status-tab="${id}" aria-pressed="${tab === id}">${label}</button>`).join('')}</div></div>${body}</div>`;
 }
 
 /* ---------- Journal ---------- */
