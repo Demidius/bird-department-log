@@ -34,14 +34,16 @@ function taskCards() {
 }
 function taskHTML(x) {
   const who = x.a ? `${esc(anTitle(x.a))} <small>· ${esc(suffix(x.a) || sexSym(x.a.sex))}</small>` : esc(x.who || x.bird || '');
+  const what = x.rec ? `<span><button type="button" class="lnkb" data-rec="${esc(x.rec)}">${esc(x.what)}</button></span>` : `<span class="what">${esc(x.what)}</span>`;
   let acts = '';
   if (canWrite()) {
+    if (x.actions) acts = x.actions;
     if (x.act === 'dose') acts = `<div class="acts"><button class="bl-btn solid grow" data-dose="${x.rx.id}">${ic('check', 18, 2.4)}${L('Podaj', 'Подать', 'Give')}</button><button class="bl-btn icon" data-tmenu="${x.rx.id}" aria-label="${L('Więcej', 'Ещё', 'More')}">${ic('more', 18)}</button></div>`;
     if (x.act === 'dosed') acts = `<div class="acts"><span class="doneln">${ic('check', 14, 3)} ${L('dziś podane', 'сегодня подано', 'given today')}${x.last ? ' ' + fTime(x.last.at) + ' · ' + esc(nameOf(x.last.by)) : ''}${x.last && canEditRec(x.last) ? `<button data-undorec="${x.last.id}">${L('Cofnij', 'Отменить', 'Undo')}</button>` : ''}</span><button class="bl-btn icon" data-tmenu="${x.rx.id}">${ic('more', 18)}</button></div>`;
     if (x.act === 'score') acts = `<div class="acts"><div class="bl-score">${[1, 2, 3, 4, 5].map(n => `<button data-score="${x.watch.id}" data-n="${n}">${n}</button>`).join('')}</div><button class="bl-btn icon" data-wmenu="${x.watch.id}" aria-label="${L('Więcej', 'Ещё', 'More')}">${ic('more', 18)}</button></div>`;
     if (x.act === 'done') acts = `<div class="acts"><button class="bl-btn tint grow" data-deptdone="${x.dept.id}">${ic('check', 18, 2.4)}${L('Zrobione', 'Сделано', 'Done')}</button></div>`;
   }
-  return `<div class="bl-task g-${x.g}" ${x.a ? `data-ani="${x.a.id}"` : ''}>${badge(x.g, x.i)}<div class="tt"><span class="who">${who}</span><span class="what">${esc(x.what)}</span>${x.meta ? `<span class="meta">${esc(x.meta)}</span>` : ''}${x.prog != null ? `<div class="bl-prog"><i style="width:${x.prog * 100}%"></i></div>` : ''}</div><span class="when">${x.when || ''}</span>${acts}</div>`;
+  return `<div class="bl-task g-${x.g}" ${x.a ? `data-ani="${x.a.id}"` : ''}>${badge(x.g, x.i)}<div class="tt"><span class="who">${who}</span>${what}${x.meta ? `<span class="meta">${esc(x.meta)}</span>` : ''}${x.prog != null ? `<div class="bl-prog"><i style="width:${x.prog * 100}%"></i></div>` : ''}</div><span class="when">${x.when || ''}</span>${acts}</div>`;
 }
 const NOW_STATUS = [
   {id: 'treatment', group: 'health', icon: 'cross',
@@ -318,6 +320,7 @@ function recCard() {
   <div class="scroll"><div class="rhero">${badge(g, kIcon(r.k))}<div><p class="rgrp">${GROUPS.find(x => x.id === g).n()}</p><h1>${esc(recTitle(r))}</h1></div></div>
   ${a ? `<button class="bl-whochip" data-ani="${a.id}"><span class="bl-av">${esc(anInit(a))}</span><span><b>${esc(anLine(a))}</b><small>${a.grp ? '' : sexSym(a.sex) + ' · '}${esc(plName(plByName(anEncl(a))) || anEncl(a))}</small></span><em>${ic('chev', 18)}</em></button>` : `<div class="bl-whochip"><span class="bl-av">${ic(r.f.place ? 'home' : 'building', 20)}</span><span><b>${esc(recWho(r))}</b></span></div>`}
   <dl class="bl-facts" style="margin-top:10px"><div><dt>${L('Kiedy', 'Когда', 'When')}</dt><dd>${relDay(r.at)}${r.f.nt ? '' : ' ' + fTime(r.at)}</dd></div><div><dt>${L('Autor', 'Автор', 'Author')}</dt><dd>${esc(nameOf(r.by))}</dd></div>${details.map(([x, y]) => `<div><dt>${x}</dt><dd>${esc(y)}</dd></div>`).join('')}</dl>
+  ${feedStopButton(r)}
   ${r.note ? `<div class="rnote">${esc(r.note)}</div>` : ''}
   ${ph.length ? `<div class="pgrid" style="margin-top:10px">${ph.map(p => `<button class="ph" data-open="${esc(p.path)}">${urls.get(thumbOf(p.path)) ? `<img src="${esc(urls.get(thumbOf(p.path)))}" alt="">` : `<span class="pic">${ic('cam', 22)}</span>`}</button>`).join('')}</div>` : ''}
   ${mine ? `<div class="bl-row" style="gap:6px;margin-top:10px"><button class="bl-btn" style="flex:1" data-editrec="1">${ic('pen', 17)}${L('Edytuj wpis', 'Редактировать запись', 'Edit record')}</button><button class="bl-btn" data-delrec="1" style="color:var(--health)">${ic('x', 17)}${L('Usuń', 'Удалить', 'Delete')}</button></div>` : `<p class="ro">${ic('lock', 15)} ${L('Edytować może autor lub administrator — możesz dodać komentarz.', 'Редактировать может автор или администратор — можно добавить комментарий.', 'Only the author or an admin can edit — you can comment.')}</p>`}
