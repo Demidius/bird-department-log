@@ -145,20 +145,31 @@ let feedTaskMinute;
 function feedingCards() {
   const now = Date.now(), day = ymd(now);
   feedTaskMinute = Math.floor(now / 60000);
-  const done = new Set(D.rec.filter(r => r.k === 'feed_given' && r.f.feedDay === day).map(r => `${r.f.feedPlan}:${r.f.feedTime}`));
+  const done = new Map();
+  for (const r of D.rec.filter(r => r.k === 'feed_given' && r.f.feedDay === day)) {
+    if (!done.has(r.f.feedPlan)) done.set(r.f.feedPlan, []);
+    done.get(r.f.feedPlan).push(r);
+  }
   const feeding = [];
+  const writable = canWrite();
   for (const plan of feedingPlans(now)) {
     const a = plan.f.place ? null : anByName(plan.bird);
-    for (const time of feedTimes(plan)) {
-      const at = feedSlotAt(now, time);
-      if (at + 60000 <= plan.at) continue;
-      const given = done.has(`${plan.id}:${time}`), ready = feedReady(at, now);
+    const slots = feedTimes(plan).map(time => ({time, at: feedSlotAt(now, time)})).filter(slot => slot.at + 60000 > plan.at);
+    const records = (done.get(plan.id) || []).sort((a, b) => a.at - b.at);
+    const givenByTime = new Map(records.map(r => [r.f.feedTime, r]));
+    const next = slots.find(slot => !givenByTime.has(slot.time));
+    const last = records.at(-1);
+    const more = `<button type="button" class="bl-btn icon" data-feed-menu="${esc(plan.id)}" aria-label="${L('Więcej', 'Ещё', 'More')}">${ic('more', 18)}</button>`;
+    for (const {time, at} of slots) {
+      const given = givenByTime.get(time), ready = feedReady(at, now);
       const pending = feedPending.has(feedActionKey(plan, day, time));
-      const action = ready ? `<button type="button" class="bl-btn solid grow" data-feed-give="${esc(plan.id)}" data-feed-day="${day}" data-feed-time="${time}" ${pending ? 'disabled' : ''}>${ic('check', 18, 2.4)}${L('Podaj', 'Подать', 'Give')} · ${time}</button>`
+      const give = ready ? `<button type="button" class="bl-btn solid grow" data-feed-give="${esc(plan.id)}" data-feed-day="${day}" data-feed-time="${time}" ${pending ? 'disabled' : ''}>${ic('check', 18, 2.4)}${L('Podaj', 'Подать', 'Give')} · ${time}</button>`
         : `<span class="slotw">${ic('clock', 16)}${L('Podać o ', 'Подать в ', 'Give at ')}<b>${time}</b></span>`;
+      const action = given ? givenTodayHTML(L('dziś podano', 'сегодня подано', 'given today'), given)
+        : give + (time === next?.time ? undoLastGiveButton(last) : '');
       feeding.push({g: 'keep', i: 'bowl', a, who: recWho(plan), what: kName('feed'), rec: plan.id,
-        when: time, meta: given ? L('Podano', 'Подано', 'Given') : plan.note,
-        need: !given && ready, actions: given ? '' : `<div class="acts">${action}</div>`});
+        when: time, meta: given && !writable ? L('Podano', 'Подано', 'Given') : plan.note,
+        need: !given && ready, actions: `<div class="acts">${action}${more}</div>`});
     }
   }
   return feeding.sort((a, b) => a.when.localeCompare(b.when));
@@ -195,11 +206,22 @@ recDetails = function (r) {
   if (r.k === 'feed_given' && isFeedTime(r.f.feedTime)) details.push([L('Planowana godzina', 'Время по расписанию', 'Scheduled time'), r.f.feedTime]);
   return details;
 };
+const feedCanStop = r => canWrite() && ['feed', 'incub'].includes(r.k) && feedTimes(r).length &&
+  feedingPlans(Date.now()).some(plan => plan.id === r.id);
+const feedStopLabel = () => L('Zakończ dodatkowe karmienie', 'Завершить дополнительное кормление', 'End supplemental feeding');
+const feedStopAttrs = r => `data-feed-stop="${esc(r.id)}" ${feedPending.has(feedActionKey(r, '', 'end')) ? 'disabled' : ''}`;
 function feedStopButton(r) {
-  const now = Date.now();
-  if (!canWrite() || !['feed', 'incub'].includes(r.k) || !feedTimes(r).length || !feedingPlans(now).some(plan => plan.id === r.id)) return '';
-  const pending = feedPending.has(feedActionKey(r, '', 'end'));
-  return `<button type="button" class="bl-btn wide" style="margin-top:10px" data-feed-stop="${esc(r.id)}" ${pending ? 'disabled' : ''}>${ic('check', 18)}${L('Zakończ dodatkowe karmienie', 'Завершить дополнительное кормление', 'End supplemental feeding')}</button>`;
+  return feedCanStop(r) ? `<button type="button" class="bl-btn wide" style="margin-top:10px" ${feedStopAttrs(r)}>${ic('check', 18)}${feedStopLabel()}</button>` : '';
+}
+function feedingMenu() {
+  const r = D.rec.find(x => x.id === st.feedMenu);
+  const close = L('Zamknij', 'Закрыть', 'Close');
+  return `<div class="scrim" data-close="feedMenu"></div><div class="bl-sheet g-keep menu" role="dialog" aria-label="${kName('feed')}"><div class="grip"></div><div class="head"><h3>${ic('bowl', 20)}${kName('feed')}</h3><button class="bl-x" data-close="feedMenu" aria-label="${close}">${ic('x', 18)}</button></div>
+  ${r ? `<p class="msub">${esc(recWho(r))}</p><div class="mlist">
+    ${feedCanStop(r) ? `<button ${feedStopAttrs(r)}>${ic('check', 18)}<span><b>${feedStopLabel()}</b><small>${L('zniknie z „Teraz”, zostanie w historii', 'уйдёт из «Сейчас», останется в истории', 'leaves “Now”, stays in the history')}</small></span></button>` : ''}
+    ${canEditRec(r) ? `<button data-feed-edit="${esc(r.id)}">${ic('pen', 18)}<span><b>${L('Edytuj karmienie', 'Редактировать кормление', 'Edit feeding')}</b><small>${L('godziny, częstotliwość i okres', 'время, частота и срок', 'times, frequency and duration')}</small></span></button>` : ''}
+    <button data-rec="${esc(r.id)}" data-feed-card="1">${ic('list', 18)}<span><b>${L('Karta karmienia', 'Карточка кормления', 'Feeding card')}</b><small>${L('harmonogram i komentarze', 'расписание и комментарии', 'schedule and comments')}</small></span></button>
+  </div>` : ''}</div>`;
 }
 
 // The same plan/date/time always yields the same record ID, including across devices.
@@ -236,12 +258,13 @@ async function saveFeedingAction(planId, day, time, end) {
     } else toast(errText(e));
   } finally {
     feedPending.delete(pendingKey);
+    if (end && st.feedMenu === plan.id && !feedCanStop(plan)) st.feedMenu = null;
     render();
   }
 }
 
 document.addEventListener('click', e => {
-  const b = e.target.closest('[data-feed-toggle],[data-feed-mode],[data-feed-edit],[data-feed-give],[data-feed-stop]');
+  const b = e.target.closest('[data-feed-toggle],[data-feed-mode],[data-feed-edit],[data-feed-give],[data-feed-stop],[data-feed-menu]');
   if (!b || b.disabled) return;
   const f = F();
   if (b.dataset.feedToggle && f?.kind === 'incub') {
@@ -257,9 +280,14 @@ document.addEventListener('click', e => {
   } else if (b.dataset.feedEdit) {
     const plan = D.rec.find(r => r.id === b.dataset.feedEdit);
     if (!plan || !canEditRec(plan)) return;
+    st.feedMenu = null;
     openEdit(plan);
     F().feedOnly = true;
     render();
+  } else if (b.dataset.feedMenu && canWrite()) {
+    st.feedMenu = b.dataset.feedMenu;
+    render();
+    $('.bl-sheet [data-close="feedMenu"]')?.focus();
   } else if (b.dataset.feedGive) saveFeedingAction(b.dataset.feedGive, b.dataset.feedDay, b.dataset.feedTime, false);
   else if (b.dataset.feedStop) saveFeedingAction(b.dataset.feedStop, '', '', true);
 });

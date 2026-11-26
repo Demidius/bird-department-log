@@ -49,10 +49,20 @@ with sync_playwright() as pw:
     assert p.evaluate("D.rec.find(r => r.k === 'incub').f.feedTimes") == ['12:00', '13:30', '16:00']
 
     p.evaluate("go({scr: 'now'})")
+    assert p.locator('.bl-task[data-feed-card] [data-feed-menu]').count() == 3
+    assert p.locator('.bl-task[data-feed-card] [data-undorec]').count() == 0
     p.locator('[data-feed-give][data-feed-time="12:00"]').click()
     p.wait_for_function("D.rec.some(r => r.k === 'feed_given')")
     assert p.locator('[data-feed-give][data-feed-time="12:00"]').count() == 0
     assert p.get_by_text('Podać o 13:30').count() == 1
+    done = p.locator('.bl-task[data-feed-card]').filter(has_text='dziś podano')
+    next_feeding = p.locator('.bl-task[data-feed-card]').filter(has=p.get_by_text('Podać o 13:30'))
+    assert done.locator('.doneln [data-undorec]').get_attribute('data-undorec') == next_feeding.locator('.undodose').get_attribute('data-undorec')
+    next_feeding.locator('.undodose').click()
+    p.wait_for_function("!D.rec.some(r => r.k === 'feed_given')")
+    assert p.locator('[data-feed-give][data-feed-time="12:00"]').is_visible()
+    p.locator('[data-feed-give][data-feed-time="12:00"]').click()
+    p.wait_for_function("D.rec.some(r => r.k === 'feed_given')")
     ongoing = p.locator('.stack').filter(has=p.get_by_text('Podać o 13:30'))
     groups = ongoing.locator('.bl-task').evaluate_all(
         "cards => cards.map(card => ['g-health', 'g-keep', 'g-breed'].find(g => card.classList.contains(g)))"
@@ -126,14 +136,32 @@ with sync_playwright() as pw:
         go({scr: 'now'});
     }""", ids[2])
     assert p.locator('[data-feed-give][data-feed-time="12:20"]').count() == 1
-    p.get_by_role('button', name='Dodatkowe karmienie').click()
-    p.locator('[data-feed-stop]').click()
+    more = p.locator('.bl-task[data-feed-card] [data-feed-menu]')
+    menu = p.get_by_role('dialog', name='Dodatkowe karmienie')
+    more.click()
+    assert menu.is_visible()
+    p.evaluate('history.back()')
+    menu.wait_for(state='hidden')
+    assert p.evaluate("st.scr === 'now'")
+    more.click()
+    menu.locator('[data-feed-edit]').click()
+    assert p.locator('.bl-sheet h3').inner_text() == 'Edycja: Dodatkowe karmienie'
+    p.locator('[data-save]').click()
+    p.wait_for_function('!F()')
+    more.click()
+    menu.get_by_role('button', name='Karta karmienia').click()
+    assert p.evaluate("st.scr === 'rcard' && st.recFeeding && !st.feedMenu")
+    p.locator('[data-back]').click()
+    more.click()
+    menu.locator('[data-feed-stop]').click()
     p.wait_for_function("D.rec.some(r => r.k === 'feed_end')")
-    assert p.locator('[data-feed-stop]').count() == 0
+    menu.wait_for(state='hidden')
+    assert p.locator('[data-feed-give]').count() == 0
+    p.evaluate("go({scr: 'rcard', rec: D.rec.find(r => r.k === 'incub' && r.f.feedDuration === 'open').id, recFeeding: true})")
     assert p.get_by_text('Zakończone', exact=True).is_visible()
     p.evaluate("go({scr: 'now'})")
     assert p.locator('[data-feed-give]').count() == 0
     browser.close()
 
 assert not [e for e in errors if 'fetching the script' not in e], errors
-print('Supplemental feeding passed: daily slots, editing in Now, fixed duration, hatch and manual stop.')
+print('Supplemental feeding passed: daily slots, undo, action menu, editing, fixed duration, hatch and manual stop.')
