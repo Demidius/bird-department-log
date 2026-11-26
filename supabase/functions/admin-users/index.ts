@@ -73,11 +73,13 @@ Deno.serve(async (req: Request) => {
       if (id === callerId && ((patch.role !== undefined && patch.role !== "admin") || patch.active === false)) {
         return json({ error: "self_lock" }, 400);
       }
-      if (body.password) {
-        const password = String(body.password);
-        if (password.length < 8) return json({ error: "short_password" }, 400);
-        const { error } = await admin.auth.admin.updateUserById(id, { password });
-        if (error) return json({ error: "update_failed", detail: error.message }, 400);
+      const password = body.password;
+      if (password !== undefined && (typeof password !== "string" || password.length < 8)) {
+        return json({ error: "short_password" }, 400);
+      }
+      if (typeof password === "string") {
+        const { data, error } = await admin.auth.admin.updateUserById(id, { password });
+        if (error || data?.user?.id !== id) return json({ error: "password_update_failed" }, 400);
       }
       if (patch.active !== undefined && patch.active !== target.active) {
         const { error } = await admin.auth.admin.updateUserById(id, { ban_duration: patch.active ? "none" : "876000h" });
@@ -87,7 +89,7 @@ Deno.serve(async (req: Request) => {
         const { error } = await admin.from("profiles").update(patch).eq("id", id);
         if (error) return json({ error: "update_failed", detail: error.message }, 400);
       }
-      return json({ ok: true });
+      return json({ ok: true, password_changed: typeof password === "string" });
     }
 
     return json({ error: "bad_action" }, 400);
