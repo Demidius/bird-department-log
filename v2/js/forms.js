@@ -198,7 +198,8 @@ function addSheet() {
   if (f.step === 'what') { title = L('Co zapisać?', 'Что записать?', 'What to record?'); back = f.from === 'card' ? '' : f.target === 'place' ? 'places' : 'who'; body = stepWhat(); }
   if (f.step === 'kids') { g = 'g-breed'; title = `${ic('egg', 20)}${L('Karty potomstwa', 'Карточки потомства', 'Offspring cards')}`; back = ''; body = kidsForm(); }
   if (f.step === 'form') {
-    const k = f.kind; g = 'g-' + kGroup(k); title = `${ic(kIcon(k), 20)}${f.edit ? L('Edycja: ', 'Правка: ', 'Edit: ') : ''}${k === 'dept' ? L('Wolny wpis', 'Свободная запись', 'Free note') : kName(k)}`;
+    const k = f.kind, displayKind = f.feedOnly ? 'feed' : k;
+    g = 'g-' + kGroup(displayKind); title = `${ic(kIcon(displayKind), 20)}${f.edit ? L('Edycja: ', 'Правка: ', 'Edit: ') : ''}${k === 'dept' ? L('Wolny wpis', 'Свободная запись', 'Free note') : kName(displayKind)}`;
     back = f.edit || k === 'arrive' || k === 'dept' || f.from === 'direct' ? '' : 'what';
     body = k === 'expo' ? moveForm() : k === 'leave' ? leaveForm() : k === 'arrive' && !f.edit ? arriveForm() : ['tstart', 'tdose'].includes(k) ? medForm() : k === 'dept' ? freeForm() : genericForm();
   }
@@ -237,9 +238,12 @@ async function saveForm() {
   f.busy = 1; f.err = ''; render();
   try {
     if (f.edit) {
-      let fv = buildF();
+      const source = f.feedOnly ? D.rec.find(r => r.id === f.edit.id) : f.edit;
+      if (!source || !canEditRec(source)) throw new Error();
+      let fv = f.feedOnly ? {...source.f, feedTimes: f.fv.feedTimes, feedDuration: f.fv.feedDuration} : buildF();
       if (k === 'expo') fv = clean(Object.assign(fv, {to: f.mv.to, byId: f.mv.by, by: f.mv.by.map(nameOf)}));
-      await updateRecord(f.edit, fv, f.note.trim(), at);
+      const note = f.feedOnly && k === 'incub' ? source.note : f.note.trim();
+      await updateRecord(source, fv, note, f.feedOnly ? source.at : at);
       st.add = null; toast(L('Zapisano zmiany', 'Изменения сохранены', 'Changes saved')); render(); return;
     }
     if (k === 'dept') { made.push(await addRecord('dept', '—', null, buildF(), f.note.trim(), at)); }

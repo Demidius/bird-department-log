@@ -1,5 +1,5 @@
 // main.js — v2: state, render, navigation (phone Back moves through screens), events, sign-in, theme, language
-const st = {scr: 'now', nowStatus: null, nowStatusTab: 'animals', flt: 'all', q: '', lq: '', wq: '', lim: 150, multi: new Set(), folded: new Set(), acc: new Set(), ph: -1, gal: 0, phf: 'all',
+const st = {scr: 'now', recFeeding: false, nowStatus: null, nowStatusTab: 'animals', flt: 'all', q: '', lq: '', wq: '', lim: 150, multi: new Set(), folded: new Set(), acc: new Set(), ph: -1, gal: 0, phf: 'all',
   add: null, ed: null, tmenu: null, tend: 0, tendv: {}, wmenu: null, msheet: '', splitGroup: null, uform: null, cf: '', gate: 'loading', calMode: 'month'};
 const app = () => $('#app');
 const urlTried = new Set();
@@ -20,7 +20,7 @@ function toast(msg, u) {
 $('#toast').addEventListener('click', e => { if (e.target.closest('[data-undo]') && toastU) { const u = toastU; toastU = null; $('#toast').classList.remove('on'); undo(u); } });
 
 /* ---------- navigation ---------- */
-const NAVK = ['scr', 'ani', 'plc', 'sp', 'rec', 'nowStatus', 'nowStatusTab'];
+const NAVK = ['scr', 'ani', 'plc', 'sp', 'rec', 'recFeeding', 'nowStatus', 'nowStatusTab'];
 const navOf = () => Object.fromEntries(NAVK.map(k => [k, st[k]]));
 const overlayOpen = () => !!(st.add || st.ed || st.tmenu || st.wmenu || st.msheet || st.uform || st.gal || st.splitGroup || st.ph >= 0 || st.lbx || st.cf);
 const addDirty = () => { const f = st.add; return !!(f && f.step !== 'menu' && f.step !== 'kids' && (String(f.note || '').trim() || f.feedDraft?.dirty || Object.keys(f.fv).some(k => !['cnt', 'wu'].includes(k) && f.fv[k] != null && f.fv[k] !== '' && !(Array.isArray(f.fv[k]) && !f.fv[k].length)) || (f.files || []).length || (f.mv && (f.mv.to || f.mv.proc.length)))); };
@@ -39,7 +39,7 @@ function closeTop() {
 }
 function go(o) {
   const prev = JSON.stringify(navOf());
-  Object.assign(st, o); if (o.scr) { st.ph = -1; st.gal = 0; st.phf = 'all'; st.replyTo = ''; st.lbx = ''; st.cin = ''; }
+  Object.assign(st, o); if (o.scr) { st.recFeeding = o.scr === 'rcard' && !!o.recFeeding; st.ph = -1; st.gal = 0; st.phf = 'all'; st.replyTo = ''; st.lbx = ''; st.cin = ''; }
   if (o.scr && ['logs', 'animals', 'species'].includes(o.scr) && o.scr !== JSON.parse(prev).scr) st.lq = '';
   if (JSON.stringify(navOf()) !== prev) { history.pushState({v2: 1, nav: navOf()}, ''); window.scrollTo(0, 0); const s = $('.scroll'); if (s) s.scrollTop = 0; }
   if (o.scr === 'rcard' && o.rec) markSeen(o.rec);
@@ -241,7 +241,7 @@ document.addEventListener('click', async e => {
   if (d.ani) { st.add = null; st.tmenu = null; st.wmenu = null; go({scr: 'card', ani: d.ani}); return; }
   if (d.plc) { st.add = null; go({scr: 'pcard', plc: d.plc}); return; }
   if (d.sp) { go({scr: 'scard', sp: d.sp, spTab: 'wild'}); st.acc = new Set(); return render(); }
-  if (d.rec) { st.tmenu = null; st.wmenu = null; st.replyTo = ''; go({scr: 'rcard', rec: d.rec}); return; }
+  if (d.rec) { st.tmenu = null; st.wmenu = null; st.replyTo = ''; go({scr: 'rcard', rec: d.rec, recFeeding: !!d.feedCard}); return; }
   const selectStatus = d.nowStatus && NOW_STATUS.some(s => s.id === d.nowStatus);
   const selectStatusTab = st.scr === 'status' && ['animals', 'records'].includes(d.nowStatusTab);
   if (selectStatus || selectStatusTab) {

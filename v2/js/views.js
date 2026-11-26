@@ -35,7 +35,7 @@ function taskCards() {
 }
 function taskHTML(x) {
   const who = x.a ? `${esc(anTitle(x.a))} <small>· ${esc(suffix(x.a) || sexSym(x.a.sex))}</small>` : esc(x.who || x.bird || '');
-  const what = x.rec ? `<span><button type="button" class="lnkb" data-rec="${esc(x.rec)}">${esc(x.what)}</button></span>` : `<span class="what">${esc(x.what)}</span>`;
+  const what = x.rec ? `<span><button type="button" class="lnkb" data-rec="${esc(x.rec)}" data-feed-card="1">${esc(x.what)}</button></span>` : `<span class="what">${esc(x.what)}</span>`;
   let acts = '';
   if (canWrite()) {
     if (x.actions) acts = x.actions;
@@ -310,21 +310,25 @@ function speciesCard() {
 }
 function recCard() {
   const r = D.rec.find(x => x.id === st.rec); if (!r) return `${topbar(L('Dziennik', 'Журнал', 'Journal'))}<div class="scroll"><p class="empty">${L('Wpis usunięty', 'Запись удалена', 'Record deleted')}</p></div>`;
-  const g = kGroup(r.k), a = anByName(r.bird), mine = canEditRec(r), com = commentsOn ? (D.com.get(r.id) || []) : [];
+  const feeding = st.recFeeding, kind = feeding ? 'feed' : r.k;
+  const g = kGroup(kind), a = anByName(r.bird), mine = canEditRec(r), com = commentsOn ? (D.com.get(r.id) || []) : [];
   const ph = phOf('record', r.id);
   const s = seen()[r.id] || 0, roots = com.filter(c => !c.parent_id), kids = id => com.filter(c => c.parent_id === id);
   const ini = n => String(n || '?').split(/[ .]/).filter(Boolean).map(w => w[0]).join('').slice(0, 2).toUpperCase();
   const cH = (c, reply) => { const isNew = c.created_by !== me && new Date(c.created_at).getTime() > s; return `<div class="cmt ${reply ? 'reply' : ''}"><span class="bl-av sm2">${ini(nameOf(c.created_by))}</span><div><p class="ch"><b>${esc(nameOf(c.created_by))}</b> <span>${relDay(new Date(c.created_at).getTime())} ${fTime(new Date(c.created_at).getTime())}</span>${isNew ? `<em class="nw">${L('nowy', 'новый', 'new')}</em>` : ''}</p><p class="ct">${esc(c.body)}</p>${!reply && canWrite() ? `<button class="rpl" data-reply="${c.id}">${L('Odpowiedz', 'Ответить', 'Reply')}</button>` : ''}${(c.created_by === me || isAdmin()) ? `<button class="rpl del" data-delcom="${c.id}">${L('Usuń', 'Удалить', 'Delete')}</button>` : ''}</div></div>`; };
   const replyTo = st.replyTo ? com.find(c => c.id === st.replyTo) : null;
-  const details = recDetails(r);
-  return `<div class="cardscr g-${g}">${topbar(L('Dziennik', 'Журнал', 'Journal'), mine ? `<button class="bl-x" data-editrec="1" aria-label="${L('Edytuj', 'Редактировать', 'Edit')}">${ic('pen', 18)}</button>` : '')}
-  <div class="scroll"><div class="rhero">${badge(g, kIcon(r.k))}<div><p class="rgrp">${GROUPS.find(x => x.id === g).n()}</p><h1>${esc(recTitle(r))}</h1></div></div>
+  const details = feeding ? feedingDetails(r) : recDetails(r);
+  const edit = feeding ? `data-feed-edit="${esc(r.id)}"` : 'data-editrec="1"';
+  const editFeeding = L('Edytuj karmienie', 'Редактировать кормление', 'Edit feeding');
+  return `<div class="cardscr g-${g}">${topbar(feeding ? L('Teraz', 'Сейчас', 'Now') : L('Dziennik', 'Журнал', 'Journal'), mine ? `<button class="bl-x" ${edit} aria-label="${feeding ? editFeeding : L('Edytuj', 'Редактировать', 'Edit')}">${ic('pen', 18)}</button>` : '')}
+  <div class="scroll"><div class="rhero">${badge(g, kIcon(kind))}<div><p class="rgrp">${GROUPS.find(x => x.id === g).n()}</p><h1>${esc(feeding ? kName(kind) : recTitle(r))}</h1></div></div>
   ${a ? `<button class="bl-whochip" data-ani="${a.id}"><span class="bl-av">${esc(anInit(a))}</span><span><b>${esc(anLine(a))}</b><small>${a.grp ? '' : sexSym(a.sex) + ' · '}${esc(plName(plByName(anEncl(a))) || anEncl(a))}</small></span><em>${ic('chev', 18)}</em></button>` : `<div class="bl-whochip"><span class="bl-av">${ic(r.f.place ? 'home' : 'building', 20)}</span><span><b>${esc(recWho(r))}</b></span></div>`}
   <dl class="bl-facts" style="margin-top:10px"><div><dt>${L('Kiedy', 'Когда', 'When')}</dt><dd>${relDay(r.at)}${r.f.nt ? '' : ' ' + fTime(r.at)}</dd></div><div><dt>${L('Autor', 'Автор', 'Author')}</dt><dd>${esc(nameOf(r.by))}</dd></div>${details.map(([x, y]) => `<div><dt>${x}</dt><dd>${esc(y)}</dd></div>`).join('')}</dl>
+  ${feeding && mine ? `<button type="button" class="bl-btn wide" style="margin-top:10px" ${edit}>${ic('pen', 17)}${editFeeding}</button>` : ''}
   ${feedStopButton(r)}
   ${r.note ? `<div class="rnote">${esc(r.note)}</div>` : ''}
   ${ph.length ? `<div class="pgrid" style="margin-top:10px">${ph.map(p => `<button class="ph" data-open="${esc(p.path)}">${urls.get(thumbOf(p.path)) ? `<img src="${esc(urls.get(thumbOf(p.path)))}" alt="">` : `<span class="pic">${ic('cam', 22)}</span>`}</button>`).join('')}</div>` : ''}
-  ${mine ? `<div class="bl-row" style="gap:6px;margin-top:10px"><button class="bl-btn" style="flex:1" data-editrec="1">${ic('pen', 17)}${L('Edytuj wpis', 'Редактировать запись', 'Edit record')}</button><button class="bl-btn" data-delrec="1" style="color:var(--health)">${ic('x', 17)}${L('Usuń', 'Удалить', 'Delete')}</button></div>` : `<p class="ro">${ic('lock', 15)} ${L('Edytować może autor lub administrator — możesz dodać komentarz.', 'Редактировать может автор или администратор — можно добавить комментарий.', 'Only the author or an admin can edit — you can comment.')}</p>`}
+  ${mine ? (feeding ? '' : `<div class="bl-row" style="gap:6px;margin-top:10px"><button class="bl-btn" style="flex:1" data-editrec="1">${ic('pen', 17)}${L('Edytuj wpis', 'Редактировать запись', 'Edit record')}</button><button class="bl-btn" data-delrec="1" style="color:var(--health)">${ic('x', 17)}${L('Usuń', 'Удалить', 'Delete')}</button></div>`) : `<p class="ro">${ic('lock', 15)} ${L('Edytować może autor lub administrator — możesz dodać komentarz.', 'Редактировать может автор или администратор — можно добавить комментарий.', 'Only the author or an admin can edit — you can comment.')}</p>`}
   ${commentsOn ? `<div class="sec"><span>${L('Komentarze', 'Комментарии', 'Comments')}</span><span>${com.length}</span></div><div class="stack">${roots.map(c => cH(c) + kids(c.id).map(k => cH(k, 1)).join('')).join('') || `<p class="empty">${L('Brak komentarzy', 'Комментариев пока нет', 'No comments yet')}</p>`}</div>` : ''}
   </div>${commentsOn && canWrite() ? `<div class="cbar">${replyTo ? `<div class="rto">${L('Odpowiedź dla', 'Ответ для', 'Reply to')} <b>${esc(nameOf(replyTo.created_by))}</b><button data-reply="">${ic('x', 14, 2.6)}</button></div>` : ''}<div class="cin"><div class="bl-text"><textarea id="cin" rows="1" placeholder="${L('Dodaj komentarz…', 'Добавить комментарий…', 'Add a comment…')}">${esc(st.cin || '')}</textarea>${micBtn('cin')}</div><button class="bl-btn solid send" data-send="1" aria-label="${L('Wyślij', 'Отправить', 'Send')}">${ic('chev', 20, 2.6)}</button></div></div>` : ''}${st.lbx ? `<div class="lbx"><button class="bl-x lbc" data-open="" aria-label="×">${ic('x', 18)}</button><div class="lbimg"><img src="${esc(urls.get(st.lbx) || '')}" alt=""></div></div>` : ''}</div>`;
 }
