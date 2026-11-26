@@ -1,5 +1,5 @@
 // main.js — v2: state, render, navigation (phone Back moves through screens), events, sign-in, theme, language
-const st = {scr: 'now', flt: 'all', q: '', lq: '', wq: '', lim: 150, multi: new Set(), folded: new Set(), acc: new Set(), ph: -1, gal: 0, phf: 'all',
+const st = {scr: 'now', nowStatus: null, nowStatusTab: 'animals', flt: 'all', q: '', lq: '', wq: '', lim: 150, multi: new Set(), folded: new Set(), acc: new Set(), ph: -1, gal: 0, phf: 'all',
   add: null, ed: null, tmenu: null, tend: 0, tendv: {}, wmenu: null, msheet: '', splitGroup: null, uform: null, cf: '', gate: 'loading', calMode: 'month'};
 const app = () => $('#app');
 const urlTried = new Set();
@@ -20,7 +20,7 @@ function toast(msg, u) {
 $('#toast').addEventListener('click', e => { if (e.target.closest('[data-undo]') && toastU) { const u = toastU; toastU = null; $('#toast').classList.remove('on'); undo(u); } });
 
 /* ---------- navigation ---------- */
-const NAVK = ['scr', 'ani', 'plc', 'sp', 'rec'];
+const NAVK = ['scr', 'ani', 'plc', 'sp', 'rec', 'nowStatus', 'nowStatusTab'];
 const navOf = () => Object.fromEntries(NAVK.map(k => [k, st[k]]));
 const overlayOpen = () => !!(st.add || st.ed || st.tmenu || st.wmenu || st.msheet || st.uform || st.gal || st.splitGroup || st.ph >= 0 || st.lbx || st.cf);
 const addDirty = () => { const f = st.add; return !!(f && f.step !== 'menu' && f.step !== 'kids' && (String(f.note || '').trim() || Object.keys(f.fv).some(k => !['cnt', 'wu'].includes(k) && f.fv[k] != null && f.fv[k] !== '' && !(Array.isArray(f.fv[k]) && !f.fv[k].length)) || (f.files || []).length || (f.mv && (f.mv.to || f.mv.proc.length)))); };
@@ -56,7 +56,7 @@ window.addEventListener('popstate', e => {
 
 /* ---------- render ---------- */
 const NAV = [['now', 'now', () => L('Teraz', 'Сейчас', 'Now')], ['logs', 'list', () => L('Dziennik', 'Журнал', 'Journal')], ['', '', null], ['cal', 'cal', () => L('Kalendarz', 'Календарь', 'Calendar')], ['more', 'grid', () => L('Więcej', 'Ещё', 'More')]];
-const navKey = () => ({animals: 'more', places: 'more', species: 'more', card: 'more', pcard: 'more', scard: 'more', gaps: 'more', clog: 'more', users: 'more', rcard: 'logs'})[st.scr] || st.scr;
+const navKey = () => ({status: 'now', animals: 'more', places: 'more', species: 'more', card: 'more', pcard: 'more', scard: 'more', gaps: 'more', clog: 'more', users: 'more', rcard: 'logs'})[st.scr] || st.scr;
 const bottomNav = () => `<nav class="bl-nav">${NAV.map(([k, i, l]) => k ? `<button data-scr="${k}" ${navKey() === k ? 'aria-current="page"' : ''}>${ic(i, 22)}${l()}</button>` : '<span></span>').join('')}${canWrite() ? `<button class="bl-fab" data-fab="1" aria-label="${L('Dodaj wpis', 'Добавить запись', 'Add record')}">${ic('plus', 26, 2.6)}</button>` : ''}</nav>`;
 function confirmBox() {
   const T = {add: [L('Odrzucić zmiany?', 'Отменить изменения?', 'Discard changes?'), L('Wpisane dane nie zostaną zapisane.', 'Введённое не сохранится.', 'What you entered will not be saved.'), L('Wróć do formularza', 'Продолжить заполнение', 'Back to the form'), L('Odrzuć', 'Отменить', 'Discard')],
@@ -67,6 +67,7 @@ function confirmBox() {
 function screen() {
   switch (st.scr) {
     case 'logs': return logsScreen();
+    case 'status': return nowStatusScreen();
     case 'cal': return calScreen();
     case 'more': return moreScreen();
     case 'animals': case 'places': case 'species': return listScreen(st.scr);
@@ -241,6 +242,17 @@ document.addEventListener('click', async e => {
   if (d.plc) { st.add = null; go({scr: 'pcard', plc: d.plc}); return; }
   if (d.sp) { go({scr: 'scard', sp: d.sp, spTab: 'wild'}); st.acc = new Set(); return render(); }
   if (d.rec) { st.tmenu = null; st.wmenu = null; st.replyTo = ''; go({scr: 'rcard', rec: d.rec}); return; }
+  if (d.nowStatus && NOW_STATUS.some(s => s.id === d.nowStatus)) {
+    st.lim = 150;
+    go({scr: 'status', nowStatus: d.nowStatus, nowStatusTab: 'animals'});
+    return;
+  }
+  if (st.scr === 'status' && ['animals', 'records'].includes(d.nowStatusTab)) {
+    st.nowStatusTab = d.nowStatusTab;
+    history.replaceState({v2: 1, nav: navOf()}, '');
+    const scroll = $('.scroll'); if (scroll) scroll.scrollTop = 0;
+    return render();
+  }
   if (d.flt) { st.flt = d.flt; st.lim = 150; if (st.scr !== 'logs') go({scr: 'logs'}); else render(); return; }
   if (d.more) { st.lim += 150; return render(); }
   if (d.mon != null) { const n = +d.mon, now = new Date(); let y = st.cy ?? now.getFullYear(), m = st.cm ?? now.getMonth(); if (n === 0) { y = now.getFullYear(); m = now.getMonth(); st.dk = dayKey(Date.now()); } else { m += n; if (m < 0) { m = 11; y--; } if (m > 11) { m = 0; y++; } st.dk = `${y}-${m}-1`; } st.cy = y; st.cm = m; return render(); }
