@@ -33,6 +33,11 @@ function taskCards() {
     what: [r.f.what, pick('diet', r.f.kind)].filter(Boolean).join(' · ') || kName('diet'), meta: [3, 7, 14, 0][r.f.until ?? 3] ? L('do ', 'до ', 'until ') + fDate(until(r, [3, 7, 14][r.f.until]) - DAY) : L('na stałe', 'постоянно', 'permanent')});
   return T;
 }
+function givenTodayHTML(label, record) {
+  const who = record ? ' ' + fTime(record.at) + ' · ' + esc(nameOf(record.by)) : '';
+  const undo = record && canEditRec(record) ? `<button data-undorec="${esc(record.id)}">${L('Cofnij', 'Отменить', 'Undo')}</button>` : '';
+  return `<span class="doneln">${ic('check', 14, 3)} ${label}${who}${undo}</span>`;
+}
 function taskHTML(x) {
   const who = x.a ? `${esc(anTitle(x.a))} <small>· ${esc(suffix(x.a) || sexSym(x.a.sex))}</small>` : esc(x.who || x.bird || '');
   const what = x.rec ? `<span><button type="button" class="lnkb" data-rec="${esc(x.rec)}" data-feed-card="1">${esc(x.what)}</button></span>` : `<span class="what">${esc(x.what)}</span>`;
@@ -40,7 +45,7 @@ function taskHTML(x) {
   if (canWrite()) {
     if (x.actions) acts = x.actions;
     if (x.act === 'dose') acts = `<div class="acts"><button class="bl-btn solid grow" data-dose="${x.rx.id}">${ic('check', 18, 2.4)}${L('Podaj', 'Подать', 'Give')}</button><button class="bl-btn icon" data-tmenu="${x.rx.id}" aria-label="${L('Więcej', 'Ещё', 'More')}">${ic('more', 18)}</button></div>`;
-    if (x.act === 'dosed') acts = `<div class="acts"><span class="doneln">${ic('check', 14, 3)} ${L('dziś podane', 'сегодня подано', 'given today')}${x.last ? ' ' + fTime(x.last.at) + ' · ' + esc(nameOf(x.last.by)) : ''}${x.last && canEditRec(x.last) ? `<button data-undorec="${x.last.id}">${L('Cofnij', 'Отменить', 'Undo')}</button>` : ''}</span><button class="bl-btn icon" data-tmenu="${x.rx.id}">${ic('more', 18)}</button></div>`;
+    if (x.act === 'dosed') acts = `<div class="acts">${givenTodayHTML(L('dziś podane', 'сегодня подано', 'given today'), x.last)}<button class="bl-btn icon" data-tmenu="${x.rx.id}">${ic('more', 18)}</button></div>`;
     if (x.act === 'score') acts = `<div class="acts"><div class="bl-score">${[1, 2, 3, 4, 5].map(n => `<button data-score="${x.watch.id}" data-n="${n}">${n}</button>`).join('')}</div><button class="bl-btn icon" data-wmenu="${x.watch.id}" aria-label="${L('Więcej', 'Ещё', 'More')}">${ic('more', 18)}</button></div>`;
     if (x.act === 'done') acts = `<div class="acts"><button class="bl-btn tint grow" data-deptdone="${x.dept.id}">${ic('check', 18, 2.4)}${L('Zrobione', 'Сделано', 'Done')}</button></div>`;
   }

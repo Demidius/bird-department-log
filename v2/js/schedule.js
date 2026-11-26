@@ -69,5 +69,5 @@ taskHTML = function (x) {
   } else if (x.slot && x.rx) h = h.replace(`${L('Podaj', 'Подать', 'Give')}</button>`, `${L('Podaj', 'Подать', 'Give')} · ${x.slot.t}</button>`);
   return h;
 };
-setInterval(() => { const ae = document.activeElement; if (st.scr === 'now' && !st.add && !st.cf && !st.tmenu && !st.wmenu && !(ae && ae.matches && ae.matches('input,textarea'))) render(); }, 60000);
+setInterval(() => { const ae = document.activeElement; if (st.scr === 'now' && !st.add && !st.cf && !st.tmenu && !st.wmenu && !st.feedMenu && !(ae && ae.matches && ae.matches('input,textarea'))) render(); }, 60000);
 document.head.insertAdjacentHTML('beforeend', '<style>.bl-task[data-trec]{cursor:pointer}.slotw{flex:1;display:inline-flex;align-items:center;gap:6px;min-height:42px;padding:0 12px;border-radius:12px;background:var(--soft);color:var(--ink-2);font:600 14px/1 var(--font-text)}.slotw b{color:var(--ink);font-weight:800}.tmrow{display:flex;gap:8px}.tmi{flex:1;display:flex;align-items:center;gap:6px;min-width:0}.tmi em{font:700 12px/1 var(--font-text);font-style:normal;color:var(--muted)}.tmi input{min-width:0;flex:1}</style>');

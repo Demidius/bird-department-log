@@ -1,6 +1,6 @@
 // main.js — v2: state, render, navigation (phone Back moves through screens), events, sign-in, theme, language
 const st = {scr: 'now', recFeeding: false, nowStatus: null, nowStatusTab: 'animals', flt: 'all', q: '', lq: '', wq: '', lim: 150, multi: new Set(), folded: new Set(), acc: new Set(), ph: -1, gal: 0, phf: 'all',
-  add: null, ed: null, tmenu: null, tend: 0, tendv: {}, wmenu: null, msheet: '', splitGroup: null, uform: null, cf: '', gate: 'loading', calMode: 'month'};
+  add: null, ed: null, tmenu: null, tend: 0, tendv: {}, wmenu: null, feedMenu: null, msheet: '', splitGroup: null, uform: null, cf: '', gate: 'loading', calMode: 'month'};
 const app = () => $('#app');
 const urlTried = new Set();
 
@@ -22,7 +22,7 @@ $('#toast').addEventListener('click', e => { if (e.target.closest('[data-undo]')
 /* ---------- navigation ---------- */
 const NAVK = ['scr', 'ani', 'plc', 'sp', 'rec', 'recFeeding', 'nowStatus', 'nowStatusTab'];
 const navOf = () => Object.fromEntries(NAVK.map(k => [k, st[k]]));
-const overlayOpen = () => !!(st.add || st.ed || st.tmenu || st.wmenu || st.msheet || st.uform || st.gal || st.splitGroup || st.ph >= 0 || st.lbx || st.cf);
+const overlayOpen = () => !!(st.add || st.ed || st.tmenu || st.wmenu || st.feedMenu || st.msheet || st.uform || st.gal || st.splitGroup || st.ph >= 0 || st.lbx || st.cf);
 const addDirty = () => { const f = st.add; return !!(f && f.step !== 'menu' && f.step !== 'kids' && (String(f.note || '').trim() || f.feedDraft?.dirty || Object.keys(f.fv).some(k => !['cnt', 'wu'].includes(k) && f.fv[k] != null && f.fv[k] !== '' && !(Array.isArray(f.fv[k]) && !f.fv[k].length)) || (f.files || []).length || (f.mv && (f.mv.to || f.mv.proc.length)))); };
 function closeTop() {
   if (st.cf) { st.cf = ''; return; }
@@ -35,11 +35,12 @@ function closeTop() {
   if (st.msheet) { st.msheet = ''; return; }
   if (st.tmenu) { st.tmenu = null; st.tend = 0; st.tendv = {}; return; }
   if (st.wmenu) { st.wmenu = null; return; }
+  if (st.feedMenu) { st.feedMenu = null; return; }
   if (st.add) { if (addDirty()) { st.cf = 'add'; return; } st.add = null; }
 }
 function go(o) {
   const prev = JSON.stringify(navOf());
-  Object.assign(st, o); if (o.scr) { st.recFeeding = o.scr === 'rcard' && !!o.recFeeding; st.ph = -1; st.gal = 0; st.phf = 'all'; st.replyTo = ''; st.lbx = ''; st.cin = ''; }
+  Object.assign(st, o); if (o.scr) { st.recFeeding = o.scr === 'rcard' && !!o.recFeeding; st.feedMenu = null; st.ph = -1; st.gal = 0; st.phf = 'all'; st.replyTo = ''; st.lbx = ''; st.cin = ''; }
   if (o.scr && ['logs', 'animals', 'species'].includes(o.scr) && o.scr !== JSON.parse(prev).scr) st.lq = '';
   if (JSON.stringify(navOf()) !== prev) { history.pushState({v2: 1, nav: navOf()}, ''); window.scrollTo(0, 0); const s = $('.scroll'); if (s) s.scrollTop = 0; }
   if (o.scr === 'rcard' && o.rec) markSeen(o.rec);
@@ -90,7 +91,7 @@ function render() {
   document.documentElement.lang = lang;
   if (st.gate !== 'app') { root.innerHTML = `<div class="app">${loginScreen(st.gate)}</div>`; }
   else {
-    root.innerHTML = `<div class="app scr-${st.scr}">${screen()}${st.scr === 'rcard' && commentsOn && canWrite() ? '' : bottomNav()}${addSheet()}${st.tmenu ? treatMenu() : ''}${st.wmenu ? watchMenu() : ''}${edSheet()}${st.msheet ? mSheet() : ''}${st.uform ? userSheet() : ''}${st.cf ? confirmBox() : ''}${splitGroupSheet()}</div>`;
+    root.innerHTML = `<div class="app scr-${st.scr}">${screen()}${st.scr === 'rcard' && commentsOn && canWrite() ? '' : bottomNav()}${addSheet()}${st.tmenu ? treatMenu() : ''}${st.wmenu ? watchMenu() : ''}${st.feedMenu ? feedingMenu() : ''}${edSheet()}${st.msheet ? mSheet() : ''}${st.uform ? userSheet() : ''}${st.cf ? confirmBox() : ''}${splitGroupSheet()}</div>`;
   }
   const split = root.querySelector('.split-sheet');
   if (split) for (const el of root.firstElementChild.children) {
