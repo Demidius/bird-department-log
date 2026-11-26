@@ -194,6 +194,7 @@ body.dsx{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 var(--fon
 .cal-count{display:inline-flex;align-items:center;gap:1px;white-space:nowrap;color:var(--keep)}
 .cal-count svg{flex:none;width:10px;height:10px}
 .cal-count.expected{color:var(--accent)}
+.cal-count.expected svg{color:var(--breed)}
 .pcd .cal-counts{justify-content:flex-start;font-size:12px;gap:6px}
 .pcd .cal-count{gap:2px}
 .pcd .cal-count svg{width:13px;height:13px}
