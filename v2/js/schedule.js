@@ -5,7 +5,7 @@
 document.addEventListener('click', e => {
   if (e.target.closest('button,a,input,textarea,label')) return;
   const t = e.target.closest('.bl-task[data-trec]'); if (!t || !D.rec.some(r => r.id === t.dataset.trec)) return;
-  st.tmenu = null; st.wmenu = null; go({scr: 'rcard', rec: t.dataset.trec});
+  st.tmenu = null; st.wmenu = null; go({scr: 'rcard', rec: t.dataset.trec, recFeeding: !!t.dataset.feedCard});
 });
 const SLOTS = f => f.kind === 'tstart' ? ({1: 2, 2: 3})[f.fv.freq] || 0 : f.kind === 'watch' ? (f.fv.freq === 0 ? 3 : 0) : 0;
 const timesLbl = k => k === 'tstart' ? L('Godziny podania', 'Время подачи', 'Dose times') : L('Godziny oceny', 'Время оценки', 'Check times');
@@ -61,8 +61,8 @@ taskCards = function () {
 };
 const _taskHTMLS = taskHTML;
 taskHTML = function (x) {
-  let h = _taskHTMLS(x); const rid = (x.rx || x.watch || x.dept || {}).id || String(x.id || '').slice(1);
-  h = h.replace('<div class="bl-task ', `<div data-trec="${esc(rid)}" class="bl-task `);
+  let h = _taskHTMLS(x); const rid = x.rec || (x.rx || x.watch || x.dept || {}).id || String(x.id || '').slice(1);
+  h = h.replace('<div class="bl-task ', `<div data-trec="${esc(rid)}"${x.rec ? ' data-feed-card="1"' : ''} class="bl-task `);
   if (x.slot && !x.slot.ready) {
     const w = `<span class="slotw">${ic('clock', 16)}${x.rx ? L('Podać o ', 'Подать в ', 'Give at ') : L('Ocenić o ', 'Оценить в ', 'Score at ')}<b>${x.slot.t}</b></span>`;
     h = x.rx ? h.replace(/<button class="bl-btn solid grow" data-dose="[^"]*">[\s\S]*?<\/button>/, w) : h.replace(/<div class="bl-score">[\s\S]*?<\/div>/, w);
