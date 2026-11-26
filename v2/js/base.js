@@ -120,6 +120,7 @@ async function dropComment(c) { must(await sb.from('comments').delete().eq('id',
 async function callAdmin(body) {
   const {data, error} = await sb.functions.invoke('admin-users', {body});
   if (error) { let code = 'save'; try { const j = await error.context.json(); code = j.error || code; } catch (x) {} throw {appCode: code}; }
+  if (data?.ok !== true) throw {appCode: data?.error || 'save'};
   return data;
 }
 

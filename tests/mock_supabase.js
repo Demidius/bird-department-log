@@ -190,7 +190,7 @@
           if (body.display_name !== undefined) p.display_name = body.display_name;
           if (body.role) p.role = body.role;
           if (body.active !== undefined) { p.active = !!body.active; users.find(u => u.id === p.id).banned = !p.active; }
-          return {data: {ok: true}, error: null};
+          return {data: {ok: true, password_changed: typeof body.password === 'string'}, error: null};
         }
         return fail(400, 'bad_action');
       }

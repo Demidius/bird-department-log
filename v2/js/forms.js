@@ -501,23 +501,46 @@ function userSheet() {
   const p = u.id === 'new' ? null : D.prof.get(u.id), R = [['staff', L('Zapis', 'Запись', 'Write')], ['viewer', L('Tylko odczyt', 'Только чтение', 'Read only')], ['admin', L('Administrator', 'Администратор', 'Administrator')]];
   return `<div class="scrim" data-close="uform"></div><div class="bl-sheet"><div class="grip"></div><div class="head"><h3>${ic('users', 20)}${p ? esc(p.display_name || p.login) : L('Nowy pracownik', 'Новый сотрудник', 'New staff member')}</h3><button class="bl-x" data-close="uform">${ic('x', 18)}</button></div>
   <label class="bl-field"><span>${L('Imię', 'Имя', 'Name')}</span><input class="inp" data-uin="name" value="${esc(u.name ?? '')}" placeholder="${L('jak widać w dzienniku', 'как будет видно в журнале', 'as shown in the journal')}"></label>
-  ${p ? '' : `<label class="bl-field"><span>${L('Login', 'Логин', 'Login')}</span><input class="inp" data-uin="login" value="${esc(u.login ?? '')}" autocapitalize="none" placeholder="${L('małe litery, bez spacji', 'латиницей, без пробелов', 'lowercase, no spaces')}"></label>`}
-  <label class="bl-field"><span>${p ? L('Nowe hasło (opcjonalnie)', 'Новый пароль (необязательно)', 'New password (optional)') : L('Hasło', 'Пароль', 'Password')}</span><input class="inp" data-uin="pass" value="${esc(u.pass ?? '')}" autocomplete="new-password" placeholder="${L('min. 8 znaków', 'не меньше 8 символов', 'at least 8 characters')}"></label>
+  ${p ? `<div class="bl-field"><span>${L('Login', 'Логин', 'Login')}</span><div class="auto">${esc(p.login)}</div></div>` : `<label class="bl-field"><span>${L('Login', 'Логин', 'Login')}</span><input class="inp" data-uin="login" value="${esc(u.login ?? '')}" autocapitalize="none" placeholder="${L('małe litery, bez spacji', 'латиницей, без пробелов', 'lowercase, no spaces')}"></label>`}
+  <label class="bl-field"><span>${p ? L('Nowe hasło (opcjonalnie)', 'Новый пароль (необязательно)', 'New password (optional)') : L('Hasło', 'Пароль', 'Password')}</span><input class="inp" type="password" data-uin="pass" value="${esc(u.pass ?? '')}" autocomplete="new-password" autocapitalize="none" spellcheck="false" placeholder="${L('min. 8 znaków', 'не меньше 8 символов', 'at least 8 characters')}"></label>
   ${fld(L('Rola', 'Роль', 'Role'), `<div class="bl-seg three">${R.map(([k, l]) => `<button data-urole="${k}" aria-pressed="${u.role === k}">${l}</button>`).join('')}</div>`)}
   ${p ? `<button class="tgl2 ${u.active ? 'on' : ''}" data-uactive="1"><span class="box">${u.active ? ic('check', 14, 3) : ''}</span><span><b>${L('Konto aktywne', 'Аккаунт активен', 'Account active')}</b><small>${L('wyłącz, aby zablokować wejście', 'выключи, чтобы закрыть вход', 'turn off to block sign-in')}</small></span></button>` : ''}
   <p class="err" role="alert">${esc(u.err || '')}</p><button class="bl-btn solid save wide" style="background:var(--fab);color:var(--on-fab)" data-usave="1" ${u.busy ? 'disabled' : ''}>${p ? L('Zapisz', 'Сохранить', 'Save') : L('Utwórz konto', 'Создать аккаунт', 'Create account')}</button></div>`;
 }
 async function saveUser() {
-  const u = st.uform, p = u.id === 'new' ? null : D.prof.get(u.id), name = String(u.name || '').trim(), login = String(u.login || '').trim().toLowerCase(), pass = u.pass || '';
+  const u = st.uform;
+  if (!u || u.busy) return;
+  const p = u.id === 'new' ? null : D.prof.get(u.id), name = String(u.name || '').trim(), login = String(u.login || '').trim().toLowerCase();
+  // Autofill can change the visible value without an input event.
+  const pass = $('[data-uin="pass"]')?.value ?? u.pass ?? '';
+  u.pass = pass;
   const err = m => { u.err = m; render(); };
   if (!name) return err(L('Podaj imię', 'Укажи имя', 'Enter a name'));
   if (!p && !/^[a-z0-9._-]{2,32}$/.test(login)) return err(L('Login: 2–32 znaki a-z 0-9 . _ -', 'Логин: 2–32 символа a-z 0-9 . _ -', 'Login: 2–32 characters a-z 0-9 . _ -'));
   if ((!p || pass) && pass.length < 8) return err(L('Hasło: min. 8 znaków', 'Пароль: не меньше 8 символов', 'Password: at least 8 characters'));
-  u.busy = 1; render();
+  u.busy = 1; u.err = ''; render();
   try {
-    if (p) { const body = {action: 'update', id: p.id, display_name: name, role: u.role, active: !!u.active}; if (pass) body.password = pass; await callAdmin(body); }
-    else await callAdmin({action: 'create', login, password: pass, display_name: name, role: u.role});
-    await LOAD.profiles(); st.uform = null; toast(L('Zapisano', 'Сохранено', 'Saved'));
-  } catch (x) { u.busy = 0; u.err = x && x.appCode === 'login_taken' ? L('Taki login już jest', 'Такой логин уже есть', 'This login is taken') : L('Nie udało się zapisać', 'Не удалось сохранить', 'Could not save'); }
+    if (p) {
+      const body = {action: 'update', id: p.id};
+      if (name !== p.display_name) body.display_name = name;
+      if (u.role !== p.role) body.role = u.role;
+      if (!!u.active !== (p.active !== false)) body.active = !!u.active;
+      if (pass) body.password = pass;
+      const result = await callAdmin(body);
+      if (pass && result.password_changed !== true) throw {appCode: 'password_unconfirmed'};
+    } else await callAdmin({action: 'create', login, password: pass, display_name: name, role: u.role});
+    u.pass = '';
+    if (st.uform === u) st.uform = null;
+    toast(p && pass ? L(`Hasło zmienione. Login: ${p.login}`, `Пароль изменён. Логин: ${p.login}`, `Password changed. Login: ${p.login}`) : L('Zapisano', 'Сохранено', 'Saved'));
+    await LOAD.profiles().catch(() => {});
+  } catch (x) {
+    u.busy = 0;
+    u.err = ({
+      login_taken: L('Taki login już jest', 'Такой логин уже есть', 'This login is taken'),
+      password_unconfirmed: L('Serwer nie potwierdził zmiany hasła.', 'Сервер не подтвердил смену пароля.', 'The server did not confirm the password change.'),
+      short_password: L('Hasło: min. 8 znaków', 'Пароль: не меньше 8 символов', 'Password: at least 8 characters'),
+      password_update_failed: L('Nie udało się zmienić hasła.', 'Не удалось сменить пароль.', 'Could not change the password.')
+    })[x?.appCode] || L('Nie udało się zapisać', 'Не удалось сохранить', 'Could not save');
+  }
   render();
 }
