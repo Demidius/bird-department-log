@@ -43,13 +43,52 @@ function taskHTML(x) {
   }
   return `<div class="bl-task g-${x.g}" ${x.a ? `data-ani="${x.a.id}"` : ''}>${badge(x.g, x.i)}<div class="tt"><span class="who">${who}</span><span class="what">${esc(x.what)}</span>${x.meta ? `<span class="meta">${esc(x.meta)}</span>` : ''}${x.prog != null ? `<div class="bl-prog"><i style="width:${x.prog * 100}%"></i></div>` : ''}</div><span class="when">${x.when || ''}</span>${acts}</div>`;
 }
-const counters = () => `<div class="bl-counters">${[['health', 'cross', activeTreatments().length, L('w leczeniu', 'в лечении', 'treated')], ['obs', 'eye', activeWatches().length, L('obserwacja', 'наблюдение', 'watched')], ['breed', 'nest', activeIncub().length, L('wysiadują', 'насиживают', 'incubating')], ['breed', 'egg', youngCount(), L('młode', 'молодые', 'young')]]
-  .map(([g, i, n, l]) => `<button class="bl-counter g-${g}" data-flt="${g}"><span class="t">${ic(i, 17)}<b>${n}</b></span><span class="l">${l}</span></button>`).join('')}</div>`;
+const NOW_STATUS = [
+  {id: 'treatment', group: 'health', icon: 'cross',
+    title: () => L('W leczeniu', 'На лечении', 'Under treatment'),
+    source: () => activeTreatments().map(x => x.r), matches: r => kGroup(r.k) === 'health'},
+  {id: 'watch', group: 'obs', icon: 'eye',
+    title: () => L('Obserwacja', 'Под наблюдением', 'Under observation'),
+    source: () => activeWatches().map(x => x.r), matches: r => ['watch', 'score', 'wend'].includes(r.k)},
+  {id: 'incubation', group: 'breed', icon: 'nest',
+    title: () => L('Wysiadują', 'Насиживают', 'Incubating'),
+    source: () => activeIncub().map(x => x.r), matches: r => r.k === 'incub'},
+  {id: 'young', group: 'breed', icon: 'egg',
+    title: () => L('Młode', 'Молодняк', 'Young'), source: youngRecords}
+];
+function nowStatusData(status) {
+  const source = status.source(), young = status.id === 'young';
+  const related = young ? source.flatMap(r => brdKids(r).kids) : source.map(r => anByName(r.bird));
+  const animals = [...new Map(related.filter(a => a && a.status !== 'out').map(a => [a.id, a])).values()];
+  const count = young ? source.reduce((n, r) => n + (Number(r.f.n) || 1), 0) : animals.length;
+  return {source, animals, count};
+}
+const counters = () => `<div class="bl-counters">${NOW_STATUS.map(s => `<button class="bl-counter g-${s.group}" data-now-status="${s.id}"><span class="t">${ic(s.icon, 17)}<b>${nowStatusData(s).count}</b></span><span class="l">${s.title()}</span></button>`).join('')}</div>`;
 function nowScreen() {
   const T = taskCards(), need = T.filter(x => x.need), going = T.filter(x => !x.need);
   const body = !T.length ? emptyBox('check', L('Na dziś wszystko zrobione', 'На сегодня всё сделано', 'All done for today'), L('Nowe zadania pojawią się tu same: leczenie, obserwacje, gniazda.', 'Новые задачи появятся здесь сами: лечение, наблюдения, гнёзда.', 'New tasks will appear here: treatments, observations, nests.'))
     : `${need.length ? `<div class="sec"><span>${L('Wymaga działania', 'Требует действия', 'Needs action')}</span><span>${need.length}</span></div><div class="stack">${need.map(taskHTML).join('')}</div>` : ''}${going.length ? `<div class="sec"><span>${L('Trwa teraz', 'Идёт сейчас', 'Ongoing')}</span><span>${going.length}</span></div><div class="stack">${going.map(taskHTML).join('')}</div>` : ''}`;
   return `${head(L('Teraz', 'Сейчас', 'Now'), fWeekday(Date.now()))}${offlineBar()}${counters()}<div class="scroll">${body}</div>`;
+}
+
+function nowStatusScreen() {
+  const status = NOW_STATUS.find(s => s.id === st.nowStatus);
+  if (!status) return nowScreen();
+  const {source, animals, count} = nowStatusData(status), tab = st.nowStatusTab;
+  const tabs = [['animals', L('Zwierzęta', 'Животные', 'Animals')], ['records', L('Wpisy', 'Записи', 'Records')]];
+  let body;
+  if (tab === 'records') {
+    const names = new Set(source.map(r => key(r.bird)));
+    const records = status.matches ? D.rec.filter(r => names.has(key(r.bird)) && status.matches(r)) : source.slice();
+    records.sort((a, b) => b.at - a.at);
+    body = records.length ? `<div class="stack">${recsByDay(records.slice(0, st.lim))}</div>${records.length > st.lim ? `<button class="bl-btn wide" data-more="1" style="margin-top:8px">${L('Pokaż więcej', 'Показать ещё', 'Show more')}</button>` : ''}`
+      : `<p class="empty">${L('Brak wpisów', 'Записей нет', 'No records')}</p>`;
+  } else {
+    body = animals.length ? `<div class="stack">${animals.map(a => `<button class="bl-who flat2" data-ani="${esc(a.id)}"><span class="bl-av">${esc(anInit(a))}</span><span><b>${esc(anTitle(a))}</b><small>${esc([suffix(a), a.ring].filter(Boolean).join(' · ') || sexSym(a.sex))}</small></span><span class="sx">${ic('chev', 18)}</span></button>`).join('')}</div>` : '';
+    if (status.id === 'young' && count > animals.length) body += `<p class="empty">${L('Młode bez kart znajdziesz we wpisach.', 'Молодняк без карточек указан во вкладке «Записи».', 'Young without cards are listed in Records.')}</p>`;
+    if (!body) body = `<p class="empty">${L('Brak zwierząt', 'Нет животных', 'No animals')}</p>`;
+  }
+  return `${topbar(`<b class="tbcat">${status.title()}</b>`)}<div class="scroll"><div class="calsub"><div class="bl-seg two">${tabs.map(([id, label]) => `<button data-now-status-tab="${id}" aria-pressed="${tab === id}">${label}</button>`).join('')}</div></div>${body}</div>`;
 }
 
 /* ---------- Journal ---------- */

@@ -230,7 +230,7 @@ function deptReminders() {
   }
   return out;
 }
-function youngCount() { return D.rec.filter(r => (r.k === 'hatch' || r.k === 'birth') && r.at > Date.now() - 60 * DAY).reduce((s, r) => s + (r.f.n || 1), 0); }
+const youngRecords = () => D.rec.filter(r => (r.k === 'hatch' || r.k === 'birth') && r.at > Date.now() - 60 * DAY);
 
 /* ---------- calendar ---------- */
 function calEvents() {
