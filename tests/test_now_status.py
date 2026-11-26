@@ -26,6 +26,13 @@ with sync_playwright() as pw:
         p.locator('[data-now-status-tab=records]').click()
         assert p.locator('.stack [data-rec]').count() == 3
         assert p.locator('.stack [data-rec=unrelated-health]').count() == 0
+        assert p.locator('[data-now-status]').count() == 4
+        assert p.locator('[data-now-status=treatment]').get_attribute('aria-pressed') == 'true'
+        p.locator('[data-now-status=incubation]').click()
+        assert p.locator('[data-now-status=incubation]').get_attribute('aria-pressed') == 'true'
+        assert p.locator('[data-now-status-tab=records]').get_attribute('aria-pressed') == 'true'
+        assert p.locator('.stack [data-rec=incub1]').count() == 1
+        p.locator('[data-now-status=treatment]').click()
         p.locator('.stack [data-rec=rx1]').click()
         p.wait_for_function("st.scr === 'rcard'")
         p.evaluate('history.back()')

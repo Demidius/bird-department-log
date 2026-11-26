@@ -242,13 +242,17 @@ document.addEventListener('click', async e => {
   if (d.plc) { st.add = null; go({scr: 'pcard', plc: d.plc}); return; }
   if (d.sp) { go({scr: 'scard', sp: d.sp, spTab: 'wild'}); st.acc = new Set(); return render(); }
   if (d.rec) { st.tmenu = null; st.wmenu = null; st.replyTo = ''; go({scr: 'rcard', rec: d.rec}); return; }
-  if (d.nowStatus && NOW_STATUS.some(s => s.id === d.nowStatus)) {
-    st.lim = 150;
-    go({scr: 'status', nowStatus: d.nowStatus, nowStatusTab: 'animals'});
-    return;
-  }
-  if (st.scr === 'status' && ['animals', 'records'].includes(d.nowStatusTab)) {
-    st.nowStatusTab = d.nowStatusTab;
+  const selectStatus = d.nowStatus && NOW_STATUS.some(s => s.id === d.nowStatus);
+  const selectStatusTab = st.scr === 'status' && ['animals', 'records'].includes(d.nowStatusTab);
+  if (selectStatus || selectStatusTab) {
+    if (selectStatus) {
+      if (st.scr === 'status' && st.nowStatus === d.nowStatus) return;
+      st.lim = 150;
+      if (st.scr !== 'status') return go({scr: 'status', nowStatus: d.nowStatus, nowStatusTab: 'animals'});
+      st.nowStatus = d.nowStatus;
+    } else {
+      st.nowStatusTab = d.nowStatusTab;
+    }
     history.replaceState({v2: 1, nav: navOf()}, '');
     const scroll = $('.scroll'); if (scroll) scroll.scrollTop = 0;
     return render();
