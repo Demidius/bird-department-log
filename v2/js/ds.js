@@ -19,6 +19,7 @@
     now: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
     cal: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
     list: '<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+    clipboard: '<path d="M9 5H6a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3"/><rect x="9" y="2" width="6" height="5" rx="1"/><path d="M8 12h8m-8 5h8"/>',
     bird: '<path d="M16 7h.01M3.5 18A8 8 0 0 0 20 12V7l2-2h-5a4 4 0 0 0-4 4v2L3.5 18z"/><path d="M7 18v3M11 17v4"/>',
     grid: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
     check: '<path d="m5 12 5 5 9-10"/>',

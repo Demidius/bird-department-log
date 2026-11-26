@@ -20,7 +20,6 @@
 //     asks for reduced motion.
 // 12) Calendar: after hatching — «Expected fledging» after the species' «until fledging, days»; gone once a fledging record
 //     for that bird (or its young) exists after the hatching, or 14 days after the date.
-// 13) Calendar month: a day with more than three records / events shows three dots and a small grey ellipsis.
 
 /* 7) search helper (used below and by the list functions rebuilt at the end of this file) */
 const qnorm = s => String(s || '').toLowerCase().replace(/ł/g, 'l').normalize('NFD').replace(/[̀-ͯ]/g, '');
@@ -191,17 +190,6 @@ calEvents = function () {
   return ev;
 };
 
-/* 13) calendar month: more than three → ellipsis */
-function calPlus() {
-  if (st.scr !== 'cal' || !document.querySelector('.cd[data-day]')) return;
-  const EV = calEvents();
-  document.querySelectorAll('.cd[data-day]').forEach(c => {
-    const n = (EV.get(c.dataset.day) || []).length, evs = c.querySelector('.evs'); if (!evs || n <= 3) return;
-    [...evs.querySelectorAll('.dot')].slice(3).forEach(d => d.remove());
-    evs.insertAdjacentHTML('beforeend', '<b class="evmore" aria-label="…"><i></i><i></i><i></i></b>');
-  });
-}
-
 /* 3) empty fields in edit forms; 5) clear cross */
 function markEmptyFields() {
   document.querySelectorAll('.bl-sheet').forEach(sh => {
@@ -227,7 +215,7 @@ function addClearButtons() {
     if (ae) { el.focus(); try { el.setSelectionRange(s[0], s[1]); } catch (x) {} }
   });
 }
-addEventListener('DOMContentLoaded', () => { const _renderU = render; render = function () { _renderU(); addClearButtons(); markEmptyFields(); calPlus(); }; });
+addEventListener('DOMContentLoaded', () => { const _renderU = render; render = function () { _renderU(); addClearButtons(); markEmptyFields(); }; });
 document.addEventListener('input', e => {
   const t = e.target, w = t.parentNode;
   if (w && w.classList && w.classList.contains('clrw')) w.classList.toggle('has', !!t.value);
@@ -257,5 +245,4 @@ document.head.insertAdjacentHTML('beforeend', '<style>'
   + '.ob2 svg{left:-15px;top:-9px;width:30px;height:18px;animation-duration:.4s}.ob3{color:color-mix(in srgb, var(--accent) 60%, var(--muted))}.ob3 svg{left:-17px;top:-10px;width:34px;height:20px;animation-duration:.54s}.ob4 svg{left:-12px;top:-7px;width:24px;height:14px;animation-duration:.34s;opacity:.7}'
   + '.lgload .dots i{font-style:normal;opacity:.15;animation:lgdot 1.2s infinite}.lgload .dots i:nth-child(2){animation-delay:.2s}.lgload .dots i:nth-child(3){animation-delay:.4s}'
   + '@keyframes lgspin{to{transform:rotate(360deg)}}@keyframes lgflap{from{transform:scaleY(1)}to{transform:scaleY(.45) translateY(2px)}}@keyframes lgpulse{50%{transform:scale(1.06)}}@keyframes lgdot{30%{opacity:1}}'
-  + '@media (prefers-reduced-motion: reduce){.ring,.ob,.ob svg,.orbit .lglogo,.lgload .dots i{animation:none;opacity:1}}'
-  + '.mgrid .evs{align-items:center}.evs .evmore{display:flex;align-items:center;gap:1.5px;height:7px;margin-left:1px}.evs .evmore i{width:3px;height:3px;border-radius:50%;background:var(--muted)}</style>');
+  + '@media (prefers-reduced-motion: reduce){.ring,.ob,.ob svg,.orbit .lglogo,.lgload .dots i{animation:none;opacity:1}}</style>');

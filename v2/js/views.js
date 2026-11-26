@@ -71,6 +71,13 @@ function logsScreen() {
 }
 
 /* ---------- Calendar ---------- */
+function calDayCounts(events = []) {
+  if (!events.length) return '';
+  const expected = events.filter(e => e.exp).length;
+  const recorded = events.length - expected;
+  const count = (icon, type, label, n) => n ? `<span class="cal-count ${type}" role="img" aria-label="${esc(label + ': ' + n)}" title="${esc(label + ': ' + n)}">${ic(icon, 11, 2.3)}${n}</span>` : '';
+  return `<span class="cal-counts">${count('clipboard', 'recorded', L('Wpisy', 'Записи', 'Records'), recorded)}${count('clock', 'expected', L('Spodziewane zdarzenia', 'Предполагаемые события', 'Expected events'), expected)}</span>`;
+}
 function calScreen() {
   const now = new Date(), y = st.cy ?? now.getFullYear(), m = st.cm ?? now.getMonth(), isNow = y === now.getFullYear() && m === now.getMonth();
   const EV = calEvents(), first = (new Date(y, m, 1).getDay() + 6) % 7, days = new Date(y, m + 1, 0).getDate(), cells = Math.ceil((first + days) / 7) * 7;
@@ -79,9 +86,8 @@ function calScreen() {
   let grid = dows.map(x => `<span class="dw">${x}</span>`).join('');
   for (let i = 0; i < cells; i++) {
     const n = i - first + 1; if (n < 1 || n > days) { grid += '<span class="cd out"></span>'; continue; }
-    const k = `${y}-${m}-${n}`, ev = (EV.get(k) || []), fut = new Date(y, m, n).getTime() > today0();
-    const groups = [...new Set(ev.map(e => e.g + (e.exp || fut ? ':x' : '')))].slice(0, 5);
-    grid += `<button class="cd ${isNow && n === now.getDate() ? 'today' : ''} ${sel === k ? 'on' : ''}" data-day="${k}"><span class="n">${n}</span><span class="evs">${groups.map(g => { const [gg, x] = g.split(':'); return x ? `<i class="dot guess" style="border-color:var(--${gg})"></i>` : `<i class="dot" style="background:var(--${gg})"></i>`; }).join('')}</span></button>`;
+    const k = `${y}-${m}-${n}`;
+    grid += `<button class="cd ${isNow && n === now.getDate() ? 'today' : ''} ${sel === k ? 'on' : ''}" data-day="${k}"><span class="n">${n}</span>${calDayCounts(EV.get(k))}</button>`;
   }
   const dayItems = k => (EV.get(k) || []).sort((a, b) => (a.exp ? 1 : 0) - (b.exp ? 1 : 0) || a.r.at - b.r.at).map(e => e.exp ? `<button class="bl-rec g-${e.g} guessrow recbtn" data-rec="${e.r.id}">${badge(e.g, e.icn, 'sm')}<div><b>${L('Spodziewane: ', 'Ожидается: ', 'Expected: ')}${esc(e.label)}</b><span>${esc(recWho(e.r))}</span></div><time></time></button>` : recHTML(e.r)).join('');
   const mn = new Date(y, m, 1).toLocaleDateString(LOC(), {month: 'long', year: 'numeric'});

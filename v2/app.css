@@ -190,9 +190,18 @@ body.dsx{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 var(--fon
 .mgrid .n{font:600 13px/1 var(--font-text);width:26px;height:26px;border-radius:13px;display:flex;align-items:center;justify-content:center}
 .mgrid .today .n{background:var(--fab);color:var(--on-fab)}
 .mgrid .cd.on{background:var(--soft)}
-.mgrid .evs{display:flex;gap:3px;flex-wrap:wrap;justify-content:center}
-.mgrid .dot{width:7px;height:7px;border-radius:50%;display:block}
-.mgrid .dot.guess{background:none;border:2px dashed;width:9px;height:9px}
+.cal-counts{display:flex;flex-wrap:wrap;justify-content:center;gap:2px;max-width:100%;font:700 10px/1 var(--font-text);font-variant-numeric:tabular-nums}
+.cal-count{display:inline-flex;align-items:center;gap:1px;white-space:nowrap;color:var(--keep)}
+.cal-count svg{flex:none;width:10px;height:10px}
+.cal-count.expected{color:var(--accent)}
+.pcd .cal-counts{justify-content:flex-start;font-size:12px;gap:6px}
+.pcd .cal-count{gap:2px}
+.pcd .cal-count svg{width:13px;height:13px}
+@media (max-width:360px){
+  .mgrid .cd{padding-inline:0}
+  .mgrid .cal-counts{column-gap:1px;font-size:9px}
+  .mgrid .cal-count svg{width:9px;height:9px}
+}
 /* sheet */
 .scrim{position:absolute;inset:0;z-index:8;background:var(--scrim)}
 .app .bl-sheet{position:absolute;left:0;right:0;bottom:0;z-index:9;max-height:94%}
