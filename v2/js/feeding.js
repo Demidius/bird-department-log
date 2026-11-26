@@ -96,9 +96,8 @@ const feedSlotAt = (now, time) => {
 const feedReady = (at, now) => now >= at - 30 * 60000;
 let feedTaskMinute;
 
-const _taskCardsFeed = taskCards;
-taskCards = function () {
-  const tasks = _taskCardsFeed(), now = Date.now(), day = ymd(now);
+function feedingCards() {
+  const now = Date.now(), day = ymd(now);
   feedTaskMinute = Math.floor(now / 60000);
   const done = new Set(D.rec.filter(r => r.k === 'feed_given' && r.f.feedDay === day).map(r => `${r.f.feedPlan}:${r.f.feedTime}`));
   const feeding = [];
@@ -116,8 +115,8 @@ taskCards = function () {
         need: !given && ready, actions: given ? '' : `<div class="acts">${action}</div>`});
     }
   }
-  return tasks.concat(feeding.sort((a, b) => a.when.localeCompare(b.when)));
-};
+  return feeding.sort((a, b) => a.when.localeCompare(b.when));
+}
 
 function refreshFeedingTasks() {
   if (st.gate !== 'app' || st.scr !== 'now' || overlayOpen()) return;
