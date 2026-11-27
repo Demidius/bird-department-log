@@ -32,11 +32,13 @@ v2/js/ux.js         расширение: правки форм, карточе�
 v2/js/ux2.js        расширение: продолжение ux.js для мелких правок (список в шапке файла)
 v2/js/pc.js         расширение: раскладка для компьютера (окно ≥ 1000px): меню слева, список посередине, карточка справа, единая шапка, формы окном по центру, календарь-месяц + день справа (список в шапке файла)
 v2/js/ux3.js        расширение: продолжение ux2.js (сроки размножения и прогноз, клавиатура телефона, «до отмены», прибытие и правка карточки: возраст и «когда»; сотрудники: логин, пароли для админа; список в шапке файла); сюда же добавлять следующие
+v2/js/qrcode.js     библиотека qrcode-generator 1.4.4 (Kazuhiko Arase, MIT), без комментариев и лишних частей: qrcode(0,'M').addData(url).make(), isDark(r,c)
+v2/js/qrcard.js     расширение: QR-код карточки животного (кнопка у карандаша; скачать / распечатать / отправить) и ссылка ?a=<id>, открывающая карточку (после входа)
 v2/js/sync.js       свежесть данных: живые обновления (realtime), проверка версии сервера при возврате в приложение/сети/раз в минуту, кнопка «обновить» рядом с аккаунтом (подсвечена, если новые данные не загрузились)
 v2/js/feeding.js    ежедневное дополнительное кормление: f.feedTimes в насиживании или записи feed, отдельные отметки feed_given и завершение feed_end
 v2/js/main.js       render(), клики (делегирование data-*), «назад» телефона, вход, тема, язык — грузится последним
 supabase/           схема (SCHEMA.md), миграции, код Edge Function admin-users
-tests/test_newui.py браузерный тест v2 (Playwright + tests/mock_supabase.js, данные tests/seed_v2.json); test_tiles.py, test_batch2.py, test_batch3.py, test_links.py, test_drugs.py, test_ux.py, test_search.py, test_recs.py, test_load.py, test_ux2.py, test_pc.py, test_ux3.py, test_cal_counts.py, test_feeding.py, test_med_routes.py, test_now_status.py, test_split_group.py, test_admin_password.py — отдельные экраны, берут его помощники
+tests/test_newui.py браузерный тест v2 (Playwright + tests/mock_supabase.js, данные tests/seed_v2.json); test_tiles.py, test_batch2.py, test_batch3.py, test_links.py, test_drugs.py, test_ux.py, test_search.py, test_recs.py, test_load.py, test_ux2.py, test_pc.py, test_ux3.py, test_cal_counts.py, test_feeding.py, test_med_routes.py, test_now_status.py, test_split_group.py, test_admin_password.py, test_qr.py — отдельные экраны, берут его помощники
 ```
 **Старая версия (не используется, к удалению):** `js/*.js`, `i18n*.js`, `desktop.css`, `pwa.js`, `docs/codemap.md`, `tools/codemap.py`, остальные `tests/test_*.py`. Не править.
 
