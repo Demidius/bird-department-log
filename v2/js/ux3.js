@@ -19,6 +19,11 @@
 //    (months, for age as a number), age_at (assessment date).
 //    «When»: date and time / date only (record without time) / no date (only the card: no journal or calendar entry,
 //    photos go to the animal card).
+// 8) Users (admin): the list shows the name and «Login: …»; in the form the password can be shown (eye) and generated;
+//    after creating an account or changing a password — a «Sign-in details» window: name, login, password + «Copy».
+// 9) Staff passwords visible to the admin (owner's request): the staff card starts with «Login» and «Password» (dots, eye,
+//    «Copy»). The admin-users Edge Function keeps a copy of every password it sets in public.account_passwords (admins only);
+//    older passwords are unknown («unknown — set a new one»). The login can be changed (not for e-mail logins).
 
 /* 1) breeding timings */
 const brdUniq = l => l.filter((m, i) => m && l.findIndex(x => x && x.id === m.id) === i);
@@ -262,3 +267,87 @@ speciesEdit = function () {
 document.addEventListener('click', e => { if (!e.target.closest('[data-edsave]') || !st.ed || !st.ed.v || !st.ed.v.info) return; const inf = st.ed.v.info, n = parseFloat(String(inf.mature_years ?? '').replace(',', '.')); if (n > 0) inf.mature_years = n; else delete inf.mature_years; }, true);
 document.head.insertAdjacentHTML('beforeend', '<style>.agecls{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.agecls button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:9px 12px;border-radius:12px;border:1.5px solid var(--ctl-line);background:var(--card);color:var(--ink);font:inherit;text-align:left;cursor:pointer}.agecls button b{font:700 14px/1.2 var(--font-text)}.agecls button small{font:600 12px/1.2 var(--font-text);color:var(--muted)}.agecls button[aria-pressed=true]{background:var(--fab);border-color:var(--fab);color:var(--on-fab)}.agecls button[aria-pressed=true] small{color:inherit;opacity:.8}.agestg dd{display:flex;flex-direction:column;gap:3px}.agestg dd small{margin-top:2px;font:600 11.5px/1.3 var(--font-text);color:var(--muted)}</style>');
 document.head.insertAdjacentHTML('beforeend', '<style>.agerow{display:flex;align-items:center;gap:10px;margin-top:8px}.agel{font:700 12px/1 var(--font-text);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}.agerow .seg2{flex:1}.agerow .seg2 button{flex:1;font-size:12.5px;min-height:38px;white-space:nowrap;padding:0 6px}.inj>.inp[type=date],.inj .ageap{margin-top:8px}.ageap{display:flex;gap:8px;align-items:center}.ageap>.clrw,.ageap>.inp{flex:1}.atseg{display:flex}.atseg button{flex:1;font-size:13px}.atnone{flex:1;display:flex;align-items:center;justify-content:center;min-height:48px;padding:0 12px;border-radius:14px;border:1.5px dashed var(--line);color:var(--muted);font:600 13px/1.3 var(--font-text);text-align:center}</style>');
+
+/* 8) users: login in the list, password eye / generate, sign-in details window */
+const _usersScreenCred = usersScreen;
+usersScreen = function () {
+  if (Date.now() - pwAt > 60000) loadPw();
+  let h = _usersScreenCred().replace(/(<button class="mrow" data-uform="[^"]+">[\s\S]*?<small>)/g, `$1${L('Login: ', 'Логин: ', 'Login: ')}`);
+  const c = st.ucred; if (!c) return h;
+  const row = (l, v, k) => `<div class="crow"><span>${l}</span><b ${k ? `data-ccopy="${k}"` : ''}>${esc(v)}</b></div>`;
+  return h + `<div class="scrim" data-ccclose="1"></div><div class="bl-sheet credsh"><div class="grip"></div><div class="head"><h3>${ic('users', 20)}${L('Dane do logowania', 'Данные для входа', 'Sign-in details')}</h3><button class="bl-x" data-ccclose="1">${ic('x', 18)}</button></div>
+  <div class="creds">${row(L('Imię', 'Имя', 'Name'), c.name)}${row(L('Login', 'Логин', 'Login'), c.login)}${row(L('Hasło', 'Пароль', 'Password'), c.pass)}</div>
+  <p class="tip">${L('Przekaż te dane pracownikowi. Hasło widać też w karcie pracownika.', 'Передай эти данные сотруднику. Пароль виден и в карточке сотрудника.', 'Pass these details on. The password is also shown in the staff card.')}</p>
+  <div class="bl-row" style="gap:8px"><button class="bl-btn" style="flex:1" data-ccopyall="1">${L('Kopiuj', 'Копировать', 'Copy')}</button><button class="bl-btn solid" style="flex:1;background:var(--fab);color:var(--on-fab)" data-ccclose="1">${L('Gotowe', 'Готово', 'Done')}</button></div></div>`;
+};
+const _userSheetCred = userSheet;
+userSheet = function () {
+  const h = _userSheetCred(), u = st.uform; if (!u) return h;
+  const m = h.match(/<input class="inp" type="password" data-uin="pass"[^>]*>/); if (!m) return h;
+  const inp = u.showPass ? m[0].replace('type="password"', 'type="text"') : m[0];
+  return h.replace(m[0], `<span class="pwrow">${inp}<button type="button" class="pwb" data-upeye="1" aria-label="${L('Pokaż hasło', 'Показать пароль', 'Show password')}">${ic('eye', 18)}</button><button type="button" class="pwb pwgen" data-upgen="1">${L('Wygeneruj', 'Создать', 'Generate')}</button></span>`);
+};
+const pwGen = () => { const a = 'abcdefghjkmnpqrstuvwxyz23456789', r = crypto.getRandomValues(new Uint32Array(10)); return [...r].map(x => a[x % a.length]).join(''); };
+document.addEventListener('click', e => {
+  const t = e.target;
+  if (t.closest('[data-upeye]') && st.uform) { e.preventDefault(); e.stopImmediatePropagation(); const i = document.querySelector('[data-uin="pass"]'); if (i) st.uform.pass = i.value; st.uform.showPass = !st.uform.showPass; return render(); }
+  if (t.closest('[data-upgen]') && st.uform) { e.preventDefault(); e.stopImmediatePropagation(); st.uform.pass = pwGen(); st.uform.showPass = true; return render(); }
+  if (t.closest('[data-ccclose]')) { e.preventDefault(); e.stopImmediatePropagation(); st.ucred = null; return render(); }
+  const cp = t.closest('[data-ccopyall]'); if (cp && st.ucred) { e.preventDefault(); e.stopImmediatePropagation(); const c = st.ucred;
+    const txt = `${L('Login', 'Логин', 'Login')}: ${c.login}\n${L('Hasło', 'Пароль', 'Password')}: ${c.pass}`;
+    (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(() => toast(L('Skopiowano', 'Скопировано', 'Copied')), () => toast(L('Nie udało się skopiować', 'Не удалось скопировать', 'Could not copy'))); }
+}, true);
+const _saveUserCred = saveUser;
+saveUser = async function () {
+  const u = st.uform; if (!u) return _saveUserCred();
+  const p = u.id === 'new' ? null : D.prof.get(u.id), i = document.querySelector('[data-uin="pass"]'), pass = (i && i.value) || u.pass || '';
+  const name = String(u.name || '').trim();
+  await _saveUserCred();
+  const q = p ? D.prof.get(p.id) : null, login = q ? q.login : String(u.login || '').trim().toLowerCase();
+  if (pass && !st.uform) { st.ucred = {name, login, pass}; render(); }
+};
+document.head.insertAdjacentHTML('beforeend', '<style>.pwrow{display:flex;gap:6px;align-items:stretch}.pwrow>.inp,.pwrow>.clrw{flex:1;min-width:0}.pwrow .pwb{min-height:50px}.pwb{flex:none;display:flex;align-items:center;justify-content:center;min-width:46px;padding:0 10px;border:0;border-radius:12px;background:var(--soft);color:var(--ink);font:700 13px/1 var(--font-text);cursor:pointer}.creds{display:flex;flex-direction:column;gap:8px;margin:4px 0 10px}.crow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:14px;background:var(--soft)}.crow span{font:600 13px/1 var(--font-text);color:var(--muted)}.crow b{font:700 17px/1.2 var(--font-text);user-select:all;word-break:break-all;text-align:right}.mrow .mt small{color:var(--ink-2)}</style>');
+
+/* 9) staff passwords and login change */
+const PWK = new Map();
+let pwAt = 0;
+const loadPw = async () => {
+  if (!isAdmin()) return; pwAt = Date.now();
+  try { const {data, error} = await sb.from('account_passwords').select('user_id, password'); if (error || !data) return; PWK.clear(); for (const r of data) PWK.set(r.user_id, r.password); if (st.scr === 'users') render(); } catch (x) {}
+};
+const _saveUserPw = saveUser;
+saveUser = async function () {
+  const u = st.uform; if (!u || u.busy) return _saveUserPw();
+  const i = document.querySelector('[data-uin="pass"]'), pass = (i && i.value) || u.pass || '', p = u.id === 'new' ? null : D.prof.get(u.id);
+  let login = p ? p.login : String(u.login || '').trim().toLowerCase();
+  if (p && u.login != null && !p.login.includes('@')) { // login change first, as its own request
+    const nl = String(u.login).trim().toLowerCase();
+    if (nl !== p.login) {
+      if (!/^[a-z0-9._-]{2,32}$/.test(nl)) { u.err = L('Login: 2–32 znaki a-z 0-9 . _ -', 'Логин: 2–32 символа a-z 0-9 . _ -', 'Login: 2–32 characters a-z 0-9 . _ -'); return render(); }
+      u.busy = 1; u.err = ''; render();
+      try { await callAdmin({action: 'update', id: p.id, login: nl}); p.login = nl; login = nl; await LOAD.profiles().catch(() => {}); }
+      catch (x) { u.busy = 0; u.err = x && x.appCode === 'login_taken' ? L('Taki login już jest', 'Такой логин уже есть', 'This login is taken') : L('Nie udało się zmienić loginu', 'Не удалось сменить логин', 'Could not change the login'); return render(); }
+      u.busy = 0;
+      if (!pass) { toast(L(`Login zmieniony: ${nl}`, `Логин изменён: ${nl}`, `Login changed: ${nl}`)); }
+    }
+  }
+  await _saveUserPw();
+  if (pass && !st.uform) { const q = [...D.prof.values()].find(x => x.login === login); if (q) PWK.set(q.id, pass); }
+};
+const _userSheetPw = userSheet;
+userSheet = function () {
+  const h = _userSheetPw(), u = st.uform; if (!u || u.id === 'new') return h;
+  const p = D.prof.get(u.id); if (!p) return h;
+  const pw = PWK.get(p.id), show = !!u.showOld;
+  const blk = `<div class="acc2"><div class="crow"><span>${L('Login', 'Логин', 'Login')}</span><b>${esc(p.login)}</b></div>
+  <div class="crow"><span>${L('Hasło', 'Пароль', 'Password')}</span>${pw ? `<b class="pwv">${show ? esc(pw) : '••••••••'}</b><button type="button" class="pwb" data-upold="1" aria-label="${L('Pokaż hasło', 'Показать пароль', 'Show password')}">${ic('eye', 18)}</button><button type="button" class="pwb" data-upcopy="1">${L('Kopiuj', 'Копировать', 'Copy')}</button>` : `<em class="pwnone">${L('nieznane — ustaw nowe poniżej', 'неизвестен — задай новый ниже', 'unknown — set a new one below')}</em>`}</div></div>`;
+  const lin = p.login.includes('@') ? '' : `<label class="bl-field"><span>${L('Login', 'Логин', 'Login')}</span><input class="inp" data-uin="login" value="${esc(u.login ?? p.login)}" autocapitalize="none" spellcheck="false"></label>`;
+  const h2 = h.replace(/<div class="bl-field"><span>[^<]*<\/span><div class="auto">[^<]*<\/div><\/div>/, lin), i = h2.indexOf('<label class="bl-field"><span>' + L('Imię', 'Имя', 'Name')); return i < 0 ? h2 : h2.slice(0, i) + blk + h2.slice(i);
+};
+document.addEventListener('click', e => {
+  if (e.target.closest('[data-upold]') && st.uform) { e.preventDefault(); e.stopImmediatePropagation(); st.uform.showOld = !st.uform.showOld; return render(); }
+  if (e.target.closest('[data-upcopy]') && st.uform) { e.preventDefault(); e.stopImmediatePropagation(); const p = D.prof.get(st.uform.id), pw = p && PWK.get(p.id); if (!pw) return;
+    const txt = `${L('Login', 'Логин', 'Login')}: ${p.login}\n${L('Hasło', 'Пароль', 'Password')}: ${pw}`;
+    (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(() => toast(L('Skopiowano', 'Скопировано', 'Copied')), () => toast(L('Nie udało się skopiować', 'Не удалось скопировать', 'Could not copy'))); }
+}, true);
+document.head.insertAdjacentHTML('beforeend', '<style>.acc2{display:flex;flex-direction:column;gap:8px;margin:2px 0 12px}.acc2 .crow{gap:8px}.acc2 .crow span{flex:1}.acc2 .pwv{font:700 16px/1.2 var(--font-text);letter-spacing:.02em}.acc2 .pwb{min-height:36px;background:var(--card)}.pwnone{font:600 13px/1.3 var(--font-text);font-style:normal;color:var(--muted)}</style>');
