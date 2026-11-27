@@ -4,7 +4,7 @@
   const DOMAIN = 'zoo-log.invalid';
   const now = () => new Date().toISOString();
   const id = () => crypto.randomUUID();
-  const db = {profiles: [], species: [], collection: [], records: [], photos: [], enclosures: [], change_log: [], comments: [], drugs: []};
+  const db = {profiles: [], species: [], collection: [], records: [], photos: [], enclosures: [], change_log: [], comments: [], drugs: [], account_passwords: []};
   const REC_TYPES = ['expo', 'obs', 'tstart', 'tdose', 'tend', 'lay', 'incub', 'hatch', 'fledge', 'birth'];
   const files = new Map();
   const users = [{id: id(), email: 'diomid13a@gmail.com', password: 'secret123', confirmed: true, banned: false}];
@@ -180,17 +180,26 @@
           const u = {id: id(), email: body.login + '@' + DOMAIN, password: body.password, confirmed: true, banned: false};
           users.push(u);
           db.profiles.push({id: u.id, login: body.login, display_name: body.display_name || body.login, role: body.role, active: true, created_at: now()});
-          return {data: {ok: true, id: u.id}, error: null};
+          db.account_passwords.push({user_id: u.id, password: body.password, updated_at: now()});
+          return {data: {ok: true, id: u.id, password_saved: true}, error: null};
         }
         if (body.action === 'update') {
           const p = db.profiles.find(p => p.id === body.id);
           if (!p) return fail(404, 'not_found');
           if (body.id === uidNow() && ((body.role && body.role !== 'admin') || body.active === false)) return fail(400, 'self_lock');
-          if (body.password) { if (String(body.password).length < 8) return fail(400, 'short_password'); users.find(u => u.id === p.id).password = body.password; }
+          if (body.login !== undefined) {
+            const login = String(body.login).trim().toLowerCase(), u = users.find(u => u.id === p.id);
+            if (!/^[a-z0-9._-]{2,32}$/.test(login)) return fail(400, 'bad_login');
+            if (!u.email.endsWith('@' + DOMAIN)) return fail(400, 'email_login');
+            if (db.profiles.some(x => x.login === login && x.id !== p.id)) return fail(409, 'login_taken');
+            u.email = login + '@' + DOMAIN; p.login = login;
+          }
+          if (body.password) { if (String(body.password).length < 8) return fail(400, 'short_password'); users.find(u => u.id === p.id).password = body.password;
+            db.account_passwords = db.account_passwords.filter(x => x.user_id !== p.id).concat({user_id: p.id, password: body.password, updated_at: now()}); }
           if (body.display_name !== undefined) p.display_name = body.display_name;
           if (body.role) p.role = body.role;
           if (body.active !== undefined) { p.active = !!body.active; users.find(u => u.id === p.id).banned = !p.active; }
-          return {data: {ok: true, password_changed: typeof body.password === 'string'}, error: null};
+          return {data: {ok: true, password_changed: typeof body.password === 'string', password_saved: typeof body.password === 'string' || undefined}, error: null};
         }
         return fail(400, 'bad_action');
       }
