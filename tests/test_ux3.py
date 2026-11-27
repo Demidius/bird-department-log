@@ -1,5 +1,6 @@
 # ux3.js: breeding timings and forecast; expected events in the calendar; resize re-render only on phone ↔ computer;
-# «until cancelled»; arrival «from», age (stage / number / birth date) and «when» (date only / no date). Reuses test_newui.py helpers.
+# «until cancelled»; arrival «from», age (stage / number / birth date) and «when» (date only / no date); users: sign-in details,
+# passwords for the admin, login field. Reuses test_newui.py helpers.
 import pathlib, sys
 HERE = pathlib.Path(__file__).resolve().parent
 exec((HERE / 'test_newui.py').read_text().split('\nwith sync_playwright()')[0])
@@ -44,5 +45,14 @@ with sync_playwright() as pw:
     p.fill("#spin", "nikobar"); p.wait_for_timeout(300); click(p, "[data-spsel]"); click(p, "[data-fv=to]", 0); click(p, '[data-atmode=none]')
     n0 = p.evaluate("__mock.db.records.length"); click(p, "[data-save]", t=800)
     print("no date → records:", p.evaluate(f"__mock.db.records.length - {n0}"), "| arrived:", p.evaluate("__mock.db.collection.slice(-1)[0].arrived"))
+    # 8, 9) users: generate, sign-in details, password in the staff card, login field
+    p.evaluate("st.scr = 'users'; render()"); p.wait_for_timeout(200)
+    print("list login:", p.locator('.mrow small').first.inner_text())
+    click(p, '[data-uform=new]'); p.fill('[data-uin=name]', 'Test'); p.fill('[data-uin=login]', 'testtest'); click(p, '[data-upgen]')
+    pw = p.locator('[data-uin=pass]').input_value(); click(p, '[data-usave]', t=600)
+    print("details window:", p.locator('.creds').count(), pw in p.locator('.creds').inner_text()); click(p, '[data-ccclose]', 0)
+    tid = p.evaluate("[...D.prof.values()].find(x => x.login === 'testtest').id"); click(p, f'[data-uform="{tid}"]'); click(p, '[data-upold]')
+    print("password in card:", p.locator('.pwv').inner_text() == pw, "| login field:", p.locator('[data-uin=login]').input_value())
+    p.evaluate("st.uform = null; render()")
     print("ERRORS:", [e for e in errors if 'fetching the script' not in e])
     b.close()

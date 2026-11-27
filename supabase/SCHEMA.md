@@ -22,6 +22,8 @@ comments   (id, record_id → records on delete cascade, parent_id → comments 
 drugs      (id, name unique lower(btrim), substance, form 0–7 (OPT.dform), conc, routes jsonb [индексы OPT.routes], maker,
            dose, use, contra, storage, note, locked [], created_by, created_at, updated_at) — каталог лекарств; связь с записями по имени (records.f.drug)
 photos     (id, owner_type record|bird|species|encl|drug, owner_id, path '<uid>/<uuid>.jpg', width, height, created_by, created_at)
+account_passwords (user_id → profiles on delete cascade, password, updated_at) — копия пароля, заданного через admin-users (просьба владельца);
+           читает только admin (RLS app.is_admin()), пишет только Edge Function; старые пароли неизвестны
 change_log (id bigint, at, actor → profiles, kind user|ai|dev, entity, entity_id, action insert|update|delete|note, label, fields[], extra, summary ≤1000, ver)
 ```
 Связи по **имени** (не по id): `collection.encl` → `enclosures.name`, `records.bird` → `collection.name`, `records.f.from/to` и `records.f.place` → `enclosures.name` (переименование места обновляет их триггером).
@@ -47,7 +49,6 @@ Realtime (`supabase_realtime`): species, collection, enclosures, records, photos
 - Вставка требует `created_by = auth.uid()`.
 - Storage bucket `journal-photos`: путь `<uid>/<uuid>(_t).jpg`.
 - `public.claim_first_admin()` — единственный способ стать админом. `public.journal_has_admin()`.
-- `public.split_collection_group(id, version, counts)` — атомарно создаёт индивидуальные карточки и уменьшает состав исходной группы. Пустая группа получает статус `out`. Функция работает с правами вызывающего, с действующими RLS и замками.
 - Аккаунты — Edge Function `admin-users` (копия кода: `supabase/functions/admin-users/index.ts`; разворачивать через MCP `deploy_edge_function`).
 
 ## Функции для агентов (только владелец БД, с сайта недоступны)
