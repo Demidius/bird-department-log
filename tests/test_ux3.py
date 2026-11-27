@@ -1,6 +1,6 @@
 # ux3.js: breeding timings and forecast; expected events in the calendar; resize re-render only on phone ↔ computer;
 # «until cancelled»; arrival «from», age (stage / number / birth date) and «when» (date only / no date); users: sign-in details,
-# passwords for the admin, login field. Reuses test_newui.py helpers.
+# passwords for the admin, login change; computer card label; age in the card edit. Reuses test_newui.py helpers.
 import pathlib, sys
 HERE = pathlib.Path(__file__).resolve().parent
 exec((HERE / 'test_newui.py').read_text().split('\nwith sync_playwright()')[0])
@@ -54,5 +54,17 @@ with sync_playwright() as pw:
     tid = p.evaluate("[...D.prof.values()].find(x => x.login === 'testtest').id"); click(p, f'[data-uform="{tid}"]'); click(p, '[data-upold]')
     print("password in card:", p.locator('.pwv').inner_text() == pw, "| login field:", p.locator('[data-uin=login]').input_value())
     p.evaluate("st.uform = null; render()")
+    # 12) age in the card edit (stage), saved with the assessment date
+    p.evaluate("(() => { const s = spBy(D.an[0].species_id), i = spInfo(s); i.life = 'do 20 lat'; i.mature_years = 2; })()")
+    p.evaluate("go({scr: 'card', ani: D.an[0].id})"); p.wait_for_timeout(200); click(p, '.topbar [data-edform=an]')
+    click(p, '[data-eset="age.am"][data-s=a]'); click(p, '[data-eset="age.ac"][data-s=adult]'); click(p, '[data-edsave]', t=600)
+    print("edit age:", p.evaluate("(() => { const a = __mock.db.collection.find(x => x.id === D.an[0].id); return [a.born, a.age_class, !!a.age_at]; })()"))
+    # 9) login change through the mock admin function
+    p.evaluate("st.scr = 'users'; render()"); click(p, f'[data-uform="{tid}"]'); p.fill('[data-uin=login]', 'testowy'); click(p, '[data-usave]', t=600)
+    print("login changed:", p.evaluate(f"__mock.db.profiles.find(x => x.id === '{tid}').login"))
+    # 10) computer: card label on the right card, no back button in the middle column
+    q = page(b, 1360, 800)
+    q.evaluate("go({scr: 'status', nowStatus: 'treatment', nowStatusTab: 'animals'})"); q.wait_for_timeout(200); q.locator('.pc-list [data-ani]').first.click(); q.wait_for_timeout(300)
+    print("pc card label:", q.locator('.pc-det .topbar .tbcat').all_inner_texts(), "| middle back hidden:", not q.locator('.pc-list>.topbar>[data-back]').is_visible())
     print("ERRORS:", [e for e in errors if 'fetching the script' not in e])
     b.close()
