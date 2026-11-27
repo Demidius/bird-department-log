@@ -1,5 +1,6 @@
 // Account management for the bird department journal.
 // Only an active admin (checked against public.profiles) may call it.
+// A copy of each password set here goes to public.account_passwords (only admins can read it; owner's request).
 import { createClient } from "npm:@supabase/supabase-js@2.119.0";
 
 const LOGIN_DOMAIN = "zoo-log.invalid";
@@ -12,6 +13,9 @@ const cors = {
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...cors, "Content-Type": "application/json" } });
 const clean = (s: unknown, n: number) => String(s ?? "").trim().slice(0, n);
+// deno-lint-ignore no-explicit-any
+const keepPassword = async (admin: any, userId: string, password: string) =>
+  !(await admin.from("account_passwords").upsert({ user_id: userId, password, updated_at: new Date().toISOString() })).error;
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
@@ -56,7 +60,8 @@ Deno.serve(async (req: Request) => {
         await admin.auth.admin.deleteUser(created.user.id);
         return json({ error: "create_failed", detail: profErr.message }, 400);
       }
-      return json({ ok: true, id: created.user.id });
+      const password_saved = await keepPassword(admin, created.user.id, password);
+      return json({ ok: true, id: created.user.id, password_saved });
     }
 
     if (body.action === "update") {
@@ -70,6 +75,19 @@ Deno.serve(async (req: Request) => {
         patch.role = String(body.role);
       }
       if (body.active !== undefined) patch.active = Boolean(body.active);
+      if (body.login !== undefined) {
+        const login = clean(body.login, 32).toLowerCase();
+        if (!/^[a-z0-9._-]{2,32}$/.test(login)) return json({ error: "bad_login" }, 400);
+        const { data: cur } = await admin.auth.admin.getUserById(id);
+        if (!cur?.user?.email?.endsWith("@" + LOGIN_DOMAIN)) return json({ error: "email_login" }, 400);
+        const { data: taken } = await admin.from("profiles").select("id").eq("login", login).neq("id", id).maybeSingle();
+        if (taken) return json({ error: "login_taken" }, 409);
+        if (`${login}@${LOGIN_DOMAIN}` !== cur.user.email) {
+          const { error } = await admin.auth.admin.updateUserById(id, { email: `${login}@${LOGIN_DOMAIN}`, email_confirm: true });
+          if (error) return json({ error: "login_update_failed" }, 400);
+        }
+        patch.login = login;
+      }
       if (id === callerId && ((patch.role !== undefined && patch.role !== "admin") || patch.active === false)) {
         return json({ error: "self_lock" }, 400);
       }
@@ -81,6 +99,7 @@ Deno.serve(async (req: Request) => {
         const { data, error } = await admin.auth.admin.updateUserById(id, { password });
         if (error || data?.user?.id !== id) return json({ error: "password_update_failed" }, 400);
       }
+      const password_saved = typeof password === "string" ? await keepPassword(admin, id, password) : undefined;
       if (patch.active !== undefined && patch.active !== target.active) {
         const { error } = await admin.auth.admin.updateUserById(id, { ban_duration: patch.active ? "none" : "876000h" });
         if (error) return json({ error: "update_failed", detail: error.message }, 400);
@@ -89,7 +108,7 @@ Deno.serve(async (req: Request) => {
         const { error } = await admin.from("profiles").update(patch).eq("id", id);
         if (error) return json({ error: "update_failed", detail: error.message }, 400);
       }
-      return json({ ok: true, password_changed: typeof password === "string" });
+      return json({ ok: true, password_changed: typeof password === "string", password_saved });
     }
 
     return json({ error: "bad_action" }, 400);

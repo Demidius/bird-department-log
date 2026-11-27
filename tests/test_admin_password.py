@@ -12,6 +12,8 @@ with sync_playwright() as pw:
     p.locator('[data-uin=login]').fill('sample-staff')
     p.locator('[data-uin=pass]').fill('MockOriginal!23')
     p.locator('[data-usave]').click()
+    p.locator('.creds').get_by_text('MockOriginal!23').wait_for()  # sign-in details window (ux3.js 8)
+    p.locator('.credsh [data-ccclose]').first.click()
     staff = p.locator('button[data-uform]').filter(has_text='sample-staff')
     staff.click()
 
@@ -32,6 +34,8 @@ with sync_playwright() as pw:
     p.locator('[data-usave]').click()
     p.locator('#toast').get_by_text('Hasło zmienione. Login: sample-staff').wait_for()
     assert not p.locator('[data-uin=pass]').count()
+    p.locator('.creds').get_by_text(new_password).wait_for()
+    p.locator('.credsh [data-ccclose]').first.click()
 
     staff.click()
     p.locator('[data-uin=name]').fill('Sample staff renamed')
