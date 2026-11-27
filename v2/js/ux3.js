@@ -24,6 +24,12 @@
 // 9) Staff passwords visible to the admin (owner's request): the staff card starts with «Login» and «Password» (dots, eye,
 //    «Copy»). The admin-users Edge Function keeps a copy of every password it sets in public.account_passwords (admins only);
 //    older passwords are unknown («unknown — set a new one»). The login can be changed (not for e-mail logins).
+// 10) Computer: the window type label goes to the card on the right (not to a list from «Now» in the middle column);
+//     lists in the middle column have no back button.
+// 11) Calendar counters larger (phone 12px, computer 14px); on narrow phones smaller icons (≤ 400px) or none (< 370px),
+//     so that both counters stay on one line inside the day cell.
+// 12) Age also for groups (arrival) and in the animal card edit: unknown / birth date / years / stage — under the
+//     «Born» lock; changing the stage or the years sets a new assessment date.
 
 /* 1) breeding timings */
 const brdUniq = l => l.filter((m, i) => m && l.findIndex(x => x && x.id === m.id) === i);
@@ -177,8 +183,8 @@ function arrAge(i) {
 }
 const _arriveFormAg = arriveForm;
 arriveForm = function () {
-  let h = _arriveFormAg(); const f = F(); if ((f.fv.cnt ?? 0) === 4) return h;
-  for (let i = 0; i <= (f.fv.cnt ?? 0); i++) { const t = `data-in="fv.r${i}"`, a = h.indexOf(t); if (a < 0) continue; const b = h.indexOf('>', a) + 1; h = h.slice(0, b) + arrAge(i) + h.slice(b); }
+  let h = _arriveFormAg(); const f = F(), grp = (f.fv.cnt ?? 0) === 4;
+  for (let i = 0; i <= (grp ? 0 : f.fv.cnt ?? 0); i++) { const t = grp ? 'data-in="fv.n0"' : `data-in="fv.r${i}"`, a = h.indexOf(t); if (a < 0) continue; const b = h.indexOf('>', a) + 1; h = h.slice(0, b) + arrAge(i) + h.slice(b); }
   return h;
 };
 // «When» for the arrival
@@ -214,7 +220,7 @@ async function arrSave() {
   f.busy = 1; f.err = ''; render();
   const made = [], ans = [], base = sp.name_pl || sp.latin || spName(sp), SX = {m: 'samiec', f: 'samica', '': 'płeć nieznana'};
   try {
-    const rows = (v.cnt ?? 0) === 4 ? [{name: String(v.n0 || '').trim() || base, sex: '', grp: {m: num(v.gm) || 0, f: num(v.gf) || 0, u: num(v.gu) || 0, j: num(v.gj) || 0}}]
+    const rows = (v.cnt ?? 0) === 4 ? [Object.assign({name: String(v.n0 || '').trim() || base, sex: '', grp: {m: num(v.gm) || 0, f: num(v.gf) || 0, u: num(v.gu) || 0, j: num(v.gj) || 0}}, arrBorn(v, 0, at))]
       : Array.from({length: (v.cnt ?? 0) + 1}).map((_, i) => Object.assign({name: String(v['n' + i] || '').trim() || `${base} - ${SX[v['sx' + i] ?? '']}`, sex: v['sx' + i] ?? '', ring: String(v['r' + i] || '').trim()}, arrBorn(v, i, at)));
     for (const r of rows) {
       const id = uuid(), name = uniqName(r.name);
@@ -234,7 +240,7 @@ async function arrSave() {
 // animal card: age — birth date with the age now, or the stage with «now about from – to»
 const _animalCardAg = animalCard;
 animalCard = function () {
-  let h = _animalCardAg(); const a = anById(st.ani); if (!a || a.grp) return h;
+  let h = _animalCardAg(); const a = anById(st.ani); if (!a) return h;
   if (a.born) { const lab = L('Urodzony', 'Родился', 'Born'), b = new Date(a.born).getTime(), t = `<dt>${lab}</dt><dd>${esc(fDate(b))}</dd>`; return h.replace(t, `<dt>${lab}</dt><dd>${esc(fDateY(b) + ' · ' + ageFmt((Date.now() - b) / DAY))}</dd>`); }
   if (!a.age_class) return h;
   if (a.age_class === 'num') {
@@ -351,3 +357,62 @@ document.addEventListener('click', e => {
     (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(() => toast(L('Skopiowano', 'Скопировано', 'Copied')), () => toast(L('Nie udało się skopiować', 'Не удалось скопировать', 'Could not copy'))); }
 }, true);
 document.head.insertAdjacentHTML('beforeend', '<style>.acc2{display:flex;flex-direction:column;gap:8px;margin:2px 0 12px}.acc2 .crow{gap:8px}.acc2 .crow span{flex:1}.acc2 .pwv{font:700 16px/1.2 var(--font-text);letter-spacing:.02em}.acc2 .pwb{min-height:36px;background:var(--card)}.pwnone{font:600 13px/1.3 var(--font-text);font-style:normal;color:var(--muted)}</style>');
+
+/* 10) computer: card label in the right column, no back button in the middle column */
+cardCat = function () {
+  const f = CARD_CAT[st.scr]; if (!f) return;
+  const s = document.querySelector((isPC() ? '.pc-det ' : '') + '.cardscr .topbar > span:not([style])') || document.querySelector('.topbar > span:not([style])');
+  if (s && !s.querySelector('.tbcat')) s.innerHTML = `<b class="tbcat">${esc(f())}</b>`;
+};
+document.head.insertAdjacentHTML('beforeend', '<style>@media (min-width: 1000px){.pc-list>.topbar>[data-back]{display:none}.pc-list>.topbar{padding-left:20px}}</style>');
+
+/* 11) calendar counters */
+document.head.insertAdjacentHTML('beforeend', '<style>.cal-counts{font-size:12px;gap:3px}.cal-count{gap:1px}.cal-count svg{width:11px;height:11px}'
+  + '@media (max-width: 400px){.cal-counts{gap:2px}.cal-count{gap:0}.cal-count svg{width:9px;height:9px}}@media (max-width: 369px){.cal-count svg{display:none}}'
+  + '.pcd .cal-counts{font-size:14px;gap:10px}.pcd .cal-count{gap:3px}.pcd .cal-count svg{width:14px;height:14px}</style>');
+
+/* 12) age in the animal card edit */
+const ageFromAnimal = a => a.born ? {am: 'd', bd: String(a.born).slice(0, 10)} : a.age_class === 'num' ? (a.age_n % 12 || !a.age_n ? {am: 'n', ag: String(a.age_n ?? ''), au: 'm'} : {am: 'n', ag: String(a.age_n / 12), au: 'y'})
+  : a.age_class ? {am: 'a', ac: a.age_class} : {am: 'x'};
+const _openEdAg = openEd;
+openEd = function (k, isNew) {
+  const r = _openEdAg(k, isNew), e = st.ed;
+  if (e && e.k === 'an') { const a = e.id ? anById(e.id) : null; e.v.age = a ? ageFromAnimal(a) : {am: 'x'}; e.v.age0 = JSON.stringify(e.v.age); }
+  return r;
+};
+function edAge() {
+  const e = st.ed, g = e.v.age || {am: 'x'}, dis = ro('born') ? 'disabled' : '', m = g.am || 'x', stg = ageStages(spBy(e.v.species_id));
+  const seg = (k, s, t, def) => `<button data-eset="age.${k}" data-s="${s}" aria-pressed="${(g[k] || def) === s}" ${dis}>${t}</button>`;
+  return efld(L('Wiek', 'Возраст', 'Age'), 'born', `<div class="seg2 edage">${seg('am', 'x', L('Nie wiem', 'Не знаю', 'Unknown'), 'x')}${seg('am', 'd', L('Data ur.', 'Дата рожд.', 'Birth date'), 'x')}${seg('am', 'n', L('Ile lat', 'Сколько', 'Years'), 'x')}${seg('am', 'a', L('Etap', 'Стадия', 'Stage'), 'x')}</div>`
+    + (m === 'd' ? `<input class="inp" type="date" data-ein="age.bd" value="${esc(g.bd || '')}" max="${ymd(Date.now())}" ${dis} style="margin-top:8px">` : '')
+    + (m === 'n' ? `<div class="ageap"><input class="inp" data-ein="age.ag" value="${esc(g.ag || '')}" placeholder="${L('np. 5', 'напр. 5', 'e.g. 5')}" inputmode="decimal" ${dis}><div class="seg2">${seg('au', 'y', L('lat', 'лет', 'years'), 'y')}${seg('au', 'm', L('mies.', 'мес.', 'months'), 'y')}</div></div>` : '')
+    + (m === 'a' ? `<div class="agecls">${stg.map(x => `<button data-eset="age.ac" data-s="${x.k}" aria-pressed="${g.ac === x.k}" ${dis}><b>${x.lab}</b>${ageRange(x) ? `<small>${ageRange(x)}</small>` : ''}</button>`).join('')}</div>` : ''));
+}
+const _animalEditAg = animalEdit;
+animalEdit = function () {
+  const h = _animalEditAg(), i = h.indexOf('data-ein="born"'); if (i < 0) return h;
+  const a = h.lastIndexOf('<div class="bl-field">', i), b = h.indexOf('</div>', i) + 6, r = h.lastIndexOf('<div class="frow">', a);
+  const h2 = h.slice(0, a) + h.slice(b), at = r < 0 ? a : r;
+  return h2.slice(0, at) + `<div class="edagew">${edAge()}</div>` + h2.slice(at);
+};
+let AGE_PATCH = null;
+const _putRowAg = putRow;
+putRow = function (table, list, id, patch, isNew) {
+  if (table === 'collection' && AGE_PATCH && AGE_PATCH.id === id && patch) { patch = Object.assign({}, patch, AGE_PATCH.p); AGE_PATCH = null; }
+  return _putRowAg(table, list, id, patch, isNew);
+};
+const _saveEdAg = saveEd;
+saveEd = async function () {
+  const e = st.ed; if (!e || e.k !== 'an' || !e.v.age || (ro('born') && !isAdmin())) return _saveEdAg();
+  const g = e.v.age, a = e.id ? anById(e.id) : null, changed = JSON.stringify(g) !== e.v.age0, today = ymd(Date.now());
+  const n = parseFloat(String(g.ag || '').replace(',', '.'));
+  let p;
+  if (g.am === 'd') p = {born: g.bd || null, age_class: null, age_n: null, age_at: null};
+  else if (g.am === 'n' && n >= 0) p = {born: null, age_class: 'num', age_n: Math.round((g.au || 'y') === 'm' ? n : n * 12), age_at: changed || !a || !a.age_at ? today : a.age_at};
+  else if (g.am === 'a' && g.ac) p = {born: null, age_class: g.ac, age_n: null, age_at: changed || !a || !a.age_at ? today : a.age_at};
+  else p = {born: null, age_class: null, age_n: null, age_at: null};
+  e.v.born = p.born || '';
+  AGE_PATCH = changed && e.id ? {id: e.id, p: {age_class: p.age_class, age_n: p.age_n, age_at: p.age_at}} : null;
+  try { return await _saveEdAg(); } finally { AGE_PATCH = null; }
+};
+document.head.insertAdjacentHTML('beforeend', '<style>.edage{display:flex}.edage button{flex:1;font-size:12.5px;white-space:nowrap;padding:0 6px}.edagew .ageap{margin-top:8px}</style>');
